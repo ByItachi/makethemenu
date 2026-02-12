@@ -40,6 +40,8 @@ export interface IStorage extends IAuthStorage {
   getOrder(id: number): Promise<OrderWithItems | undefined>;
   createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems>;
   updateOrderStatus(id: number, status: string): Promise<Order>;
+  // Contact messages
+  createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
 }
 
 export class DatabaseStorage implements IStorage {

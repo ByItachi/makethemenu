@@ -12,6 +12,7 @@ import Orders from "@/pages/Orders";
 import Menu from "@/pages/Menu";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
+import LandingPage from "@/pages/LandingPage";
 import { Loader2 } from "lucide-react";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -35,25 +36,26 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 function Router() {
   return (
     <Switch>
+      <Route path="/" component={LandingPage} />
       <Route path="/login" component={Login} />
       
-      <Route path="/">
-        <ProtectedRoute component={Dashboard} />
+      <Route path="/dashboard">
+        {() => <ProtectedRoute component={Dashboard} />}
       </Route>
       <Route path="/pos">
-        <ProtectedRoute component={POS} />
+        {() => <ProtectedRoute component={POS} />}
       </Route>
       <Route path="/tables">
-        <ProtectedRoute component={Tables} />
+        {() => <ProtectedRoute component={Tables} />}
       </Route>
       <Route path="/orders">
-        <ProtectedRoute component={Orders} />
+        {() => <ProtectedRoute component={Orders} />}
       </Route>
       <Route path="/menu">
-        <ProtectedRoute component={Menu} />
+        {() => <ProtectedRoute component={Menu} />}
       </Route>
       <Route path="/settings">
-        <ProtectedRoute component={Settings} />
+        {() => <ProtectedRoute component={Settings} />}
       </Route>
       
       <Route component={NotFound} />

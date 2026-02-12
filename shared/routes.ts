@@ -165,7 +165,23 @@ export const api = {
         404: errorSchemas.notFound,
       },
     }
-  }
+  },
+  contact: {
+    submit: {
+      method: 'POST' as const,
+      path: '/api/contact' as const,
+      input: z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        subject: z.string().min(2),
+        message: z.string().min(10),
+      }),
+      responses: {
+        201: z.any(),
+        400: errorSchemas.validation,
+      },
+    },
+  },
 };
 
 export function buildUrl(path: string, params?: Record<string, string | number>): string {
