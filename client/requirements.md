@@ -1,15 +1,9 @@
 ## Packages
-framer-motion | Complex animations for hero sections and scroll reveals
-lucide-react | Icons for features and UI elements
-zod | Schema validation for forms
-react-hook-form | Form state management
-@hookform/resolvers | Zod integration for react-hook-form
+recharts | Dashboard analytics and charts
+framer-motion | Page transitions and fluid UI interactions
+date-fns | Date formatting for orders and logs
 
 ## Notes
-Tailwind Config - extend fontFamily:
-fontFamily: {
-  display: ["var(--font-display)"],
-  body: ["var(--font-body)"],
-}
-API endpoints expected:
-- POST /api/contact for the contact form
+Using Replit Auth for user authentication
+API endpoints follow REST conventions defined in shared/routes.ts
+Color palette: Zinc (Slate-ish darks) with Amber/Orange accents for appetizing feel
