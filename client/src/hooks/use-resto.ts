@@ -194,7 +194,7 @@ export function useUpdateProduct() {
     mutationFn: async ({ id, ...data }: { id: number } & Partial<InsertProduct>) => {
       const url = buildUrl(api.products.update.path, { id });
       const payload = { ...data };
-      if (payload.price) payload.price = Number(payload.price);
+      if (payload.price) payload.price = String(payload.price);
       
       const res = await fetch(url, {
         method: "PATCH",
@@ -266,10 +266,10 @@ export function useCreateOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.orders.list.path] });
       queryClient.invalidateQueries({ queryKey: [api.tables.list.path] }); // Table status might change
-      toast({ title: "Success", description: "Order placed successfully" });
+      toast({ title: "Başarılı", description: "Sipariş başarıyla oluşturuldu" });
     },
     onError: (error) => {
-      toast({ title: "Order Failed", description: error.message, variant: "destructive" });
+      toast({ title: "Sipariş Hatası", description: error.message, variant: "destructive" });
     }
   });
 }

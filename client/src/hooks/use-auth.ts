@@ -2,6 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@shared/models/auth";
 
 async function fetchUser(): Promise<User | null> {
+  // Check for demo user in localStorage first (for static/demo mode)
+  const demoUser = localStorage.getItem("demo_user");
+  if (demoUser) {
+    return JSON.parse(demoUser);
+  }
+
   const response = await fetch("/api/auth/user", {
     credentials: "include",
   });
@@ -18,6 +24,7 @@ async function fetchUser(): Promise<User | null> {
 }
 
 async function logout(): Promise<void> {
+  localStorage.removeItem("demo_user");
   window.location.href = "/api/logout";
 }
 

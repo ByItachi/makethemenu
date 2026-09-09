@@ -51,7 +51,7 @@ export default function Prices() {
 
   return (
     <div className="pt-32 pb-24 bg-slate-50 min-h-screen">
-      <div className="container mx-auto px-4 md:px-6 text-center mb-16">
+      <div className="site-container text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-slate-900">
           Şeffaf ve Uygun <span className="text-primary">Fiyatlar</span>
         </h1>
@@ -60,7 +60,7 @@ export default function Prices() {
         </p>
       </div>
 
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="site-container">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan, i) => (
             <div 
@@ -99,7 +99,7 @@ export default function Prices() {
                 ))}
               </ul>
 
-              <Link href="/contact">
+              <Link href={plan.name === 'Kurumsal' ? '/iletisim' : `/purchase?plan=${plan.name.toLowerCase()}`}>
                 <Button 
                   className={`w-full py-6 rounded-xl font-bold text-base ${plan.highlight ? 'bg-primary hover:bg-primary/90' : 'bg-slate-900 hover:bg-slate-800'}`}
                 >

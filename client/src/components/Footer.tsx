@@ -1,76 +1,118 @@
 import { Link } from "wouter";
 import { Facebook, Twitter, Instagram, Linkedin, Mail, MapPin, Phone } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Footer() {
+  const { t } = useLanguage();
+
   return (
-    <footer className="bg-slate-900 text-slate-200 py-16 mt-20">
-      <div className="container mx-auto px-4 md:px-6">
+    <footer className="bg-black text-slate-200 py-16 border-t border-white/10">
+      <div className="site-container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-display font-bold">
-                P
-              </div>
-              <span className="font-display font-bold text-xl text-white">
-                Pos<span className="text-blue-500">Sistem</span>
-              </span>
-            </div>
+          <div className="space-y-6">
+            <img
+                src="/makethemenu-footer.png"
+                alt="makethemenu"
+                draggable={false}
+                className="h-11 md:h-14 w-auto max-w-[190px] md:max-w-[220px] object-contain drop-shadow-lg select-none"
+              />
             <p className="text-slate-400 text-sm leading-relaxed">
-              İşletmeniz için modern, hızlı ve güvenilir POS çözümleri. Restoran, kafe ve mağazalar için tasarlandı.
+              {t("footer.description")}
             </p>
             <div className="flex gap-4 pt-2">
-              <a href="#" className="hover:text-white transition-colors"><Facebook className="w-5 h-5" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Instagram className="w-5 h-5" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Linkedin className="w-5 h-5" /></a>
+              <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 border border-white/10 hover:border-primary">
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 border border-white/10 hover:border-primary">
+                <Twitter className="w-5 h-5" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 border border-white/10 hover:border-primary">
+                <Instagram className="w-5 h-5" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 border border-white/10 hover:border-primary">
+                <Linkedin className="w-5 h-5" />
+              </a>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-display font-bold text-white mb-6">Hızlı Bağlantılar</h4>
-            <ul className="space-y-3">
-              <li><Link href="/" className="text-slate-400 hover:text-blue-400 transition-colors">Anasayfa</Link></li>
-              <li><Link href="/features" className="text-slate-400 hover:text-blue-400 transition-colors">Özellikler</Link></li>
-              <li><Link href="/prices" className="text-slate-400 hover:text-blue-400 transition-colors">Fiyatlar</Link></li>
-              <li><Link href="/about" className="text-slate-400 hover:text-blue-400 transition-colors">Hakkımızda</Link></li>
+            <h4 className="font-display font-bold text-white text-lg mb-6">{t("footer.quickAccess")}</h4>
+            <ul className="space-y-4">
+              <li>
+                <Link href="/" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">
+                  {t("footer.home")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/ozellikler" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">
+                  {t("footer.features")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/fiyatlar" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">
+                  {t("footer.pricing")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/hakkimizda" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">
+                  {t("footer.about")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/iletisim" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">
+                  {t("footer.contact")}
+                </Link>
+              </li>
             </ul>
           </div>
 
           {/* Solutions */}
           <div>
-            <h4 className="font-display font-bold text-white mb-6">Çözümler</h4>
-            <ul className="space-y-3">
-              <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Restoran POS</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Kafe Otomasyonu</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Stok Takibi</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-blue-400 transition-colors">Raporlama</a></li>
+            <h4 className="font-display font-bold text-white text-lg mb-6">{t("footer.solutions")}</h4>
+            <ul className="space-y-4">
+              <li><Link href="/ozellikler/restoran" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">{t("footer.restaurantAuto")}</Link></li>
+              <li><Link href="/ozellikler/kafe" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">{t("footer.cafePos")}</Link></li>
+              <li><Link href="/ozellikler/adisyon" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">{t("footer.cloudOrder")}</Link></li>
+              <li><Link href="/ozellikler/qr-menu" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">{t("footer.qrMenu")}</Link></li>
+              <li><Link href="/ozellikler/stok" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">{t("footer.stockTracking")}</Link></li>
             </ul>
           </div>
 
           {/* Contact */}
-          <div>
-            <h4 className="font-display font-bold text-white mb-6">İletişim</h4>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3 text-slate-400">
-                <MapPin className="w-5 h-5 text-blue-500 shrink-0" />
-                <span>Teknoloji Vadisi, No: 123<br />İstanbul, Türkiye</span>
+          <div className="min-w-0">
+            <h4 className="font-display font-bold text-white text-lg mb-6">{t("footer.contactTitle")}</h4>
+            <ul className="space-y-6">
+              <li className="flex items-start gap-4 text-slate-400 group min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <span className="mt-1 break-words min-w-0">{t("footer.address1")}<br />{t("footer.address2")}</span>
               </li>
-              <li className="flex items-center gap-3 text-slate-400">
-                <Phone className="w-5 h-5 text-blue-500 shrink-0" />
-                <span>+90 (212) 555 00 00</span>
+              <li className="flex items-center gap-4 text-slate-400 group min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <span className="break-words min-w-0">+90 (212) 555 01 00</span>
               </li>
-              <li className="flex items-center gap-3 text-slate-400">
-                <Mail className="w-5 h-5 text-blue-500 shrink-0" />
-                <span>info@possistem.com</span>
+              <li className="flex items-center gap-4 text-slate-400 group min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <span className="break-words min-w-0">info@makethemenu.com</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-500 text-sm">
-          <p>&copy; {new Date().getFullYear()} PosSistem Teknoloji A.Ş. Tüm hakları saklıdır.</p>
+        <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500 text-sm">
+          <p>&copy; {new Date().getFullYear()} {t("footer.rights")}</p>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-white transition-colors">{t("footer.privacy")}</a>
+            <a href="#" className="hover:text-white transition-colors">{t("footer.terms")}</a>
+            <a href="#" className="hover:text-white transition-colors">{t("footer.kvkk")}</a>
+          </div>
         </div>
       </div>
     </footer>

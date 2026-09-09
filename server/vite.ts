@@ -11,8 +11,10 @@ const viteLogger = createLogger();
 export async function setupVite(server: Server, app: Express) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server, path: "/vite-hmr" },
     allowedHosts: true as const,
+    host: "127.0.0.1",
+    port: 3000,
+    hmr: false,
   };
 
   const vite = await createViteServer({
@@ -31,7 +33,8 @@ export async function setupVite(server: Server, app: Express) {
 
   app.use(vite.middlewares);
 
-  app.use("/{*path}", async (req, res, next) => {
+  // Middleware to handle SPA fallback - match all requests not handled by previous middleware
+  app.use(async (req, res, next) => {
     const url = req.originalUrl;
 
     try {

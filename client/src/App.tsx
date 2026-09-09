@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CookieConsent } from "@/components/CookieConsent";
 import { useAuth } from "@/hooks/use-auth";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
@@ -12,8 +13,53 @@ import Orders from "@/pages/Orders";
 import Menu from "@/pages/Menu";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
+import Demo from "@/pages/Demo";
+import ForgotPassword from "@/pages/ForgotPassword";
+import Register from "@/pages/Register";
 import LandingPage from "@/pages/LandingPage";
+import FeaturesPage from "@/pages/FeaturesPage";
+import PricingPage from "@/pages/PricingPage";
+import AboutPage from "@/pages/AboutPage";
+import ContactPage from "@/pages/ContactPage";
+import Blog from "@/pages/Blog";
+import SolutionsPage from "@/pages/SolutionsPage";
+import FeatureDetailPage from "@/pages/FeatureDetailPage";
+import AboutSubPage from "@/pages/AboutSubPage";
+import PartnersPage from "@/pages/PartnersPage";
+import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
+import ApiDocsPage from "@/pages/ApiDocsPage";
+import SuccessStoriesPage from "@/pages/SuccessStoriesPage";
+import Purchase from "@/pages/Purchase";
+import IntegrationPurchase from "@/pages/IntegrationPurchase";
+
+// Adisyo Business Pages
+import CafeAutomationPage from "@/pages/CafeAutomationPage";
+import RestaurantAutomationPage from "@/pages/RestaurantAutomationPage";
+import MultiBranchPage from "@/pages/MultiBranchPage";
+import FastFoodPage from "@/pages/FastFoodPage";
+import BurgerRestaurantPage from "@/pages/BurgerRestaurantPage";
+import SeasonalBusinessPage from "@/pages/SeasonalBusinessPage";
+import CloudKitchenPage from "@/pages/CloudKitchenPage";
+import PizzaRestaurantPage from "@/pages/PizzaRestaurantPage";
+import HotelRestaurantPage from "@/pages/HotelRestaurantPage";
+import AdminOverview from "@/pages/admin/AdminOverview";
+import AdminBusinesses from "@/pages/admin/AdminBusinesses";
+import AdminVenues from "@/pages/admin/AdminVenues";
+import AdminLicenses from "@/pages/admin/AdminLicenses";
+import AdminPayments from "@/pages/admin/AdminPayments";
+import AdminInvoices from "@/pages/admin/AdminInvoices";
+import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminNotifications from "@/pages/admin/AdminNotifications";
 import { Loader2 } from "lucide-react";
+import DesktopDashboard from "@/pages/DesktopDashboard";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { DarkModeProvider } from "@/contexts/DarkModeContext";
+
+import OnlineLayout from "@/components/layouts/OnlineLayout";
+import PatronLayout from "@/components/layouts/PatronLayout";
+
+// Definition Pages
+
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
@@ -27,7 +73,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   }
 
   if (!user) {
-    return <Redirect to="/login" />;
+    return <Redirect to="/giris" />;
   }
 
   return <Component />;
@@ -37,27 +83,91 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
-      <Route path="/login" component={Login} />
+      <Route path="/ozellikler" component={FeaturesPage} />
+      <Route path="/ozellikler/:slug" component={FeatureDetailPage} />
+      <Route path="/fiyatlar" component={PricingPage} />
+      <Route path="/hakkimizda" component={AboutPage} />
+      <Route path="/hakkimizda/:slug" component={AboutSubPage} />
+      <Route path="/iletisim" component={ContactPage} />
+      <Route path="/cozumler/:slug" component={SolutionsPage} />
       
-      <Route path="/dashboard">
+      {/* Adisyo Business Routes */}
+      <Route path="/cafe-otomasyon-sistemi" component={CafeAutomationPage} />
+      <Route path="/restoran-otomasyon-sistemi" component={RestaurantAutomationPage} />
+      <Route path="/coklu-sube-adisyon-pos-sistemi" component={MultiBranchPage} />
+      <Route path="/fast-food-isletme-adisyon-programi" component={FastFoodPage} />
+      <Route path="/burger-cafe-restoran-adisyon-sistemi" component={BurgerRestaurantPage} />
+      <Route path="/sezonluk-isletmeler" component={SeasonalBusinessPage} />
+      <Route path="/cloud-kitchen-bulut-mutfak-adisyon-programi-pos-sistemi" component={CloudKitchenPage} />
+      <Route path="/pizza-restaurant-pos-otomasyon-sistemi" component={PizzaRestaurantPage} />
+      <Route path="/otel-restoran-yazilimi-otel-yazilim-programi" component={HotelRestaurantPage} />
+      
+      <Route path="/is-ortakligi/:slug" component={PartnersPage} />
+      <Route path="/kaynaklar/blog" component={Blog} />
+      <Route path="/kaynaklar/bilgi-merkezi" component={KnowledgeBasePage} />
+      <Route path="/kaynaklar/api" component={ApiDocsPage} />
+      <Route path="/basari-hikayeleri" component={SuccessStoriesPage} />
+      <Route path="/purchase" component={Purchase} />
+      <Route path="/integration-purchase" component={IntegrationPurchase} />
+      <Route path="/giris" component={Login} />
+      <Route path="/demo" component={Demo} />
+      <Route path="/sifremi-unuttum" component={ForgotPassword} />
+      <Route path="/kayit" component={Register} />
+
+      <Route path="/admin" component={AdminOverview} />
+      <Route path="/admin/businesses" component={AdminBusinesses} />
+      <Route path="/admin/venues" component={AdminVenues} />
+      <Route path="/admin/licenses" component={AdminLicenses} />
+      <Route path="/admin/payments" component={AdminPayments} />
+      <Route path="/admin/invoices" component={AdminInvoices} />
+      <Route path="/admin/notifications" component={AdminNotifications} />
+      <Route path="/admin/settings" component={AdminSettings} />
+
+      <Route path="/desktop">
+        {() => <ProtectedRoute component={DesktopDashboard} />}
+      </Route>
+
+      {/* Restoran Paneli (eski /online) */}
+      <Route path="/restoran">
+        {() => <ProtectedRoute component={OnlineLayout} />}
+      </Route>
+      <Route path="/restoran/*">
+        {() => <ProtectedRoute component={OnlineLayout} />}
+      </Route>
+      {/* Geriye dönük uyumluluk: /online → /restoran yönlendirme */}
+      <Route path="/online">
+        {() => <Redirect to="/restoran" />}
+      </Route>
+      <Route path="/online/*">
+        {() => <Redirect to="/restoran" />}
+      </Route>
+
+      {/* Patron Paneli */}
+      <Route path="/patron">
+        {() => <ProtectedRoute component={PatronLayout} />}
+      </Route>
+      <Route path="/patron/*">
+        {() => <ProtectedRoute component={PatronLayout} />}
+      </Route>
+      <Route path="/panel">
         {() => <ProtectedRoute component={Dashboard} />}
       </Route>
       <Route path="/pos">
         {() => <ProtectedRoute component={POS} />}
       </Route>
-      <Route path="/tables">
+      <Route path="/masalar">
         {() => <ProtectedRoute component={Tables} />}
       </Route>
-      <Route path="/orders">
+      <Route path="/siparisler">
         {() => <ProtectedRoute component={Orders} />}
       </Route>
       <Route path="/menu">
         {() => <ProtectedRoute component={Menu} />}
       </Route>
-      <Route path="/settings">
+      <Route path="/ayarlar">
         {() => <ProtectedRoute component={Settings} />}
       </Route>
-      
+
       <Route component={NotFound} />
     </Switch>
   );
@@ -66,10 +176,15 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <LanguageProvider>
+        <DarkModeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+            <CookieConsent />
+          </TooltipProvider>
+        </DarkModeProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

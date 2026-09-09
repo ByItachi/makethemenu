@@ -50,7 +50,7 @@ export default function Features() {
   return (
     <div className="pt-32 pb-24">
       {/* Header */}
-      <div className="container mx-auto px-4 text-center mb-20">
+      <div className="site-container text-center mb-20">
         <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-slate-900">
           İhtiyacınız Olan <span className="text-primary">Tüm Özellikler</span>
         </h1>
@@ -60,7 +60,7 @@ export default function Features() {
       </div>
 
       {/* Grid */}
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="site-container">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, i) => (
             <motion.div
@@ -83,7 +83,7 @@ export default function Features() {
 
       {/* Integration Section */}
       <div className="mt-32 bg-slate-900 text-white py-24">
-        <div className="container mx-auto px-4 grid md:grid-cols-2 gap-16 items-center">
+        <div className="site-container grid md:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="text-3xl md:text-4xl font-display font-bold mb-6">
               YemekSepeti, Getir ve Trendyol Entegrasyonları
@@ -105,7 +105,7 @@ export default function Features() {
           <div className="relative">
              {/* business integration tech abstract */}
              <img 
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop" 
+              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&h=600&q=80" 
               alt="Integrations" 
               className="rounded-2xl shadow-2xl border border-slate-700/50"
             />

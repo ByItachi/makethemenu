@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g stroke="#DB7706" stroke-width="5" fill="none">
+    <path d="M22 38 V22 H38"/>
+    <path d="M62 22 H78 V38"/>
+    <path d="M78 62 V78 H62"/>
+    <path d="M38 78 H22 V62"/>
+  </g>
+  <text x="50" y="67" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="46" fill="#DB7706" text-anchor="middle">m</text>
+</svg>

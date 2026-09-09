@@ -4,8 +4,8 @@ export default function About() {
   return (
     <div className="pt-32 pb-24">
       {/* Hero */}
-      <div className="container mx-auto px-4 md:px-6 mb-24">
-        <div className="max-w-3xl mx-auto text-center">
+      <div className="site-container mb-24">
+        <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-display font-bold mb-8 text-slate-900">
             Restoran Teknolojilerini <br/>
             <span className="text-primary">Yeniden Tanımlıyoruz</span>
@@ -18,7 +18,7 @@ export default function About() {
 
       {/* Story Section */}
       <section className="py-20 bg-slate-50">
-        <div className="container mx-auto px-4 md:px-6">
+        <div className="site-container">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <motion.div 
               initial={{ opacity: 0, x: -50 }}
@@ -57,7 +57,7 @@ export default function About() {
       
       {/* Stats */}
       <section className="py-20 bg-primary text-white">
-        <div className="container mx-auto px-4">
+        <div className="site-container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { val: "5000+", label: "Mutlu Müşteri" },

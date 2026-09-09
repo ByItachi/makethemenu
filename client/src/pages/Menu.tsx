@@ -24,17 +24,17 @@ export default function Menu() {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b flex items-center justify-between px-6 bg-card/50 backdrop-blur-sm">
-          <h1 className="text-2xl font-display font-bold">Menu Management</h1>
+      <div className="flex-1 flex flex-col overflow-hidden pt-14 md:pt-0">
+        <header className="h-16 border-b flex items-center justify-between px-4 sm:px-6 bg-card/50 backdrop-blur-sm">
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Menü Yönetimi</h1>
         </header>
 
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-4 sm:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap gap-3 justify-between items-center">
               <TabsList>
-                <TabsTrigger value="products">Products</TabsTrigger>
-                <TabsTrigger value="categories">Categories</TabsTrigger>
+                <TabsTrigger value="products">Ürünler</TabsTrigger>
+                <TabsTrigger value="categories">Kategoriler</TabsTrigger>
               </TabsList>
               
               {activeTab === 'products' ? (
@@ -45,15 +45,15 @@ export default function Menu() {
             </div>
 
             <TabsContent value="products" className="space-y-4">
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Image</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>Görsel</TableHead>
+                      <TableHead>İsim</TableHead>
+                      <TableHead>Kategori</TableHead>
+                      <TableHead>Fiyat</TableHead>
+                      <TableHead className="text-right">İşlemler</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -73,10 +73,10 @@ export default function Menu() {
                           <TableCell className="font-medium">{product.name}</TableCell>
                           <TableCell>
                             <span className="px-2 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
-                              {category?.name || 'Unknown'}
+                              {category?.name || 'Bilinmiyor'}
                             </span>
                           </TableCell>
-                          <TableCell>${Number(product.price).toFixed(2)}</TableCell>
+                          <TableCell>{Number(product.price).toFixed(2)} ₺</TableCell>
                           <TableCell className="text-right">
                             <Button 
                               variant="ghost" 
@@ -96,13 +96,13 @@ export default function Menu() {
             </TabsContent>
 
             <TabsContent value="categories">
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Slug</TableHead>
-                      <TableHead className="text-right">Products</TableHead>
+                      <TableHead>İsim</TableHead>
+                      <TableHead>Bağlantı (Slug)</TableHead>
+                      <TableHead className="text-right">Ürünler</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -111,7 +111,7 @@ export default function Menu() {
                         <TableCell className="font-medium">{category.name}</TableCell>
                         <TableCell className="text-muted-foreground">{category.slug}</TableCell>
                         <TableCell className="text-right">
-                          {products?.filter(p => p.categoryId === category.id).length || 0} items
+                          {products?.filter(p => p.categoryId === category.id).length || 0} ürün
                         </TableCell>
                       </TableRow>
                     ))}
@@ -145,28 +145,28 @@ function AddCategoryDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="gap-2">
-          <Plus className="h-4 w-4" /> Add Category
+          <Plus className="h-4 w-4" /> Kategori Ekle
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Category</DialogTitle>
+          <DialogTitle>Kategori Oluştur</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label>Name</Label>
-            <Input {...register("name")} placeholder="e.g. Beverages" required />
+            <Label>İsim</Label>
+            <Input {...register("name")} placeholder="örn. İçecekler" required />
           </div>
           <div className="space-y-2">
-            <Label>Slug</Label>
-            <Input {...register("slug")} placeholder="e.g. beverages" required />
+            <Label>Bağlantı (Slug)</Label>
+            <Input {...register("slug")} placeholder="örn. icecekler" required />
           </div>
           <div className="space-y-2">
-            <Label>Image URL (Optional)</Label>
+            <Label>Görsel URL (İsteğe Bağlı)</Label>
             <Input {...register("imageUrl")} placeholder="https://..." />
           </div>
           <Button type="submit" className="w-full" disabled={createCategory.isPending}>
-            {createCategory.isPending ? "Saving..." : "Save Category"}
+            {createCategory.isPending ? "Kaydediliyor..." : "Kategoriyi Kaydet"}
           </Button>
         </form>
       </DialogContent>
@@ -193,36 +193,36 @@ function AddProductDialog({ categories }: { categories: any[] }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="gap-2">
-          <Plus className="h-4 w-4" /> Add Product
+          <Plus className="h-4 w-4" /> Ürün Ekle
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Product</DialogTitle>
+          <DialogTitle>Ürün Oluştur</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label>Name</Label>
-            <Input {...register("name")} placeholder="e.g. Cheeseburger" required />
+            <Label>İsim</Label>
+            <Input {...register("name")} placeholder="örn. Cheeseburger" required />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Price</Label>
+              <Label>Fiyat</Label>
               <div className="relative">
-                <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                <span className="absolute left-3 top-2.5 text-muted-foreground">₺</span>
                 <Input type="number" step="0.01" className="pl-7" {...register("price")} required />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label>Kategori</Label>
               <Select onValueChange={(val) => setValue("categoryId", parseInt(val))} required>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select..." />
+                  <SelectValue placeholder="Seçiniz..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map(c => (
-                    <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+                  {categories.filter(c => c.id).map(c => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -230,18 +230,18 @@ function AddProductDialog({ categories }: { categories: any[] }) {
           </div>
 
           <div className="space-y-2">
-            <Label>Description</Label>
-            <Textarea {...register("description")} placeholder="Ingredients, details..." />
+            <Label>Açıklama</Label>
+            <Textarea {...register("description")} placeholder="İçindekiler, detaylar..." />
           </div>
 
           <div className="space-y-2">
-            <Label>Image URL (Unsplash)</Label>
+            <Label>Görsel URL (Unsplash)</Label>
             <Input {...register("imageUrl")} placeholder="https://images.unsplash.com/..." />
-            <p className="text-[10px] text-muted-foreground">Use Unsplash URLs for best results</p>
+            <p className="text-[10px] text-muted-foreground">En iyi sonuçlar için Unsplash URL'lerini kullanın</p>
           </div>
 
           <Button type="submit" className="w-full" disabled={createProduct.isPending}>
-            {createProduct.isPending ? "Saving..." : "Save Product"}
+            {createProduct.isPending ? "Kaydediliyor..." : "Ürünü Kaydet"}
           </Button>
         </form>
       </DialogContent>

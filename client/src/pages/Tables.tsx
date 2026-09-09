@@ -21,16 +21,16 @@ export default function Tables() {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b flex items-center justify-between px-6 bg-card/50 backdrop-blur-sm">
-          <h1 className="text-2xl font-display font-bold">Floor Plan</h1>
+      <div className="flex-1 flex flex-col overflow-hidden pt-14 md:pt-0">
+        <header className="h-16 border-b flex items-center justify-between px-4 sm:px-6 bg-card/50 backdrop-blur-sm">
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Masa Düzeni</h1>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>Add Table</Button>
+              <Button>Masa Ekle</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Table</DialogTitle>
+                <DialogTitle>Yeni Masa Ekle</DialogTitle>
               </DialogHeader>
               <TableForm onSuccess={() => setIsDialogOpen(false)} />
             </DialogContent>
@@ -48,8 +48,8 @@ export default function Tables() {
                <div className="p-6 rounded-full bg-muted mb-4">
                  <Users className="h-10 w-10 opacity-50" />
                </div>
-               <p className="text-lg font-medium">No tables set up</p>
-               <p className="text-sm">Create your first table to get started</p>
+               <p className="text-lg font-medium">Henüz masa oluşturulmadı</p>
+               <p className="text-sm">Başlamak için ilk masanızı oluşturun</p>
              </div>
           )}
         </main>
@@ -91,10 +91,10 @@ function TableCard({ table }: { table: any }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-             <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'available' })}>Mark Available</DropdownMenuItem>
-             <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'occupied' })}>Mark Occupied</DropdownMenuItem>
-             <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'reserved' })}>Mark Reserved</DropdownMenuItem>
-             <DropdownMenuItem className="text-destructive" onClick={() => deleteTable.mutate(table.id)}>Delete Table</DropdownMenuItem>
+             <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'available' })}>Müsait Olarak İşaretle</DropdownMenuItem>
+             <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'occupied' })}>Dolu Olarak İşaretle</DropdownMenuItem>
+             <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'reserved' })}>Rezerve Olarak İşaretle</DropdownMenuItem>
+             <DropdownMenuItem className="text-destructive" onClick={() => deleteTable.mutate(table.id)}>Masayı Sil</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -104,7 +104,11 @@ function TableCard({ table }: { table: any }) {
       </div>
 
       <div className="flex justify-between items-end">
-        <div className="text-xs font-medium uppercase tracking-wider">{table.status}</div>
+        <div className="text-xs font-medium uppercase tracking-wider">
+          {table.status === 'available' ? 'Müsait' : 
+           table.status === 'occupied' ? 'Dolu' : 
+           table.status === 'reserved' ? 'Rezerve' : table.status}
+        </div>
         <div className="flex items-center gap-1 text-sm font-medium">
           <Users className="h-3 w-3" />
           {table.capacity}
@@ -130,19 +134,19 @@ function TableForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Table Name/Number</Label>
-        <Input id="name" {...register("name")} placeholder="e.g. T1, Patio-1" />
+        <Label htmlFor="name">Masa Adı/Numarası</Label>
+        <Input id="name" {...register("name")} placeholder="Örn. M1, Bahçe-1" />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="capacity">Capacity</Label>
+        <Label htmlFor="capacity">Kapasite</Label>
         <Input id="capacity" type="number" {...register("capacity", { valueAsNumber: true })} placeholder="4" />
         {errors.capacity && <p className="text-sm text-destructive">{errors.capacity.message}</p>}
       </div>
 
       <Button type="submit" className="w-full" disabled={createTable.isPending}>
-        {createTable.isPending ? "Creating..." : "Create Table"}
+        {createTable.isPending ? "Oluşturuluyor..." : "Masa Oluştur"}
       </Button>
     </form>
   );
