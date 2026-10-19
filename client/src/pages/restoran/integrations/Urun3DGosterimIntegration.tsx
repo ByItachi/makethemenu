@@ -204,7 +204,7 @@ const Urun3DGosterimIntegration: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="relative mx-auto h-96 w-full max-w-sm overflow-hidden rounded-lg border cursor-grab active:cursor-grabbing">
+                  <div className="relative h-96 overflow-hidden rounded-lg border cursor-grab active:cursor-grabbing">
                     <model-viewer
                       ref={viewerRef}
                       src={modelUrl}
