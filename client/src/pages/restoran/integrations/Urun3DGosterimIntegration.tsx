@@ -41,7 +41,7 @@ function loadModelViewer(): Promise<void> {
 
 // Gerçek 3D ürün modelleri (Poly by Google, CC-BY)
 const sampleModels = [
-  { name: 'Pizza', url: '/models/pizza.glb', thumbnail: '🍕' },
+  { name: 'Pizza', url: '/models/pizza-meshy.glb', thumbnail: '🍕' },
   { name: 'Hamburger', url: '/models/burger.glb', thumbnail: '🍔' },
   { name: 'İçecek', url: '/models/drink.glb', thumbnail: '🥤' },
   { name: 'Tatlı', url: '/models/cake.glb', thumbnail: '🍰' },
@@ -52,7 +52,7 @@ type LightType = 'natural' | 'fluorescent' | 'scene';
 
 const Urun3DGosterimIntegration: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [modelUrl, setModelUrl] = useState<string>('/models/pizza.glb');
+  const [modelUrl, setModelUrl] = useState<string>('/models/pizza-meshy.glb');
   const [modelName, setModelName] = useState<string>('Pizza');
   const [viewerStatus, setViewerStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [modelLoading, setModelLoading] = useState(true);
