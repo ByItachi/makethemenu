@@ -75,6 +75,15 @@ const Urun3DGosterimIntegration: React.FC = () => {
 
   useEffect(() => setModelLoading(true), [modelUrl]);
 
+  // React 18, custom elementlere onLoad baglamaz; 'load' olayini dogrudan dinle.
+  useEffect(() => {
+    const mv = viewerRef.current as any;
+    if (!mv) return;
+    const handleLoad = () => setModelLoading(false);
+    mv.addEventListener('load', handleLoad);
+    return () => mv.removeEventListener('load', handleLoad);
+  }, [viewerStatus]);
+
   const bgStyle = backgroundType === 'white' ? '#ffffff' : backgroundType === 'black' ? '#0a0a0a' : 'transparent';
 
   const lightSettings: Record<LightType, { shadowIntensity: number; exposure: number }> = {
@@ -195,7 +204,7 @@ const Urun3DGosterimIntegration: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="relative h-96 overflow-hidden rounded-lg border cursor-grab active:cursor-grabbing">
+                  <div className="relative mx-auto h-96 w-full max-w-sm overflow-hidden rounded-lg border cursor-grab active:cursor-grabbing">
                     <model-viewer
                       ref={viewerRef}
                       src={modelUrl}
@@ -208,7 +217,6 @@ const Urun3DGosterimIntegration: React.FC = () => {
                       ar
                       ar-modes="webxr scene-viewer quick-look"
                       style={{ width: '100%', height: '100%', backgroundColor: bgStyle }}
-                      onLoad={() => setModelLoading(false)}
                     />
                     {modelLoading && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground pointer-events-none">
