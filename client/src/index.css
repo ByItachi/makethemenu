@@ -120,6 +120,75 @@
   @apply bg-border rounded-full hover:bg-muted-foreground/50 transition-colors;
 }
 
+/* ── Hareket sistemi: sayfa girişleri, gradient, 3D ─────────────────────── */
+@keyframes fxFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fxGradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes fxFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes fxPulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35); }
+  60% { box-shadow: 0 0 0 12px hsl(var(--primary) / 0); }
+}
+@keyframes fxShimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+.fx-fade-up {
+  opacity: 0;
+  animation: fxFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.fx-gradient-text {
+  background: linear-gradient(120deg, hsl(var(--primary)), hsl(18 90% 55%), hsl(var(--primary)));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fxGradientShift 6s ease infinite;
+}
+.fx-header-band {
+  background:
+    radial-gradient(1200px 300px at 15% -40%, hsl(var(--primary) / 0.14), transparent 60%),
+    radial-gradient(800px 260px at 90% -30%, hsl(18 90% 55% / 0.10), transparent 55%);
+}
+.fx-float { animation: fxFloat 5s ease-in-out infinite; }
+.fx-pulse-glow { animation: fxPulseGlow 2.4s ease-out infinite; }
+.fx-shimmer {
+  background: linear-gradient(110deg, transparent 30%, hsl(var(--primary) / 0.12) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: fxShimmer 2.2s linear infinite;
+}
+.fx-card-lift {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.fx-card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 34px -14px hsl(var(--primary) / 0.28);
+  border-color: hsl(var(--primary) / 0.45);
+}
+.fx-tilt {
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-fade-up, .fx-float, .fx-pulse-glow, .fx-shimmer, .fx-gradient-text {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .fx-card-lift, .fx-tilt { transition: none !important; }
+  .fx-card-lift:hover { transform: none; }
+}
+
 /* Grid Layout for Tables */
 .table-grid {
   display: grid;

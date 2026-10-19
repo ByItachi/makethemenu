@@ -498,22 +498,22 @@ const Urun3DGosterimIntegration: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="p-6 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="text-4xl">🧊</div>
+        <div className="fx-header-band -m-6 mb-8 px-6 pt-8 pb-6 sm:rounded-b-2xl border-b border-primary/10">
+          <div className="flex items-center gap-4 mb-3">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/25 text-primary text-2xl fx-float">🧊</span>
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                Ürün 3D Gösterim
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                <span className="fx-gradient-text">Ürün 3D Gösterim</span>
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-muted-foreground">
                 Müşterilerinize ürünlerinizi 3D olarak inceleme imkanı sunun
               </p>
             </div>
           </div>
-          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+          <Badge className="bg-primary/10 text-primary border border-primary/25">
             14 gün ücretsiz deneme
           </Badge>
         </div>

@@ -49,6 +49,7 @@ import {
   TrendingUp,
   Puzzle,
 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   BarChart,
   Bar,
@@ -73,6 +74,13 @@ import Integrations from "@/pages/restoran/integrations/Integrations";
 import PluginCenter from "@/pages/restoran/integrations/PluginCenter";
 import Urun3DGosterimIntegration from "@/pages/restoran/integrations/Urun3DGosterimIntegration";
 import DigitalMenuLayout from "@/pages/restoran/DigitalMenuLayout";
+import ProductsOverview from "@/pages/restoran/online/ProductsOverview";
+import CustomersPage from "@/pages/restoran/online/CustomersPage";
+import ReportsHub from "@/pages/restoran/online/ReportsHub";
+import OnlineMenuPreview from "@/pages/restoran/online/OnlineMenuPreview";
+import SecurityPage from "@/pages/restoran/online/SecurityPage";
+import AccountPage from "@/pages/restoran/online/AccountPage";
+import { PageHeader, EmptyState } from "@/components/ui/fx";
 
 // --- Mock Data ---
 const dailySalesData = [
@@ -319,12 +327,20 @@ const DashboardHome = () => {
 };
 
 const PlaceholderPage = ({ title, icon: Icon }: any) => (
-  <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400 dark:text-slate-500">
-    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 dark:bg-slate-800">
-      <Icon size={32} />
-    </div>
-    <h2 className="text-xl font-semibold text-slate-600 mb-2 dark:text-slate-300">{title}</h2>
-    <p>Bu modül şu anda geliştirme aşamasındadır.</p>
+  <div className="p-4 sm:p-6">
+    <PageHeader icon={Icon} title={title} />
+    <Card>
+      <CardContent className="p-0">
+        <EmptyState
+          icon={Icon}
+          title={title}
+          soon
+          body="Bu modül yolda. Bu arada panelden siparişlerinizi, menünüzü ve raporlarınızı yönetebilirsiniz."
+          actionLabel="Panele dön"
+          onAction={() => (window.location.href = "/restoran")}
+        />
+      </CardContent>
+    </Card>
   </div>
 );
 
@@ -761,21 +777,21 @@ function OnlineLayoutContent() {
           <Switch>
             <Route path="/restoran" component={DashboardHome} />
             <Route path="/restoran/dashboard" component={DashboardHome} />
-            <Route path="/restoran/reports" component={() => <PlaceholderPage title="Raporlar" icon={LineChart} />} />
-            <Route path="/restoran/products" component={() => <PlaceholderPage title="Ürünler" icon={Box} />} />
+            <Route path="/restoran/reports" component={ReportsHub} />
+            <Route path="/restoran/products" component={ProductsOverview} />
             <Route path="/restoran/stock" component={() => <PlaceholderPage title="Stok Yönetimi" icon={ClipboardList} />} />
-            <Route path="/restoran/customers" component={() => <PlaceholderPage title="Müşteriler" icon={Users} />} />
+            <Route path="/restoran/customers" component={CustomersPage} />
             <Route path="/restoran/suppliers" component={() => <PlaceholderPage title="Tedarikçiler" icon={Truck} />} />
             <Route path="/restoran/expenses" component={() => <PlaceholderPage title="Giderler" icon={TrendingDown} />} />
-            <Route path="/restoran/account" component={() => <PlaceholderPage title="Hesabım" icon={UserCog} />} />
-            <Route path="/restoran/security" component={() => <PlaceholderPage title="Güvenlik" icon={Shield} />} />
+            <Route path="/restoran/account" component={AccountPage} />
+            <Route path="/restoran/security" component={SecurityPage} />
             <Route path="/restoran/printers" component={PrinterSettingsPage} />
             <Route path="/restoran/customer-display" component={CustomerDisplaySettingsPage} />
             <Route path="/restoran/integrations" component={Integrations} />
             <Route path="/restoran/integrations/plugins" component={PluginCenter} />
             <Route path="/restoran/integrations/urun-3d-gosterim" component={Urun3DGosterimIntegration} />
             <Route path="/restoran/digital-menu" component={DigitalMenuLayout} />
-            <Route path="/restoran/online-menu" component={() => <PlaceholderPage title="Online Menü" icon={MenuIcon} />} />
+            <Route path="/restoran/online-menu" component={OnlineMenuPreview} />
             <Route path="/restoran/:rest*">
               <RedirectToAccount />
             </Route>
