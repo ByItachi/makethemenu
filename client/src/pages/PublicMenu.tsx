@@ -14,6 +14,10 @@ declare module "react" {
         alt?: string;
         "camera-controls"?: boolean;
         "auto-rotate"?: boolean;
+        "rotation-per-second"?: string;
+        "camera-orbit"?: string;
+        "shadow-intensity"?: number;
+        exposure?: number;
         ar?: boolean;
         "ar-modes"?: string;
       };
@@ -53,7 +57,7 @@ function formatPrice(price: number | string, currency: string) {
 
 // 3D menu viewer (spec §6): @google/model-viewer lazy-loads from the CDN only when a
 // product actually has a .glb/.gltf model. Supports camera orbit and phone AR.
-const MODEL_VIEWER_CDN = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer.min.js";
+const MODEL_VIEWER_CDN = "/vendor/model-viewer.min.js";
 let modelViewerPromise: Promise<void> | null = null;
 
 function loadModelViewer(): Promise<void> {
