@@ -31,7 +31,9 @@ import {
   HelpCircle,
   Code,
   Moon,
-  Languages
+  Languages,
+  Pencil as PencilIcon,
+  Download as DownloadIcon
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import React from "react";
@@ -191,6 +193,12 @@ export function Navbar() {
                   </div>
                 </Link>
 
+                <Link href="/indir">
+                  <div className="px-2.5 py-2 font-medium text-sm text-foreground/80 hover:text-foreground transition-colors cursor-pointer whitespace-nowrap">
+                    İndir
+                  </div>
+                </Link>
+
                 <DropdownNavItem title={t("nav.partners")}>
                   <ul className="grid w-[300px] gap-3 p-4">
                     {partners.map((item) => (
@@ -335,9 +343,12 @@ export function Navbar() {
                       </AccordionItem>
 
                       <Link href="/fiyatlar" onClick={() => setIsOpen(false)}>
-                        <div className="flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline border-b">
-                          {t("nav.pricing")}
-                        </div>
+                        <PencilIcon className="mr-2 h-4 w-4" />
+                        {t("nav.pricing")}
+                      </Link>
+                      <Link href="/indir" onClick={() => setIsOpen(false)}>
+                        <DownloadIcon className="mr-2 h-4 w-4" />
+                        İndir
                       </Link>
 
                       <AccordionItem value="partners">

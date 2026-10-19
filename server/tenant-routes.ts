@@ -125,23 +125,26 @@ export function registerTenantRoutes(app: Express) {
   });
 
   // QR code that points to the public menu. Only available for a published menu.
+  // `?table=<name>` bakes a `?masa=` param into the QR link so scans count as qr_scan per table.
   const qrHandler = (format: "svg" | "png") => async (req: Request, res: Response) => {
     const [r] = await db.select().from(restaurants).where(eq(restaurants.id, tenantId(req)));
     if (!r?.slug) return res.status(409).json({ message: "Önce bir menü adresi belirleyin." });
     if (!r.isPublished) return res.status(409).json({ message: "QR kod için önce menüyü yayımlayın." });
 
-    const target = `${publicBaseUrl()}/p/${r.slug}`;
+    const tableName = typeof req.query.table === "string" ? req.query.table.trim().slice(0, 40) : "";
+    const suffix = tableName ? `?masa=${encodeURIComponent(tableName)}` : "";
+    const target = `${publicBaseUrl()}/p/${r.slug}${suffix}`;
     const size = Math.min(2048, Math.max(128, Number(req.query.size) || 512));
     res.setHeader("Cache-Control", "private, no-cache");
     if (format === "svg") {
       const svg = await QRCode.toString(target, { type: "svg", margin: 2, errorCorrectionLevel: "M" });
       res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
-      res.setHeader("Content-Disposition", `attachment; filename="${r.slug}-qr.svg"`);
+      res.setHeader("Content-Disposition", `attachment; filename="${r.slug}-qr${tableName ? `-${tableName}` : ""}.svg"`);
       return res.send(svg);
     }
     const png = await QRCode.toBuffer(target, { type: "png", width: size, margin: 2, errorCorrectionLevel: "H" });
     res.setHeader("Content-Type", "image/png");
-    res.setHeader("Content-Disposition", `attachment; filename="${r.slug}-qr-${size}.png"`);
+    res.setHeader("Content-Disposition", `attachment; filename="${r.slug}-qr${tableName ? `-${tableName}` : ""}-${size}.png"`);
     res.send(png);
   };
   app.get("/api/restaurant/qr.svg", requireRestaurant, qrHandler("svg"));
