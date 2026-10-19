@@ -30,7 +30,7 @@ import {
   Box
 } from 'lucide-react';
 
-interface Integration {
+export interface Integration {
   id: string;
   name: string;
   description: string;
@@ -46,7 +46,7 @@ interface Integration {
   backgroundColor?: string;
 }
 
-const integrations: Integration[] = [
+export const integrations: Integration[] = [
   // 3D Product Visualization
   {
     id: 'urun-3d-gosterim',

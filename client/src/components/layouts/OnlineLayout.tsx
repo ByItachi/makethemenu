@@ -72,7 +72,29 @@ import { DarkModeProvider, useDarkMode } from "@/contexts/DarkModeContext";
 import { NotificationsPopover, HelpSheet, SupportDialog } from "@/components/restoran/HeaderActions";
 import Integrations from "@/pages/restoran/integrations/Integrations";
 import PluginCenter from "@/pages/restoran/integrations/PluginCenter";
+import AppStore from "@/pages/restoran/integrations/AppStore";
 import Urun3DGosterimIntegration from "@/pages/restoran/integrations/Urun3DGosterimIntegration";
+import YemekSepetiIntegration from "@/pages/restoran/integrations/YemekSepetiIntegration";
+import GetirIntegration from "@/pages/restoran/integrations/GetirIntegration";
+import TrendyolYemekIntegration from "@/pages/restoran/integrations/TrendyolYemekIntegration";
+import MigrosYemekIntegration from "@/pages/restoran/integrations/MigrosYemekIntegration";
+import FuudyIntegration from "@/pages/restoran/integrations/FuudyIntegration";
+import PaketServisiIntegration from "@/pages/restoran/integrations/PaketServisiIntegration";
+import HemenyoldaIntegration from "@/pages/restoran/integrations/HemenyoldaIntegration";
+import RestaJetIntegration from "@/pages/restoran/integrations/RestaJetIntegration";
+import EFaturaIntegration from "@/pages/restoran/integrations/EFaturaIntegration";
+import EAdisyonIntegration from "@/pages/restoran/integrations/EAdisyonIntegration";
+import BizimHesapIntegration from "@/pages/restoran/integrations/BizimHesapIntegration";
+import HotelRunnerIntegration from "@/pages/restoran/integrations/HotelRunnerIntegration";
+import HMSHotelIntegration from "@/pages/restoran/integrations/HMSHotelIntegration";
+import Hotelier101Integration from "@/pages/restoran/integrations/Hotelier101Integration";
+import CallerIDIntegration from "@/pages/restoran/integrations/CallerIDIntegration";
+import AndroidCallerIDIntegration from "@/pages/restoran/integrations/AndroidCallerIDIntegration";
+import YazarKasaIntegration from "@/pages/restoran/integrations/YazarKasaIntegration";
+import BoostfeelIntegration from "@/pages/restoran/integrations/BoostfeelIntegration";
+import ButiksoftIntegration from "@/pages/restoran/integrations/ButiksoftIntegration";
+import AdisyoHaritaIntegration from "@/pages/restoran/integrations/AdisyoHaritaIntegration";
+import VeriAktarimiAPIIntegration from "@/pages/restoran/integrations/VeriAktarimiAPIIntegration";
 import DigitalMenuLayout from "@/pages/restoran/DigitalMenuLayout";
 import ProductsOverview from "@/pages/restoran/online/ProductsOverview";
 import CustomersPage from "@/pages/restoran/online/CustomersPage";
@@ -801,9 +823,30 @@ function OnlineLayoutContent() {
             <Route path="/restoran/printers" component={PrinterSettingsPage} />
             <Route path="/restoran/customer-display" component={CustomerDisplaySettingsPage} />
             <Route path="/restoran/integrations" component={Integrations} />
-            <Route path="/restoran/integrations/app-store" component={() => <PlaceholderPage title="Uygulama Mağazası" icon={Store} />} />
+            <Route path="/restoran/integrations/app-store" component={AppStore} />
             <Route path="/restoran/integrations/plugins" component={PluginCenter} />
             <Route path="/restoran/integrations/urun-3d-gosterim" component={Urun3DGosterimIntegration} />
+            <Route path="/restoran/integrations/yemeksepeti" component={YemekSepetiIntegration} />
+            <Route path="/restoran/integrations/getir" component={GetirIntegration} />
+            <Route path="/restoran/integrations/trendyol-yemek" component={TrendyolYemekIntegration} />
+            <Route path="/restoran/integrations/migros-yemek" component={MigrosYemekIntegration} />
+            <Route path="/restoran/integrations/fuudy" component={FuudyIntegration} />
+            <Route path="/restoran/integrations/paket-servisi" component={PaketServisiIntegration} />
+            <Route path="/restoran/integrations/hemenyolda" component={HemenyoldaIntegration} />
+            <Route path="/restoran/integrations/restajet" component={RestaJetIntegration} />
+            <Route path="/restoran/integrations/e-fatura" component={EFaturaIntegration} />
+            <Route path="/restoran/integrations/e-adisyon" component={EAdisyonIntegration} />
+            <Route path="/restoran/integrations/bizim-hesap" component={BizimHesapIntegration} />
+            <Route path="/restoran/integrations/hotel-runner" component={HotelRunnerIntegration} />
+            <Route path="/restoran/integrations/hms-hotel" component={HMSHotelIntegration} />
+            <Route path="/restoran/integrations/hotelier-101" component={Hotelier101Integration} />
+            <Route path="/restoran/integrations/caller-id" component={CallerIDIntegration} />
+            <Route path="/restoran/integrations/android-callerid" component={AndroidCallerIDIntegration} />
+            <Route path="/restoran/integrations/yazar-kasa" component={YazarKasaIntegration} />
+            <Route path="/restoran/integrations/boostfeel" component={BoostfeelIntegration} />
+            <Route path="/restoran/integrations/butiksoft" component={ButiksoftIntegration} />
+            <Route path="/restoran/integrations/adisyo-harita" component={AdisyoHaritaIntegration} />
+            <Route path="/restoran/integrations/veri-aktarimi" component={VeriAktarimiAPIIntegration} />
 
             {/* Tanımlamalar */}
             <Route path="/restoran/definitions" component={OnlineDefinitions} />
