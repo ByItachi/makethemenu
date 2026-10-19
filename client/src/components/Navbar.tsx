@@ -108,28 +108,32 @@ export function Navbar() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    // Sayfa ortasında yükleme/refresh durumunda ilk durumu hemen hesapla
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, []);
 
-  // Sayfa bazlı arka plan rengi belirle - sadece scroll yapınca beyaz olsun
+  // Sayfa değişince en üste dön - header içeriğin üstünde bozuk görünmesin
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setScrolled(false);
+  }, [location]);
+
+  // Sayfa bazlı arka plan rengi belirle - sadece ana sayfada üstte şeffaf olsun
   const getNavbarBackground = () => {
-    if (scrolled || isOpen) {
-      return "bg-background/95 backdrop-blur-md border-b border-border/50";
+    if (scrolled || isOpen || location !== "/") {
+      // Kaydırılınca ve iç sayfalarda her zaman okunur, dolgulu arka plan
+      return "bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm";
     }
-    
-    // Sayfaya göre başlangıç rengi
-    switch (location) {
-      case "/":
-        return "bg-transparent";
-      case "/kaynaklar/blog":
-        return "bg-transparent"; // Blog sayfasında tamamen şeffaf
-      case "/iletisim":
-        return "bg-transparent"; // İletişim sayfasında tamamen şeffaf - blog gibi
-      default:
-        return "bg-background/10";
-    }
+
+    // Ana sayfada en üstte şeffaf (hero görünsün)
+    return "bg-transparent";
   };
 
   return (
