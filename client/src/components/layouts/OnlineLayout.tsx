@@ -788,6 +788,7 @@ function OnlineLayoutContent() {
             <Route path="/restoran/printers" component={PrinterSettingsPage} />
             <Route path="/restoran/customer-display" component={CustomerDisplaySettingsPage} />
             <Route path="/restoran/integrations" component={Integrations} />
+            <Route path="/restoran/integrations/app-store" component={() => <PlaceholderPage title="Uygulama Mağazası" icon={Store} />} />
             <Route path="/restoran/integrations/plugins" component={PluginCenter} />
             <Route path="/restoran/integrations/urun-3d-gosterim" component={Urun3DGosterimIntegration} />
             <Route path="/restoran/digital-menu" component={DigitalMenuLayout} />
