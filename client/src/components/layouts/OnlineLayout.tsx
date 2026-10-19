@@ -80,6 +80,19 @@ import ReportsHub from "@/pages/restoran/online/ReportsHub";
 import OnlineMenuPreview from "@/pages/restoran/online/OnlineMenuPreview";
 import SecurityPage from "@/pages/restoran/online/SecurityPage";
 import AccountPage from "@/pages/restoran/online/AccountPage";
+import CallerIdSettingsPage from "@/pages/restoran/online/CallerIdSettingsPage";
+import OnlineDefinitions from "@/pages/restoran/OnlineDefinitions";
+import OnlineManagement from "@/pages/restoran/OnlineManagement";
+import OnlineSettings from "@/pages/restoran/OnlineSettings";
+import TablesPage from "@/pages/restoran/definitions/TablesPage";
+import ProductsPage from "@/pages/restoran/definitions/ProductsPage";
+import UnitsPage from "@/pages/restoran/definitions/UnitsPage";
+import PropertiesPage from "@/pages/restoran/definitions/PropertiesPage";
+import VatPage from "@/pages/restoran/definitions/VatPage";
+import DiscountsPage from "@/pages/restoran/definitions/DiscountsPage";
+import KitchenGroupsPage from "@/pages/restoran/definitions/KitchenGroupsPage";
+import ComplimentaryPage from "@/pages/restoran/definitions/ComplimentaryPage";
+import ServiceChargePage from "@/pages/restoran/definitions/ServiceChargePage";
 import { PageHeader, EmptyState } from "@/components/ui/fx";
 
 // --- Mock Data ---
@@ -791,6 +804,44 @@ function OnlineLayoutContent() {
             <Route path="/restoran/integrations/app-store" component={() => <PlaceholderPage title="Uygulama Mağazası" icon={Store} />} />
             <Route path="/restoran/integrations/plugins" component={PluginCenter} />
             <Route path="/restoran/integrations/urun-3d-gosterim" component={Urun3DGosterimIntegration} />
+
+            {/* Tanımlamalar */}
+            <Route path="/restoran/definitions" component={OnlineDefinitions} />
+            <Route path="/restoran/definitions/tables" component={TablesPage} />
+            <Route path="/restoran/definitions/products" component={ProductsPage} />
+            <Route path="/restoran/definitions/units" component={UnitsPage} />
+            <Route path="/restoran/definitions/properties" component={PropertiesPage} />
+            <Route path="/restoran/definitions/vat" component={VatPage} />
+            <Route path="/restoran/definitions/discounts" component={DiscountsPage} />
+            <Route path="/restoran/definitions/kitchen-groups" component={KitchenGroupsPage} />
+            <Route path="/restoran/definitions/complimentary" component={ComplimentaryPage} />
+            <Route path="/restoran/definitions/service-charge" component={ServiceChargePage} />
+
+            {/* İşlemler */}
+            <Route path="/restoran/operations" component={() => <PlaceholderPage title="İşlemler" icon={ArrowRightLeft} />} />
+            <Route path="/restoran/operations/stock" component={() => <PlaceholderPage title="Stok İşlemleri" icon={Truck} />} />
+            <Route path="/restoran/operations/expenses" component={() => <PlaceholderPage title="Gider / Masraf İşlemleri" icon={TrendingDown} />} />
+            <Route path="/restoran/operations/waste" component={() => <PlaceholderPage title="Zayi İşlemleri" icon={Trash2} />} />
+
+            {/* Raporlar alt sayfaları */}
+            <Route path="/restoran/reports/sales" component={() => <PlaceholderPage title="Ürün Satış Raporu" icon={LineChart} />} />
+            <Route path="/restoran/reports/end-of-day" component={() => <PlaceholderPage title="Gün Sonu Raporu" icon={DollarSign} />} />
+            <Route path="/restoran/reports/shift" component={() => <PlaceholderPage title="Vardiya Satış Raporu" icon={ClipboardList} />} />
+            <Route path="/restoran/reports/stats" component={() => <PlaceholderPage title="Restaurant İstatistikleri" icon={PieChartIcon} />} />
+            <Route path="/restoran/reports/stock" component={() => <PlaceholderPage title="Stok Durum Raporu" icon={Box} />} />
+            <Route path="/restoran/reports/waste" component={() => <PlaceholderPage title="Fire Raporu" icon={FileMinus} />} />
+
+            {/* Kullanıcılar */}
+            <Route path="/restoran/users" component={() => <PlaceholderPage title="Kullanıcılar" icon={Users} />} />
+            <Route path="/restoran/users/list" component={() => <PlaceholderPage title="Kullanıcılar" icon={Users} />} />
+            <Route path="/restoran/users/permissions" component={() => <PlaceholderPage title="Yetkiler" icon={UserCog} />} />
+
+            {/* Ayarlar */}
+            <Route path="/restoran/settings" component={OnlineSettings} />
+            <Route path="/restoran/settings/restaurant" component={OnlineManagement} />
+            <Route path="/restoran/settings/printers" component={PrinterSettingsPage} />
+            <Route path="/restoran/settings/callerid" component={CallerIdSettingsPage} />
+            <Route path="/restoran/settings/customer-display" component={CustomerDisplaySettingsPage} />
             <Route path="/restoran/digital-menu" component={DigitalMenuLayout} />
             <Route path="/restoran/online-menu" component={OnlineMenuPreview} />
             <Route path="/restoran/:rest*">
