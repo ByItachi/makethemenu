@@ -64,6 +64,7 @@ export function registerPublicRoutes(app: Express) {
         imageUrl: products.imageUrl,
         model3dUrl: products.model3dUrl,
         isAvailable: products.isAvailable,
+        translations: products.translations,
       })
       .from(products)
       .where(eq(products.restaurantId, r.id))

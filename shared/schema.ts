@@ -32,6 +32,8 @@ export const products = mysqlTable("products", {
   imageUrl: text("image_url"),
   model3dUrl: text("model_3d_url"),
   isAvailable: boolean("is_available").default(true),
+  // Dil çevirileri: { en: { name, description }, ar: { name, description } }
+  translations: json("translations"),
 });
 
 export const orders = mysqlTable("orders", {

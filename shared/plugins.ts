@@ -42,6 +42,23 @@ export const PLUGIN_CATALOG: PluginDef[] = [
   { key: "logo-erp", name: "Logo Yazılım", description: "Logo GO/İKON ile muhasebe fişlerini otomatik aktarın.", category: "muhasebe", requiresPlan: true },
   { key: "parasut", name: "Paraşüt", description: "Ön muhasebe kayıtlarınızı Paraşüt'e gönderin.", category: "muhasebe", requiresPlan: true },
   { key: "mikro-erp", name: "Mikro Yazılım", description: "Mikro Jump ile çek/stok/muhasebe entegrasyonu.", category: "muhasebe", requiresPlan: true },
+  { key: "restajet", name: "RestaJet", description: "Sipariş ve masa yönetimini tek ekranda birleştirin.", category: "operasyon" },
+  { key: "caller-id", name: "Caller ID", description: "Gelen aramalarda müşteri bilgisi otomatik açılsın.", category: "operasyon" },
+  { key: "android-callerid", name: "Android Caller ID", description: "Android cihazdan arayan müşteriyi tanıyın.", category: "operasyon" },
+  { key: "yazar-kasa", name: "Yazar Kasa", description: "ÖKC fişlerini POS ile otomatik eşitleyin.", category: "operasyon" },
+  { key: "kiosk", name: "Kiosk", description: "Kendi kendine hizmet kiosklarını tasarlayın ve yönetin.", category: "operasyon" },
+  { key: "fuudy", name: "Fuudy", description: "Fuudy siparişlerini POS'unuza aktarın.", category: "pazaryeri" },
+  { key: "paket-servisi", name: "Paket Servisi", description: "Telefonla gelen paket siparişlerini tek panelden yönetin.", category: "pazaryeri" },
+  { key: "hemenyolda", name: "Hemenyolda", description: "Kurye filosunu Hemenyolda ile yönlendirin.", category: "kurye" },
+  { key: "adisyo-harita", name: "Adisyo Harita", description: "Teslimat bölgelerini harita üzerinde yönetin.", category: "operasyon" },
+  { key: "bizim-hesap", name: "Bizim Hesap", description: "Bizim Hesap ile online tahsilat alın.", category: "odeme" },
+  { key: "e-adisyon", name: "E-Adisyon", description: "Dijital adisyon ile masalarda temassız sipariş.", category: "edonusum" },
+  { key: "hotel-runner", name: "HotelRunner", description: "Oda servisi siparişlerini HotelRunner ile eşitleyin.", category: "operasyon" },
+  { key: "hms-hotel", name: "HMS Hotel", description: "HMS Hotel POS entegrasyonu.", category: "operasyon" },
+  { key: "hotelier-101", name: "Hotelier 101", description: "Hotelier 101 oda servisi entegrasyonu.", category: "operasyon" },
+  { key: "butiksoft", name: "ButikSoft", description: "ButikSoft otel yönetimi ile entegrasyon.", category: "operasyon" },
+  { key: "boostfeel", name: "BoostFeel", description: "Sadakat puanı ve kampanya motoru.", category: "operasyon" },
+  { key: "veri-aktarimi", name: "Veri Aktarımı & API", description: "Verilerinizi dış sistemlere API ile aktarın.", category: "operasyon" },
 ];
 
 export function findPlugin(key: string): PluginDef | undefined {

@@ -43,6 +43,7 @@ type PublicProduct = {
   imageUrl: string | null;
   model3dUrl: string | null;
   isAvailable: boolean | null;
+  translations?: { en?: { name?: string; description?: string }; ar?: { name?: string; description?: string } } | null;
 };
 
 type PublicMenu = {
@@ -309,7 +310,12 @@ export default function PublicMenuPage() {
   const showImages = restaurant.showProductImages !== false;
   const gridMode = template === "izgara" || template === "kart";
 
-  const renderProduct = (p: PublicProduct) => (
+  const renderProduct = (p: PublicProduct) => {
+    const lang = (restaurant.menuLanguage ?? "tr").toLowerCase();
+    const tr = lang !== "tr" ? p.translations?.[lang as "en" | "ar"] : undefined;
+    const name = tr?.name?.trim() || p.name;
+    const description = tr?.description?.trim() ?? p.description;
+    return (
     <button
       type="button"
       onClick={() => openProduct(p)}
@@ -317,16 +323,16 @@ export default function PublicMenuPage() {
       style={{ borderRadius: radius }}
     >
       {gridMode && showImages && p.imageUrl && (
-        <img src={p.imageUrl} alt={p.name} className="w-full h-28 object-cover" style={{ borderRadius: Math.max(2, radius - 4) }} loading="lazy" />
+        <img src={p.imageUrl} alt={name} className="w-full h-28 object-cover" style={{ borderRadius: Math.max(2, radius - 4) }} loading="lazy" />
       )}
       <div className="flex items-start justify-between gap-4 w-full">
         <div className="flex items-start gap-2 min-w-0">
           {!gridMode && showImages && p.imageUrl && (
-            <img src={p.imageUrl} alt={p.name} className="w-12 h-12 object-cover shrink-0" style={{ borderRadius: Math.max(2, radius - 4) }} loading="lazy" />
+            <img src={p.imageUrl} alt={name} className="w-12 h-12 object-cover shrink-0" style={{ borderRadius: Math.max(2, radius - 4) }} loading="lazy" />
           )}
           <div className="min-w-0">
             <p className="font-medium">
-              {p.name}
+              {name}
               {p.model3dUrl && (
                 <span className="ml-2 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-semibold align-middle" style={{ backgroundColor: `${accent}1a`, color: accent }}>
                   <Box className="h-3 w-3" /> 3D
@@ -334,13 +340,14 @@ export default function PublicMenuPage() {
               )}
               {p.isAvailable === false && <span className="ml-2 text-xs text-red-600">Tükendi</span>}
             </p>
-            {p.description && <p className="text-sm text-muted-foreground">{p.description}</p>}
+            {description && <p className="text-sm text-muted-foreground">{description}</p>}
           </div>
         </div>
         <span className="whitespace-nowrap font-semibold" style={{ color: accent }}>{formatPrice(p.price, currency)}</span>
       </div>
     </button>
   );
+  };
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-28" style={{ ["--pm-accent" as string]: accent }}>

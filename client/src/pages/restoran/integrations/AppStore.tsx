@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { integrations, Integration } from './Integrations';
+import { IntegrationSetupWizard, usePluginState } from './IntegrationSetupWizard';
 import {
   Search, Sparkles, Crown, Zap, Building2, Store, Utensils, Bike,
   FileText, Hotel, HeartHandshake, Plug, ArrowRight, Check, Wrench,
@@ -14,51 +15,59 @@ import {
 const detailPageIds = new Set(integrations.map(i => i.id));
 
 // Adisyo tarzı vitrin bölümleri: kategori -> bölüm
-const sections: { title: string; description: string; icon: React.ComponentType<any>; ids: string[] }[] = [
+const sections: { title: string; categoryKey: string; description: string; icon: React.ComponentType<any>; ids: string[] }[] = [
   {
     title: 'Restoran Operasyonu',
+    categoryKey: 'operasyon',
     description: 'Operasyonunuzu hızlandıran dijital menü, yönetim ve donanım uygulamaları.',
     icon: Utensils,
     ids: ['urun-3d-gosterim', 'restajet', 'caller-id', 'android-callerid', 'yazar-kasa'],
   },
   {
     title: 'Paket Sipariş Entegrasyonları',
+    categoryKey: 'pazaryeri',
     description: 'Siparişlerinizi dünyanın dört bir yanındaki restoranlarla tek panelden yönetin.',
     icon: Store,
     ids: ['yemeksepeti', 'getir', 'trendyol-yemek', 'migros-yemek', 'fuudy', 'paket-servisi'],
   },
   {
     title: 'Kurye Entegrasyonları',
+    categoryKey: 'kurye',
     description: 'Teslimat sürelerini optimize edin, kuryelerinizi harita üzerinde izleyin.',
     icon: Bike,
     ids: ['hemenyolda', 'adisyo-harita'],
   },
   {
     title: 'Ödeme Yöntemi Entegrasyonları',
+    categoryKey: 'odeme',
     description: 'Siparişlerinizde ödeme seçeneklerini genişletin.',
     icon: CreditCard,
     ids: ['bizim-hesap'],
   },
   {
     title: 'E-Dönüşüm Entegrasyonları',
+    categoryKey: 'edonusum',
     description: 'E-Fatura ve E-Adisyon süreçlerinizi yasal gerekliliklere uygun yönetin.',
     icon: FileText,
     ids: ['e-fatura', 'e-adisyon'],
   },
   {
     title: 'Otel Entegrasyonları',
+    categoryKey: 'operasyon',
     description: 'Otel restoran adisyonlarınızı otel yazılımınıza aktararak süreci hızlandırın.',
     icon: Hotel,
     ids: ['hotel-runner', 'hms-hotel', 'hotelier-101', 'butiksoft'],
   },
   {
     title: 'Müşteri Sadakat Entegrasyonları',
+    categoryKey: 'operasyon',
     description: 'Kişiselleştirilmiş sadakat programları ile müşterilerinizi mutlu edin, uzun vadeli ilişkiler kurun.',
     icon: HeartHandshake,
     ids: ['boostfeel'],
   },
   {
     title: 'Veri Aktarımı & API Entegrasyonları',
+    categoryKey: 'operasyon',
     description: 'Verilerinizi dış sistemlerle entegre ederek iş aşınızı otomatikleştirin.',
     icon: Plug,
     ids: ['veri-aktarimi'],
@@ -70,6 +79,8 @@ const recommendedIds = ['urun-3d-gosterim', 'yemeksepeti', 'trendyol-yemek', 'mi
 const AppStore: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [, navigate] = useLocation();
+  const [wizardFor, setWizardFor] = useState<(Integration & { categoryKey?: string }) | null>(null);
+  const pluginsState = usePluginState();
 
   const byId = (id: string) => integrations.find(i => i.id === id)!;
 
@@ -86,8 +97,10 @@ const AppStore: React.FC = () => {
     navigate('/integration-purchase');
   };
 
-  const renderCard = (i: Integration, recommended = false) => {
+  const renderCard = (i: Integration, recommended = false, categoryKey = 'operasyon') => {
     const hasDetail = detailPageIds.has(i.id);
+    const pluginKey = i.id === 'urun-3d-gosterim' ? 'menu-3d' : i.id === 'getir' ? 'getiryemek' : i.id;
+    const isActive = pluginsState.data?.plugins?.find(p => p.key === pluginKey)?.isEnabled === true;
     return (
       <Card key={i.id} className={`overflow-hidden flex flex-col ${recommended ? 'ring-2 ring-primary/40' : ''}`}>
         <CardContent className="p-4 flex flex-col gap-3 grow">
@@ -131,8 +144,8 @@ const AppStore: React.FC = () => {
                   </Button>
                 </Link>
               )}
-              {i.status === 'inactive' ? (
-                <Button size="sm" className="h-8 gap-1" onClick={() => openIntegration(i)}>
+              {i.status === 'inactive' && !isActive ? (
+                <Button size="sm" className="h-8 gap-1" onClick={() => setWizardFor({ ...i, categoryKey })} data-testid={`add-${i.id}`}>
                   + Ekle
                 </Button>
               ) : (
@@ -206,7 +219,7 @@ const AppStore: React.FC = () => {
           </div>
           <p className="text-sm text-muted-foreground mb-3">Sektörünüzde en çok tercih edilen entegrasyonlar.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {recommended.map((i) => renderCard(i, true))}
+            {recommended.map((i) => renderCard(i, true, 'pazaryeri'))}
           </div>
         </section>
       )}
@@ -226,7 +239,7 @@ const AppStore: React.FC = () => {
             </div>
             <p className="text-sm text-muted-foreground mb-3">{s.description}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {items.map((i) => renderCard(i))}
+              {items.map((i) => renderCard(i, false, s.categoryKey))}
             </div>
           </section>
         );
@@ -237,6 +250,14 @@ const AppStore: React.FC = () => {
         <div className="text-center py-16 text-muted-foreground">
           "{searchTerm}" için uygulama bulunamadı.
         </div>
+      )}
+
+      {wizardFor && (
+        <IntegrationSetupWizard
+          integration={{ id: wizardFor.id, name: wizardFor.name, description: wizardFor.description, category: (wizardFor as { categoryKey?: string }).categoryKey }}
+          open={!!wizardFor}
+          onClose={() => setWizardFor(null)}
+        />
       )}
     </div>
   );
