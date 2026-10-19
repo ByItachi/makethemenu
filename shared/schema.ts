@@ -357,6 +357,17 @@ export const menuEvents = mysqlTable("menu_events", {
   createdAt: timestamp("created_at").defaultNow(),
 }, (t) => [index("idx_menu_events_restaurant").on(t.restaurantId, t.createdAt)]);
 
+// Eklenti Merkezi: restoran bazında etkinleştirilmiş modüller.
+export const restaurantPlugins = mysqlTable("restaurant_plugins", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  pluginKey: varchar("plugin_key", { length: 64 }).notNull(),
+  isEnabled: boolean("is_enabled").notNull().default(false),
+  settings: json("settings"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (t) => [uniqueIndex("uq_restaurant_plugin").on(t.restaurantId, t.pluginKey)]);
+
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type Plan = typeof plans.$inferSelect;
 export type AuthToken = typeof authTokens.$inferSelect;

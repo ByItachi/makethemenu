@@ -47,6 +47,7 @@ import {
   AlertTriangle,
   Filter,
   TrendingUp,
+  Puzzle,
 } from "lucide-react";
 import {
   BarChart,
@@ -69,6 +70,7 @@ import { DarkModeProvider, useDarkMode } from "@/contexts/DarkModeContext";
 // Imports removed
 import { NotificationsPopover, HelpSheet, SupportDialog } from "@/components/restoran/HeaderActions";
 import Integrations from "@/pages/restoran/integrations/Integrations";
+import PluginCenter from "@/pages/restoran/integrations/PluginCenter";
 import Urun3DGosterimIntegration from "@/pages/restoran/integrations/Urun3DGosterimIntegration";
 import DigitalMenuLayout from "@/pages/restoran/DigitalMenuLayout";
 
@@ -730,6 +732,7 @@ function OnlineLayoutContent() {
             active={isActive("/restoran/integrations")}
           >
             <SidebarItem icon={Store} label="Uygulama Mağazası" href="/restoran/integrations/app-store" active={isActive("/restoran/integrations/app-store")} />
+            <SidebarItem icon={Puzzle} label="Eklenti Merkezi" href="/restoran/integrations/plugins" active={isActive("/restoran/integrations/plugins")} />
           </SidebarItem>
 
           <SidebarSectionHeader label="Hesabım" />
@@ -769,6 +772,7 @@ function OnlineLayoutContent() {
             <Route path="/restoran/printers" component={PrinterSettingsPage} />
             <Route path="/restoran/customer-display" component={CustomerDisplaySettingsPage} />
             <Route path="/restoran/integrations" component={Integrations} />
+            <Route path="/restoran/integrations/plugins" component={PluginCenter} />
             <Route path="/restoran/integrations/urun-3d-gosterim" component={Urun3DGosterimIntegration} />
             <Route path="/restoran/digital-menu" component={DigitalMenuLayout} />
             <Route path="/restoran/online-menu" component={() => <PlaceholderPage title="Online Menü" icon={MenuIcon} />} />

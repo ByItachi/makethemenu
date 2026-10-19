@@ -21,6 +21,7 @@ import { registerHealthRoutes, registerSeoRoutes } from "./seo";
 import { registerCsvExportRoutes } from "./csv-export";
 import { registerDomainRoutes, registerCustomDomainHostRewrite } from "./domains";
 import { registerAiMenuRoutes } from "./ai/routes";
+import { registerPluginRoutes } from "./plugins";
 import { assertWithin3dLimit, Model3dLimitError, isValid3dUrl } from "./plans";
 import { enforcePlanLimit } from "./plans";
 import { insertRestaurantSchema, insertLicenseSchema, insertAdminNotificationSchema } from "@shared/schema";
@@ -51,6 +52,7 @@ export async function registerRoutes(
   registerCsvExportRoutes(app);
   registerDomainRoutes(app);
   registerAiMenuRoutes(app);
+  registerPluginRoutes(app);
 
   // Business (tenant) data: must be logged in and belong to a business
   app.use(["/api/tables", "/api/categories", "/api/products", "/api/orders"], requireRestaurant);
