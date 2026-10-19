@@ -24,7 +24,10 @@ import { registerAiMenuRoutes } from "./ai/routes";
 import { registerPluginRoutes } from "./plugins";
 import { assertWithin3dLimit, Model3dLimitError, isValid3dUrl } from "./plans";
 import { enforcePlanLimit } from "./plans";
-import { insertRestaurantSchema, insertLicenseSchema, insertAdminNotificationSchema } from "@shared/schema";
+import { insertRestaurantSchema, insertLicenseSchema, insertAdminNotificationSchema, restaurants, users } from "@shared/schema";
+import { and, eq } from "drizzle-orm";
+import { db } from "./db";
+import { writeAudit } from "./audit";
 
 function sendValidationError(err: unknown, res: import("express").Response): boolean {
   if (err instanceof z.ZodError) {
@@ -39,6 +42,23 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   app.use(securityHeaders);
+  // CSRF derinlemesine savunma: gövdeli isteklerde Origin varsa siteyle aynı host olmalı.
+  // (Çerezler SameSite=Lax; bu kontrol de cross-site form/fetch saldırılarını kapatır.
+  //  Custom alan adları Origin=Host olduğu için etkilenmez; webhook'larda Origin gelmez.)
+  app.use((req, res, next) => {
+    if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) return next();
+    const origin = req.headers.origin;
+    if (origin) {
+      try {
+        if (new URL(origin).host !== req.headers.host) {
+          return res.status(403).json({ message: "Geçersiz istek kaynağı." });
+        }
+      } catch {
+        return res.status(403).json({ message: "Geçersiz istek kaynağı." });
+      }
+    }
+    next();
+  });
   app.use(requireJsonBody);
   setupSession(app);
   registerAuthRoutes(app); // also attaches req.auth to every request
@@ -236,6 +256,46 @@ export async function registerRoutes(
   app.use(["/api/admin", "/api/integrations"], requirePlatformAdmin);
   registerAdminPlanRoutes(app);
   registerAdminBillingRoutes(app);
+
+  // === ADMIN: IMPERSONATION (login as a business user) ===
+  app.post("/api/admin/impersonate", async (req: import("express").Request, res: import("express").Response) => {
+    let userId = Number(req.body?.userId);
+    if (!Number.isInteger(userId) || userId <= 0) {
+      const restaurantId = Number(req.body?.restaurantId);
+      if (!Number.isInteger(restaurantId) || restaurantId <= 0) {
+        return res.status(400).json({ message: "Geçersiz kullanıcı." });
+      }
+      const [rest] = await db.select().from(restaurants).where(eq(restaurants.id, restaurantId)).limit(1);
+      if (!rest) return res.status(404).json({ message: "İşletme bulunamadı." });
+      if (rest.ownerUserId) {
+        userId = rest.ownerUserId;
+      } else {
+        // Owner bağlanmamışsa işletmenin ilk aktif kullanıcısına geç (demo/seed verileri)
+        const [fallback] = await db.select().from(users).where(and(eq(users.restaurantId, restaurantId), eq(users.isActive, true))).limit(1);
+        if (!fallback) return res.status(404).json({ message: "İşletme kullanıcısı bulunamadı." });
+        userId = fallback.id;
+      }
+    }
+    const [target] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!target || target.isActive === false) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+    }
+    const adminId = req.auth!.userId;
+    await new Promise<void>((resolve, reject) =>
+      req.session.regenerate((err) => (err ? reject(err) : resolve()))
+    );
+    req.session.userId = target.id;
+    (req.session as any).impersonatorId = adminId;
+    await writeAudit({
+      restaurantId: target.restaurantId ?? null,
+      actorUserId: adminId,
+      action: "admin.impersonate",
+      entity: "user",
+      entityId: String(target.id),
+      req,
+    });
+    res.json({ ok: true, user: { id: target.id, email: target.email, restaurantId: target.restaurantId ?? null } });
+  });
 
   // === ADMIN: RESTAURANTS / BUSINESSES ===
   app.get('/api/admin/restaurants', async (req, res) => {

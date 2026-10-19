@@ -1,9 +1,9 @@
 import type { Express, Request, Response } from "express";
 import { randomBytes } from "crypto";
-import { eq } from "drizzle-orm";
+import { and, desc, eq, like } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db";
-import { roles, users, restaurants } from "@shared/schema";
+import { auditLogs, roles, users, restaurants } from "@shared/schema";
 import { hashPassword, verifyPassword, needsRehash, PASSWORD_MIN, PASSWORD_MAX } from "./password";
 import { loadAuth, requireAuth, rateLimit } from "./middleware";
 import { generateSlug } from "../tenancy/slugs";
@@ -100,7 +100,38 @@ export function registerAuthRoutes(app: Express) {
     if (!req.auth) return res.status(401).json({ message: "Giriş yapmanız gerekiyor." });
     const [user] = await db.select().from(users).where(eq(users.id, req.auth.userId));
     if (!user) return res.status(401).json({ message: "Giriş yapmanız gerekiyor." });
-    res.json(publicUser(user));
+    res.json({ ...publicUser(user), impersonatedBy: (req.session as any).impersonatorId ?? null });
+  });
+
+  // Security timeline for the logged-in user: recent auth events from the audit trail
+  app.get("/api/auth/security-events", requireAuth, async (req: Request, res: Response) => {
+    const rows = await db
+      .select({ id: auditLogs.id, action: auditLogs.action, ip: auditLogs.ip, createdAt: auditLogs.createdAt })
+      .from(auditLogs)
+      .where(and(eq(auditLogs.actorUserId, req.auth!.userId), like(auditLogs.action, "auth.%")))
+      .orderBy(desc(auditLogs.id))
+      .limit(50);
+    res.json(rows);
+  });
+
+  // End impersonation: return to the platform admin's own session
+  app.post("/api/auth/stop-impersonating", requireAuth, async (req: Request, res: Response) => {
+    const adminId = (req.session as any).impersonatorId as number | undefined;
+    if (!adminId) return res.status(400).json({ message: "Aktif temsilci oturumu yok." });
+    const [admin] = await db.select().from(users).where(eq(users.id, adminId)).limit(1);
+    if (!admin || admin.isPlatformAdmin !== true) {
+      // Admin gone or demoted: fall back to a clean logout
+      await new Promise<void>((resolve, reject) =>
+        req.session.destroy((err) => (err ? reject(err) : resolve()))
+      );
+      return res.json({ ok: true, loggedOut: true });
+    }
+    await writeAudit({ restaurantId: req.auth!.restaurantId ?? null, actorUserId: adminId, action: "auth.impersonation_ended", entity: "user", entityId: String(req.auth!.userId), req });
+    await new Promise<void>((resolve, reject) =>
+      req.session.regenerate((err) => (err ? reject(err) : resolve()))
+    );
+    req.session.userId = adminId;
+    res.json({ ok: true, user: publicUser(admin) });
   });
 
   app.post("/api/auth/register", registerLimiter, async (req: Request, res: Response) => {

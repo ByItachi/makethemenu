@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import SubscriptionCard from "@/components/billing/SubscriptionCard";
 
 type RestaurantSettings = {
@@ -361,7 +362,56 @@ export default function RestaurantSettingsPage() {
 
       <DomainsCard />
 
+      <SecurityEventsCard />
+
       <SubscriptionCard />
     </div>
+  );
+}
+
+// ─── Security timeline (recent auth events from the audit trail) ────────────
+type SecurityEvent = { id: number; action: string; ip: string | null; createdAt: string | null };
+
+const EVENT_LABELS: Record<string, string> = {
+  "auth.login": "Giriş yapıldı",
+  "auth.logout": "Çıkış yapıldı",
+  "auth.register": "Kayıt olundu",
+  "auth.password_reset": "Parola sıfırlandı",
+  "auth.email_verified": "E-posta doğrulandı",
+  "auth.impersonation_ended": "Temsilci oturumu sonlandı",
+};
+
+function SecurityEventsCard() {
+  const { data: events, isLoading } = useQuery<SecurityEvent[]>({
+    queryKey: ["/api/auth/security-events"],
+    queryFn: async () => (await apiRequest("GET", "/api/auth/security-events")).json(),
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Son hesap etkinlikleri</CardTitle>
+        <CardDescription>Son 50 oturum hareketi; tanımadığınız bir IP görürseniz parolanızı değiştirin.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Yükleniyor…</p>
+        ) : !events || events.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Henüz etkinlik kaydı yok.</p>
+        ) : (
+          <ul className="divide-y divide-border/60 text-sm">
+            {events.map((e) => (
+              <li key={e.id} className="flex items-center justify-between gap-3 py-2">
+                <span className="font-medium">{EVENT_LABELS[e.action] ?? e.action}</span>
+                <span className="text-muted-foreground text-xs text-right">
+                  {e.ip ? <span className="font-mono">{e.ip}</span> : "IP yok"} ·{" "}
+                  {e.createdAt ? new Date(e.createdAt).toLocaleString("tr-TR") : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }

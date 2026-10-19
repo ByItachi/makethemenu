@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Calendar, Building2, Store, Plus, Pencil, Trash2, MoreVertical, Clock } from "lucide-react";
+import { Search, MapPin, Calendar, Building2, Store, Plus, Pencil, Trash2, MoreVertical, Clock, LogIn } from "lucide-react";
 import AdminLayout from "./AdminLayout";
 import {
   Dialog,
@@ -111,6 +111,26 @@ export default function AdminBusinesses() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/restaurants"] });
       toast({ title: "Başarılı", description: "İşletme silindi." });
     },
+  });
+
+  const impersonateMutation = useMutation({
+    mutationFn: async (restaurantId: number) => {
+      const response = await fetch("/api/admin/impersonate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ restaurantId }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.message || "Giriş yapılamadı");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.clear();
+      window.location.href = "/panel";
+    },
+    onError: (e: Error) => toast({ title: "Hata", description: e.message, variant: "destructive" }),
   });
 
   const resetForm = () => {
@@ -337,6 +357,10 @@ export default function AdminBusinesses() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => impersonateMutation.mutate(restaurant.id)}>
+                          <LogIn className="mr-2 h-4 w-4" />
+                          Kullanıcı Olarak Gir
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(restaurant)}>
                           <Pencil className="mr-2 h-4 w-4" />
                           Düzenle

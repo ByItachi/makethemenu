@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CookieConsent } from "@/components/CookieConsent";
+import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 import { useAuth } from "@/hooks/use-auth";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
@@ -197,6 +198,7 @@ function App() {
       <LanguageProvider>
         <DarkModeProvider>
           <TooltipProvider>
+            <ImpersonationBanner />
             <Toaster />
             <Router />
             <CookieConsent />

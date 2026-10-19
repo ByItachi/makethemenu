@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area,
 } from 'recharts';
 import { DollarSign, Users, ShoppingBag, TrendingUp, Clock, Eye, QrCode, Loader2, FileDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -174,8 +174,6 @@ function AnalyticsCard() {
     queryFn: async () => (await apiRequest("GET", `/api/analytics/summary?days=${days}`)).json(),
   });
 
-  const maxDaily = Math.max(1, ...(data?.daily ?? []).map((d) => d.menuView + d.qrScan));
-
   return (
     <Card className="border-none shadow-lg bg-card/50">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -208,16 +206,26 @@ function AnalyticsCard() {
                 {data.daily.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-4">Bu aralıkta veri yok; menünüz ziyaret edildiğinde burada birikecek.</p>
                 ) : (
-                  <div className="flex items-end gap-1.5 h-28">
-                    {data.daily.map((d) => {
-                      const total = d.menuView + d.qrScan;
-                      return (
-                        <div key={d.date} className="flex-1 flex flex-col items-center gap-1 group" title={`${d.date}: ${total}`}>
-                          <div className="w-full bg-primary/80 rounded-t" style={{ height: `${(total / maxDaily) * 100}%`, minHeight: total > 0 ? 4 : 1 }} />
-                          <span className="text-[10px] text-muted-foreground">{d.date.slice(8)}</span>
-                        </div>
-                      );
-                    })}
+                  <div className="h-40">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={data.daily.map((d) => ({ ...d, name: d.date.slice(5), menuView: d.menuView, qrScan: d.qrScan }))}>
+                        <defs>
+                          <linearGradient id="gMenu" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.05} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} width={32} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
+                          labelStyle={{ color: 'hsl(var(--foreground))' }}
+                        />
+                        <Area type="monotone" dataKey="menuView" name="Menü" stackId="1" stroke="hsl(var(--primary))" fill="url(#gMenu)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="qrScan" name="QR tarama" stackId="1" stroke="#10b981" fill="#10b98133" strokeWidth={2} />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 )}
               </div>
