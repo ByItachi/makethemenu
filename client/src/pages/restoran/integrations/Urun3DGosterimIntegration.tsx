@@ -195,7 +195,7 @@ const Urun3DGosterimIntegration: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="relative h-96">
+                  <div className="relative h-96 overflow-hidden rounded-lg border cursor-grab active:cursor-grabbing">
                     <model-viewer
                       ref={viewerRef}
                       src={modelUrl}
@@ -207,7 +207,6 @@ const Urun3DGosterimIntegration: React.FC = () => {
                       exposure={lightSettings[lightType].exposure}
                       ar
                       ar-modes="webxr scene-viewer quick-look"
-                      className="rounded-lg border cursor-grab active:cursor-grabbing"
                       style={{ width: '100%', height: '100%', backgroundColor: bgStyle }}
                       onLoad={() => setModelLoading(false)}
                     />
