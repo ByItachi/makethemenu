@@ -60,8 +60,8 @@ export default function AdminOverview() {
     <AdminLayout>
       <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Genel Bakış</h1>
-          <p className="text-gray-500 mt-1">Sistem durumu ve özet istatistikler</p>
+          <h1 className="text-3xl font-bold text-foreground">Genel Bakış</h1>
+          <p className="text-muted-foreground mt-1">Sistem durumu ve özet istatistikler</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -122,17 +122,17 @@ export default function AdminOverview() {
                     </div>
                     <div>
                       <p className="font-medium">{payment.businessName}</p>
-                      <p className="text-sm text-gray-500">{payment.plan} Planı</p>
+                      <p className="text-sm text-muted-foreground">{payment.plan} Planı</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-bold">{payment.amount} {payment.currency}</p>
-                    <p className="text-sm text-gray-500">{payment.date}</p>
+                    <p className="text-sm text-muted-foreground">{payment.date}</p>
                   </div>
                 </div>
               ))}
               {(!pendingPayments || pendingPayments.length === 0) && (
-                <p className="text-gray-500 text-center py-4">Bekleyen ödeme bulunmuyor.</p>
+                <p className="text-muted-foreground text-center py-4">Bekleyen ödeme bulunmuyor.</p>
               )}
             </div>
           </CardContent>

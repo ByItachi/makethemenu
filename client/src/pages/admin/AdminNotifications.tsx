@@ -71,8 +71,8 @@ export default function AdminNotifications() {
       <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Bildirimler</h1>
-            <p className="text-gray-500 mt-1">Sistem bildirimleri ve destek talepleri</p>
+            <h1 className="text-3xl font-bold text-foreground">Bildirimler</h1>
+            <p className="text-muted-foreground mt-1">Sistem bildirimleri ve destek talepleri</p>
           </div>
           <Badge variant="outline" className="px-4 py-2 text-sm">
             {notifications?.filter(n => n.status === 'unread').length || 0} Okunmamış
@@ -82,7 +82,7 @@ export default function AdminNotifications() {
         <div className="space-y-4">
           {notifications?.length === 0 ? (
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <Bell className="h-12 w-12 mb-4 opacity-20" />
                 <p>Henüz bildirim bulunmuyor.</p>
               </CardContent>
@@ -104,13 +104,13 @@ export default function AdminNotifications() {
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-gray-900">{notification.title}</h3>
+                          <h3 className="font-semibold text-foreground">{notification.title}</h3>
                           {notification.status === 'unread' && (
                             <Badge variant="default" className="text-[10px] h-5">Yeni</Badge>
                           )}
                         </div>
-                        <p className="text-gray-600">{notification.message}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-400 mt-2">
+                        <p className="text-foreground/80">{notification.message}</p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground/70 mt-2">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {new Date(notification.createdAt).toLocaleString('tr-TR')}
@@ -139,7 +139,7 @@ export default function AdminNotifications() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="text-gray-400 hover:text-red-500"
+                        className="text-muted-foreground/70 hover:text-red-500"
                         onClick={() => deleteMutation.mutate(notification.id)}
                       >
                         <Trash2 className="w-4 h-4" />

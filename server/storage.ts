@@ -13,110 +13,133 @@ import {
   type OrderWithItems
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 
+// Every tenant-owned query takes restaurantId as its first argument.
+// Rows belonging to another business are treated as "not found".
 export interface IStorage {
   // Tables
-  getTables(): Promise<Table[]>;
-  createTable(table: InsertTable): Promise<Table>;
-  updateTable(id: number, table: Partial<InsertTable>): Promise<Table>;
-  deleteTable(id: number): Promise<void>;
+  getTables(restaurantId: number): Promise<Table[]>;
+  createTable(restaurantId: number, table: InsertTable): Promise<Table>;
+  updateTable(restaurantId: number, id: number, table: Partial<InsertTable>): Promise<Table | undefined>;
+  deleteTable(restaurantId: number, id: number): Promise<boolean>;
 
   // Categories
-  getCategories(): Promise<Category[]>;
-  createCategory(category: InsertCategory): Promise<Category>;
-  deleteCategory(id: number): Promise<void>;
+  getCategories(restaurantId: number): Promise<Category[]>;
+  createCategory(restaurantId: number, category: InsertCategory): Promise<Category>;
+  deleteCategory(restaurantId: number, id: number): Promise<boolean>;
 
   // Products
-  getProducts(categoryId?: number): Promise<Product[]>;
-  createProduct(product: InsertProduct): Promise<Product>;
-  updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product>;
-  deleteProduct(id: number): Promise<void>;
+  getProducts(restaurantId: number, categoryId?: number): Promise<Product[]>;
+  createProduct(restaurantId: number, product: InsertProduct): Promise<Product>;
+  updateProduct(restaurantId: number, id: number, product: Partial<InsertProduct>): Promise<Product | undefined>;
+  deleteProduct(restaurantId: number, id: number): Promise<boolean>;
 
   // Orders
-  getOrders(status?: string): Promise<OrderWithItems[]>;
-  getOrder(id: number): Promise<OrderWithItems | undefined>;
-  createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems>;
-  updateOrderStatus(id: number, status: string): Promise<Order>;
+  getOrders(restaurantId: number, status?: string): Promise<OrderWithItems[]>;
+  getOrder(restaurantId: number, id: number): Promise<OrderWithItems | undefined>;
+  createOrder(restaurantId: number, order: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems>;
+  updateOrderStatus(restaurantId: number, id: number, status: string): Promise<Order | undefined>;
 
-  // Contact
+  // Contact (public, not tenant-scoped)
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
 }
 
 export class DatabaseStorage implements IStorage {
   // Tables
-  async getTables(): Promise<Table[]> {
-    return await db.select().from(tables);
+  async getTables(restaurantId: number): Promise<Table[]> {
+    return await db.select().from(tables).where(eq(tables.restaurantId, restaurantId));
   }
 
-  async createTable(insertTable: InsertTable): Promise<Table> {
-    const [result] = await db.insert(tables).values(insertTable);
+  async createTable(restaurantId: number, insertTable: InsertTable): Promise<Table> {
+    const [result] = await db.insert(tables).values({ ...insertTable, restaurantId });
     const [table] = await db.select().from(tables).where(eq(tables.id, result.insertId));
     return table;
   }
 
-  async updateTable(id: number, updateTable: Partial<InsertTable>): Promise<Table> {
-    await db.update(tables).set(updateTable).where(eq(tables.id, id));
+  async updateTable(restaurantId: number, id: number, updateTable: Partial<InsertTable>): Promise<Table | undefined> {
+    const [result] = await db.update(tables).set(updateTable).where(and(eq(tables.id, id), eq(tables.restaurantId, restaurantId)));
+    if (result.affectedRows === 0) return undefined;
     const [table] = await db.select().from(tables).where(eq(tables.id, id));
-    if (!table) throw new Error("Table not found");
     return table;
   }
 
-  async deleteTable(id: number): Promise<void> {
-    await db.delete(tables).where(eq(tables.id, id));
+  async deleteTable(restaurantId: number, id: number): Promise<boolean> {
+    const [result] = await db.delete(tables).where(and(eq(tables.id, id), eq(tables.restaurantId, restaurantId)));
+    return result.affectedRows > 0;
   }
 
   // Categories
-  async getCategories(): Promise<Category[]> {
-    return await db.select().from(categories);
+  async getCategories(restaurantId: number): Promise<Category[]> {
+    return await db.select().from(categories).where(eq(categories.restaurantId, restaurantId));
   }
 
-  async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const [result] = await db.insert(categories).values(insertCategory);
+  async createCategory(restaurantId: number, insertCategory: InsertCategory): Promise<Category> {
+    const [result] = await db.insert(categories).values({ ...insertCategory, restaurantId });
     const [category] = await db.select().from(categories).where(eq(categories.id, result.insertId));
     return category;
   }
 
-  async deleteCategory(id: number): Promise<void> {
-    await db.delete(categories).where(eq(categories.id, id));
+  async deleteCategory(restaurantId: number, id: number): Promise<boolean> {
+    const [result] = await db.delete(categories).where(and(eq(categories.id, id), eq(categories.restaurantId, restaurantId)));
+    return result.affectedRows > 0;
   }
 
   // Products
-  async getProducts(categoryId?: number): Promise<Product[]> {
-    if (categoryId) {
-      return await db.select().from(products).where(eq(products.categoryId, categoryId));
-    }
-    return await db.select().from(products);
+  async getProducts(restaurantId: number, categoryId?: number): Promise<Product[]> {
+    const scope = categoryId
+      ? and(eq(products.restaurantId, restaurantId), eq(products.categoryId, categoryId))
+      : eq(products.restaurantId, restaurantId);
+    return await db.select().from(products).where(scope);
   }
 
-  async createProduct(insertProduct: InsertProduct): Promise<Product> {
-    const [result] = await db.insert(products).values(insertProduct);
+  async createProduct(restaurantId: number, insertProduct: InsertProduct): Promise<Product> {
+    if (insertProduct.categoryId && !(await this.ownsCategory(restaurantId, insertProduct.categoryId))) {
+      throw new Error("Category not found");
+    }
+    const [result] = await db.insert(products).values({ ...insertProduct, restaurantId });
     const [product] = await db.select().from(products).where(eq(products.id, result.insertId));
     return product;
   }
 
-  async updateProduct(id: number, updateProduct: Partial<InsertProduct>): Promise<Product> {
-    await db.update(products).set(updateProduct).where(eq(products.id, id));
+  async updateProduct(restaurantId: number, id: number, updateProduct: Partial<InsertProduct>): Promise<Product | undefined> {
+    if (updateProduct.categoryId && !(await this.ownsCategory(restaurantId, updateProduct.categoryId))) {
+      throw new Error("Category not found");
+    }
+    const [result] = await db.update(products).set(updateProduct).where(and(eq(products.id, id), eq(products.restaurantId, restaurantId)));
+    if (result.affectedRows === 0) return undefined;
     const [product] = await db.select().from(products).where(eq(products.id, id));
-    if (!product) throw new Error("Product not found");
     return product;
   }
 
-  async deleteProduct(id: number): Promise<void> {
-    await db.delete(products).where(eq(products.id, id));
+  async deleteProduct(restaurantId: number, id: number): Promise<boolean> {
+    const [result] = await db.delete(products).where(and(eq(products.id, id), eq(products.restaurantId, restaurantId)));
+    return result.affectedRows > 0;
+  }
+
+  private async ownsCategory(restaurantId: number, categoryId: number): Promise<boolean> {
+    const [row] = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(and(eq(categories.id, categoryId), eq(categories.restaurantId, restaurantId)));
+    return !!row;
   }
 
   // Orders
-  async getOrders(status?: string): Promise<OrderWithItems[]> {
-    const orderResults = status
-      ? await db.select().from(orders).where(eq(orders.status, status))
-      : await db.select().from(orders);
-    const results = await Promise.all(orderResults.map(order => this.getOrder(order.id)));
+  async getOrders(restaurantId: number, status?: string): Promise<OrderWithItems[]> {
+    const scope = status
+      ? and(eq(orders.restaurantId, restaurantId), eq(orders.status, status))
+      : eq(orders.restaurantId, restaurantId);
+    const orderResults = await db.select().from(orders).where(scope);
+    const results = await Promise.all(orderResults.map((order) => this.getOrder(restaurantId, order.id)));
     return results.filter((o): o is OrderWithItems => o !== undefined);
   }
 
-  async getOrder(id: number): Promise<OrderWithItems | undefined> {
-    const [order] = await db.select().from(orders).where(eq(orders.id, id));
+  async getOrder(restaurantId: number, id: number): Promise<OrderWithItems | undefined> {
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, id), eq(orders.restaurantId, restaurantId)));
     if (!order) return undefined;
 
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
@@ -130,24 +153,28 @@ export class DatabaseStorage implements IStorage {
     return { ...order, table: table || null, items: itemsWithProducts };
   }
 
-  async createOrder(insertOrder: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems> {
-    const [result] = await db.insert(orders).values(insertOrder);
+  async createOrder(restaurantId: number, insertOrder: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems> {
+    if (insertOrder.tableId) {
+      const [t] = await db.select({ id: tables.id }).from(tables).where(and(eq(tables.id, insertOrder.tableId), eq(tables.restaurantId, restaurantId)));
+      if (!t) throw new Error("Table not found");
+    }
+    const [result] = await db.insert(orders).values({ ...insertOrder, restaurantId });
 
     for (const item of items) {
       await db.insert(orderItems).values({ ...item, orderId: result.insertId });
     }
 
-    return (await this.getOrder(result.insertId))!;
+    return (await this.getOrder(restaurantId, result.insertId))!;
   }
 
-  async updateOrderStatus(id: number, status: string): Promise<Order> {
-    await db.update(orders).set({ status }).where(eq(orders.id, id));
+  async updateOrderStatus(restaurantId: number, id: number, status: string): Promise<Order | undefined> {
+    const [result] = await db.update(orders).set({ status }).where(and(eq(orders.id, id), eq(orders.restaurantId, restaurantId)));
+    if (result.affectedRows === 0) return undefined;
     const [order] = await db.select().from(orders).where(eq(orders.id, id));
-    if (!order) throw new Error("Order not found");
     return order;
   }
 
-  // Admin: Restaurants
+// Admin: Restaurants
   async getRestaurants(): Promise<Restaurant[]> {
     return await db.select().from(restaurants).orderBy(desc(restaurants.id));
   }
@@ -243,160 +270,6 @@ export class DatabaseStorage implements IStorage {
   async createContactMessage(insertMessage: InsertContactMessage): Promise<ContactMessage> {
     const [result] = await db.insert(contactMessages).values(insertMessage);
     const [message] = await db.select().from(contactMessages).where(eq(contactMessages.id, result.insertId));
-    return message;
-  }
-}
-
-export class MemStorage implements IStorage {
-  private tables: Map<number, Table>;
-  private categories: Map<number, Category>;
-  private products: Map<number, Product>;
-  private orders: Map<number, Order>;
-  private orderItems: Map<number, OrderItem>;
-  private contactMessages: Map<number, ContactMessage>;
-  
-  private tableId: number;
-  private categoryId: number;
-  private productId: number;
-  private orderId: number;
-  private orderItemId: number;
-  private contactMessageId: number;
-
-  constructor() {
-    this.tables = new Map();
-    this.categories = new Map();
-    this.products = new Map();
-    this.orders = new Map();
-    this.orderItems = new Map();
-    this.contactMessages = new Map();
-    
-    this.tableId = 1;
-    this.categoryId = 1;
-    this.productId = 1;
-    this.orderId = 1;
-    this.orderItemId = 1;
-    this.contactMessageId = 1;
-  }
-
-  // Tables
-  async getTables(): Promise<Table[]> {
-    return Array.from(this.tables.values());
-  }
-
-  async createTable(insertTable: InsertTable): Promise<Table> {
-    const id = this.tableId++;
-    const table: Table = { ...insertTable, id, x: insertTable.x ?? 0, y: insertTable.y ?? 0, status: insertTable.status ?? "available" };
-    this.tables.set(id, table);
-    return table;
-  }
-
-  async updateTable(id: number, updateTable: Partial<InsertTable>): Promise<Table> {
-    const table = this.tables.get(id);
-    if (!table) throw new Error("Table not found");
-    const updatedTable = { ...table, ...updateTable };
-    this.tables.set(id, updatedTable);
-    return updatedTable;
-  }
-
-  async deleteTable(id: number): Promise<void> {
-    this.tables.delete(id);
-  }
-
-  // Categories
-  async getCategories(): Promise<Category[]> {
-    return Array.from(this.categories.values());
-  }
-
-  async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const id = this.categoryId++;
-    const category: Category = { ...insertCategory, id, imageUrl: insertCategory.imageUrl ?? null, icon: insertCategory.icon ?? null };
-    this.categories.set(id, category);
-    return category;
-  }
-
-  async deleteCategory(id: number): Promise<void> {
-    this.categories.delete(id);
-  }
-
-  // Products
-  async getProducts(categoryId?: number): Promise<Product[]> {
-    const products = Array.from(this.products.values());
-    if (categoryId) {
-      return products.filter(p => p.categoryId === categoryId);
-    }
-    return products;
-  }
-
-  async createProduct(insertProduct: InsertProduct): Promise<Product> {
-    const id = this.productId++;
-    const product: Product = { ...insertProduct, id, description: insertProduct.description ?? null, imageUrl: insertProduct.imageUrl ?? null, isAvailable: insertProduct.isAvailable ?? true, categoryId: insertProduct.categoryId ?? null };
-    this.products.set(id, product);
-    return product;
-  }
-
-  async updateProduct(id: number, updateProduct: Partial<InsertProduct>): Promise<Product> {
-    const product = this.products.get(id);
-    if (!product) throw new Error("Product not found");
-    const updatedProduct = { ...product, ...updateProduct };
-    this.products.set(id, updatedProduct);
-    return updatedProduct;
-  }
-
-  async deleteProduct(id: number): Promise<void> {
-    this.products.delete(id);
-  }
-
-  // Orders
-  async getOrders(status?: string): Promise<OrderWithItems[]> {
-    let orders = Array.from(this.orders.values());
-    if (status) {
-      orders = orders.filter(o => o.status === status);
-    }
-    const results = await Promise.all(orders.map(order => this.getOrder(order.id)));
-    return results.filter((o): o is OrderWithItems => o !== undefined);
-  }
-
-  async getOrder(id: number): Promise<OrderWithItems | undefined> {
-    const order = this.orders.get(id);
-    if (!order) return undefined;
-
-    const items = Array.from(this.orderItems.values()).filter(item => item.orderId === id);
-    const itemsWithProducts = items.map(item => {
-      const product = this.products.get(item.productId!);
-      return { ...item, product: product! };
-    });
-
-    const table = order.tableId ? this.tables.get(order.tableId) : undefined;
-
-    return { ...order, table: table || null, items: itemsWithProducts };
-  }
-
-  async createOrder(insertOrder: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems> {
-    const id = this.orderId++;
-    const order: Order = { ...insertOrder, id, status: insertOrder.status ?? "pending", createdAt: new Date(), tableId: insertOrder.tableId ?? null };
-    this.orders.set(id, order);
-
-    for (const item of items) {
-      const itemId = this.orderItemId++;
-      this.orderItems.set(itemId, { ...item, id: itemId, orderId: id, notes: item.notes ?? null, productId: item.productId ?? null });
-    }
-
-    return (await this.getOrder(id))!;
-  }
-
-  async updateOrderStatus(id: number, status: string): Promise<Order> {
-    const order = this.orders.get(id);
-    if (!order) throw new Error("Order not found");
-    const updatedOrder = { ...order, status };
-    this.orders.set(id, updatedOrder);
-    return updatedOrder;
-  }
-
-  // Contact
-  async createContactMessage(insertMessage: InsertContactMessage): Promise<ContactMessage> {
-    const id = this.contactMessageId++;
-    const message: ContactMessage = { ...insertMessage, id, createdAt: new Date() };
-    this.contactMessages.set(id, message);
     return message;
   }
 }

@@ -176,7 +176,7 @@ export default function AdminBusinesses() {
       case "inactive":
         return "bg-red-500/10 text-red-500 hover:bg-red-500/20";
       default:
-        return "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20";
+        return "bg-muted/60 text-muted-foreground hover:bg-muted";
     }
   };
 
@@ -194,12 +194,12 @@ export default function AdminBusinesses() {
       <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">İşletme Listesi</h1>
-            <p className="text-gray-500 mt-1">Sistemdeki restoran ve kafelerin yönetimi</p>
+            <h1 className="text-3xl font-bold text-foreground">İşletme Listesi</h1>
+            <p className="text-muted-foreground mt-1">Sistemdeki restoran ve kafelerin yönetimi</p>
           </div>
           <div className="flex gap-4 w-full md:w-auto flex-wrap">
              <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm flex-1 md:flex-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-muted-foreground/70" />
                 <Input
                   placeholder="Restoran ara..."
                   value={searchTerm}
@@ -360,7 +360,7 @@ export default function AdminBusinesses() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-lg">{restaurant.name}</h3>
-                          <p className="text-sm text-gray-500">{restaurant.type}</p>
+                          <p className="text-sm text-muted-foreground">{restaurant.type}</p>
                         </div>
                       </div>
                       <Badge variant="outline" className={getStatusColor(restaurant.status)}>
@@ -368,13 +368,13 @@ export default function AdminBusinesses() {
                       </Badge>
                     </div>
                     
-                    <div className="space-y-2 text-sm text-gray-600">
+                    <div className="space-y-2 text-sm text-foreground/80">
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
+                        <MapPin className="h-4 w-4 text-muted-foreground/70" />
                         <span>{restaurant.address}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <Calendar className="h-4 w-4 text-muted-foreground/70" />
                         <span>Katılım: {new Date(restaurant.joinedAt).toLocaleDateString('tr-TR')}</span>
                       </div>
                     </div>

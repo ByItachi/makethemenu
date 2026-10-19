@@ -173,15 +173,12 @@ export default function Settings() {
              <Card>
                <CardHeader>
                  <CardTitle>Hesap</CardTitle>
-                 <CardDescription>Replit Auth ile giriş yaptınız</CardDescription>
+                 <CardDescription>E-posta ve parola ile giriş yaptınız</CardDescription>
                </CardHeader>
                <CardContent className="space-y-4">
                   <div className="flex items-center gap-4">
-                    {user?.profileImageUrl && (
-                      <img src={user.profileImageUrl} alt="Profile" className="h-16 w-16 rounded-full" />
-                    )}
                     <div>
-                      <p className="font-medium text-lg">{user?.firstName} {user?.lastName}</p>
+                      <p className="font-medium text-lg">{user?.fullName}</p>
                       <p className="text-muted-foreground">{user?.email}</p>
                     </div>
                   </div>

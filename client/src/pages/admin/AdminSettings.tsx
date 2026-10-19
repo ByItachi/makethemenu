@@ -43,28 +43,28 @@ export default function AdminSettings() {
     <AdminLayout>
       <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Sistem Ayarları</h1>
-          <p className="text-gray-500 mt-1">Platform genel yapılandırması ve tercihleri</p>
+          <h1 className="text-3xl font-bold text-foreground">Sistem Ayarları</h1>
+          <p className="text-muted-foreground mt-1">Platform genel yapılandırması ve tercihleri</p>
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="bg-white border p-1 h-auto grid grid-cols-2 md:grid-cols-6 gap-2 w-full max-w-4xl">
-            <TabsTrigger value="general" className="flex gap-2 items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsList className="bg-card dark:bg-card border border-border p-1 h-auto grid grid-cols-2 md:grid-cols-6 gap-2 w-full max-w-4xl">
+            <TabsTrigger value="general" className="flex gap-2 items-center text-foreground font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Globe className="h-4 w-4" /> Genel
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex gap-2 items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="security" className="flex gap-2 items-center text-foreground font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Shield className="h-4 w-4" /> Güvenlik
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex gap-2 items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="notifications" className="flex gap-2 items-center text-foreground font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Bell className="h-4 w-4" /> Bildirim
             </TabsTrigger>
-            <TabsTrigger value="payment" className="flex gap-2 items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="payment" className="flex gap-2 items-center text-foreground font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <CreditCard className="h-4 w-4" /> Ödeme
             </TabsTrigger>
-            <TabsTrigger value="email" className="flex gap-2 items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="email" className="flex gap-2 items-center text-foreground font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Mail className="h-4 w-4" /> E-posta
             </TabsTrigger>
-            <TabsTrigger value="system" className="flex gap-2 items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="system" className="flex gap-2 items-center text-foreground font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Database className="h-4 w-4" /> Sistem
             </TabsTrigger>
           </TabsList>

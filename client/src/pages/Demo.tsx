@@ -3,17 +3,8 @@ import { Loader2 } from "lucide-react";
 
 export default function Demo() {
   useEffect(() => {
-    const mockUser = {
-      id: "demo-user-id",
-      email: "demo@makethemenu.com",
-      firstName: "Demo",
-      lastName: "User",
-      profileImageUrl: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    localStorage.setItem("demo_user", JSON.stringify(mockUser));
-    window.location.href = "/panel";
+    // Sahte demo oturumu kaldırıldı; gerçek giriş sayfasına yönlendir.
+    window.location.href = "/giris";
   }, []);
 
   return (

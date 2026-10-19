@@ -16,6 +16,12 @@ import Login from "@/pages/Login";
 import Demo from "@/pages/Demo";
 import ForgotPassword from "@/pages/ForgotPassword";
 import Register from "@/pages/Register";
+import PublicMenuPage from "@/pages/PublicMenu";
+import { VerifyEmailPage, ResetPasswordPage } from "@/pages/AuthToken";
+import RestaurantSettingsPage from "@/pages/RestaurantSettings";
+import TestCheckoutPage from "@/pages/billing/TestCheckoutPage";
+import PlanCheckoutPage from "@/pages/billing/PlanCheckoutPage";
+import { PaymentSuccessPage, PaymentFailedPage } from "@/pages/billing/PaymentResultPage";
 import LandingPage from "@/pages/LandingPage";
 import FeaturesPage from "@/pages/FeaturesPage";
 import PricingPage from "@/pages/PricingPage";
@@ -48,6 +54,7 @@ import AdminVenues from "@/pages/admin/AdminVenues";
 import AdminLicenses from "@/pages/admin/AdminLicenses";
 import AdminPayments from "@/pages/admin/AdminPayments";
 import AdminInvoices from "@/pages/admin/AdminInvoices";
+import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminNotifications from "@/pages/admin/AdminNotifications";
 import { Loader2 } from "lucide-react";
@@ -86,6 +93,7 @@ function Router() {
       <Route path="/ozellikler" component={FeaturesPage} />
       <Route path="/ozellikler/:slug" component={FeatureDetailPage} />
       <Route path="/fiyatlar" component={PricingPage} />
+      <Route path="/fiyatlandirma" component={PlanCheckoutPage} />
       <Route path="/hakkimizda" component={AboutPage} />
       <Route path="/hakkimizda/:slug" component={AboutSubPage} />
       <Route path="/iletisim" component={ContactPage} />
@@ -109,6 +117,9 @@ function Router() {
       <Route path="/basari-hikayeleri" component={SuccessStoriesPage} />
       <Route path="/purchase" component={Purchase} />
       <Route path="/integration-purchase" component={IntegrationPurchase} />
+      <Route path="/p/:slug" component={PublicMenuPage} />
+      <Route path="/dogrula" component={VerifyEmailPage} />
+      <Route path="/sifre-sifirla" component={ResetPasswordPage} />
       <Route path="/giris" component={Login} />
       <Route path="/demo" component={Demo} />
       <Route path="/sifremi-unuttum" component={ForgotPassword} />
@@ -119,6 +130,7 @@ function Router() {
       <Route path="/admin/venues" component={AdminVenues} />
       <Route path="/admin/licenses" component={AdminLicenses} />
       <Route path="/admin/payments" component={AdminPayments} />
+      <Route path="/admin/coupons" component={AdminCoupons} />
       <Route path="/admin/invoices" component={AdminInvoices} />
       <Route path="/admin/notifications" component={AdminNotifications} />
       <Route path="/admin/settings" component={AdminSettings} />
@@ -164,6 +176,12 @@ function Router() {
       <Route path="/menu">
         {() => <ProtectedRoute component={Menu} />}
       </Route>
+      <Route path="/isletme">
+        {() => <ProtectedRoute component={RestaurantSettingsPage} />}
+      </Route>
+      <Route path="/odeme/test" component={TestCheckoutPage} />
+      <Route path="/odeme/basarili" component={PaymentSuccessPage} />
+      <Route path="/odeme/basarisiz" component={PaymentFailedPage} />
       <Route path="/ayarlar">
         {() => <ProtectedRoute component={Settings} />}
       </Route>

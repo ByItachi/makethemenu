@@ -24,8 +24,8 @@ export default function AdminVenues() {
     <AdminLayout>
       <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mekanlar</h1>
-          <p className="text-gray-500 mt-1">Sistemdeki kayıtlı mekanlar ve lisans durumları</p>
+          <h1 className="text-3xl font-bold text-foreground">Mekanlar</h1>
+          <p className="text-muted-foreground mt-1">Sistemdeki kayıtlı mekanlar ve lisans durumları</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

@@ -1,14 +1,29 @@
 import { storage } from "./storage";
 import { db } from "./db";
-import { sql } from "drizzle-orm";
-import { roles, users } from "@shared/schema";
+import { eq, sql } from "drizzle-orm";
+import { roles, users, restaurants } from "@shared/schema";
+import { hashPassword } from "./auth/password";
+import { generateSlug } from "./tenancy/slugs";
+
+export const DEMO_BUSINESS_SLUG = "varsayilan-isletme";
+
+/** The business that owns the demo catalogue (also the target of the tenancy migration). */
+async function ensureDemoBusiness(): Promise<number> {
+  const [row] = await db.select({ id: restaurants.id }).from(restaurants).where(eq(restaurants.slug, DEMO_BUSINESS_SLUG));
+  if (row) return row.id;
+  const [ins] = await db.insert(restaurants).values({
+    name: "Varsayılan İşletme", type: "Restoran", address: "-", country: "Türkiye", status: "active", slug: DEMO_BUSINESS_SLUG, currency: "TRY",
+  });
+  return ins.insertId;
+}
 
 export async function seedDatabase() {
   console.log("Seeding database...");
+  const demoId = await ensureDemoBusiness();
 
   try {
     // Seed Categories
-    const existingCategories = await storage.getCategories();
+    const existingCategories = await storage.getCategories(demoId);
     if (existingCategories.length === 0) {
       console.log("Seeding categories...");
       const categories = [
@@ -19,16 +34,16 @@ export async function seedDatabase() {
       ];
 
       for (const cat of categories) {
-        await storage.createCategory(cat);
+        await storage.createCategory(demoId, cat);
       }
       console.log("Categories seeded.");
     }
 
     // Seed Products
-    const existingProducts = await storage.getProducts();
+    const existingProducts = await storage.getProducts(demoId);
     if (existingProducts.length === 0) {
       console.log("Seeding products...");
-      const categories = await storage.getCategories();
+      const categories = await storage.getCategories(demoId);
       const mainCourseCat = categories.find(c => c.slug === "ana-yemekler");
       const drinksCat = categories.find(c => c.slug === "icecekler");
       const dessertsCat = categories.find(c => c.slug === "tatlilar");
@@ -67,13 +82,13 @@ export async function seedDatabase() {
       }
 
       for (const prod of products) {
-        await storage.createProduct(prod);
+        await storage.createProduct(demoId, prod);
       }
       console.log("Products seeded.");
     }
 
     // Seed Tables
-    const existingTables = await storage.getTables();
+    const existingTables = await storage.getTables(demoId);
     if (existingTables.length === 0) {
       console.log("Seeding tables...");
       const tables = [
@@ -88,7 +103,7 @@ export async function seedDatabase() {
       ];
 
       for (const table of tables) {
-        await storage.createTable(table);
+        await storage.createTable(demoId, table);
       }
       console.log("Tables seeded.");
     }
@@ -121,15 +136,25 @@ export async function seedDatabase() {
     }
 
     const existingUsers = await db.select().from(users);
-    if (existingUsers.length === 0) {
-      console.log("Seeding users...");
-      await db.insert(users).values([
+    if (existingUsers.length === 0 && process.env.NODE_ENV !== "production") {
+      console.log("Seeding demo users (development only)...");
+      const seedUsers = [
         { username: "admin", email: "admin@restopos.com", password: "admin123", fullName: "Sistem Yöneticisi", roleId: roleIds["Admin"], isActive: true },
         { username: "mudur", email: "mudur@restopos.com", password: "mudur123", fullName: "Ahmet Yılmaz", roleId: roleIds["Manager"], isActive: true },
         { username: "garson1", email: "garson1@restopos.com", password: "garson123", fullName: "Zeynep Kaya", roleId: roleIds["Waiter"], isActive: true },
         { username: "asci1", email: "asci1@restopos.com", password: "asci123", fullName: "Mehmet Demir", roleId: roleIds["Chef"], isActive: true },
         { username: "kasiyer1", email: "kasiyer1@restopos.com", password: "kasiyer123", fullName: "Elif Şahin", roleId: roleIds["Cashier"], isActive: true },
-      ]);
+      ];
+      await db.insert(users).values(
+        await Promise.all(
+          seedUsers.map(async (u) => ({
+            ...u,
+            password: await hashPassword(u.password),
+            restaurantId: demoId,
+            isPlatformAdmin: u.username === "admin",
+          }))
+        )
+      );
       console.log("Users seeded.");
     }
     console.log("User and role seeding completed.");
@@ -153,7 +178,7 @@ export async function seedDatabase() {
         { name: "Gaziantep Baklavacısı", type: "Kafe", address: "Şahinbey", city: "Gaziantep", country: "Türkiye", lat: "37.066200", lng: "37.383300", status: "pending", license: "Enterprise", licenseExpiry: "2026-09-25" },
       ];
       for (const r of sampleRestaurants) {
-        await storage.createRestaurant(r as any);
+        await storage.createRestaurant({ ...(r as any), slug: await generateSlug(r.name) });
       }
       console.log("Admin businesses seeded.");
     }

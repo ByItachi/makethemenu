@@ -3,132 +3,203 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
+import { setupSession } from "./auth/session";
+import { registerAuthRoutes } from "./auth/routes";
+import {
+  requireRestaurant,
+  requirePlatformAdmin,
+  requireJsonBody,
+  securityHeaders,
+  tenantId,
+} from "./auth/middleware";
+import { registerPublicRoutes } from "./public-menu";
+import { registerAnalyticsRoutes } from "./analytics";
+import { registerTenantRoutes } from "./tenant-routes";
+import { registerPublicPlanRoutes, registerAdminPlanRoutes } from "./plan-routes";
+import { registerBillingRoutes, registerAdminBillingRoutes } from "./payments/routes";
+import { registerHealthRoutes, registerSeoRoutes } from "./seo";
+import { registerCsvExportRoutes } from "./csv-export";
+import { registerDomainRoutes, registerCustomDomainHostRewrite } from "./domains";
+import { registerAiMenuRoutes } from "./ai/routes";
+import { assertWithin3dLimit, Model3dLimitError, isValid3dUrl } from "./plans";
+import { enforcePlanLimit } from "./plans";
 import { insertRestaurantSchema, insertLicenseSchema, insertAdminNotificationSchema } from "@shared/schema";
+
+function sendValidationError(err: unknown, res: import("express").Response): boolean {
+  if (err instanceof z.ZodError) {
+    res.status(400).json({ message: err.errors[0].message });
+    return true;
+  }
+  return false;
+}
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // === AUTHENTICATION ===
-  await setupAuth(app);
-  registerAuthRoutes(app);
+  app.use(securityHeaders);
+  app.use(requireJsonBody);
+  setupSession(app);
+  registerAuthRoutes(app); // also attaches req.auth to every request
+  registerPublicRoutes(app);
+  registerTenantRoutes(app);
+  registerPublicPlanRoutes(app);
+  registerBillingRoutes(app);
+  registerHealthRoutes(app);
+  registerSeoRoutes(app);
+  registerAnalyticsRoutes(app);
+  registerCsvExportRoutes(app);
+  registerDomainRoutes(app);
+  registerAiMenuRoutes(app);
 
-  // Production login is demo/localStorage based; ensure logout always resolves
-  // even when the Replit OIDC provider is unavailable (setupAuth returns early).
-  app.get("/api/logout", (req, res) => {
-    if (typeof req.logout === "function") req.logout(() => {});
-    res.redirect("/");
-  });
-  app.post("/api/logout", (req, res) => {
-    if (typeof req.logout === "function") req.logout(() => {});
-    res.status(200).json({ ok: true });
-  });
+  // Business (tenant) data: must be logged in and belong to a business
+  app.use(["/api/tables", "/api/categories", "/api/products", "/api/orders"], requireRestaurant);
 
   // === TABLES ===
   app.get(api.tables.list.path, async (req, res) => {
-    const tables = await storage.getTables();
-    res.json(tables);
+    res.json(await storage.getTables(tenantId(req)));
   });
 
   app.post(api.tables.create.path, async (req, res) => {
     try {
       const input = api.tables.create.input.parse(req.body);
-      const table = await storage.createTable(input);
-      res.status(201).json(table);
+      if (await enforcePlanLimit(req, res, tenantId(req), "tables")) return;
+      res.status(201).json(await storage.createTable(tenantId(req), input));
     } catch (err) {
-      if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message });
-      }
+      if (sendValidationError(err, res)) return;
       throw err;
     }
   });
 
   app.patch(api.tables.update.path, async (req, res) => {
-    const table = await storage.updateTable(Number(req.params.id), req.body);
-    res.json(table);
+    try {
+      const input = api.tables.update.input.parse(req.body);
+      const table = await storage.updateTable(tenantId(req), Number(req.params.id), input);
+      if (!table) return res.status(404).json({ message: "Masa bulunamadı." });
+      res.json(table);
+    } catch (err) {
+      if (sendValidationError(err, res)) return;
+      throw err;
+    }
   });
 
   app.delete(api.tables.delete.path, async (req, res) => {
-    await storage.deleteTable(Number(req.params.id));
+    const ok = await storage.deleteTable(tenantId(req), Number(req.params.id));
+    if (!ok) return res.status(404).json({ message: "Masa bulunamadı." });
     res.status(204).end();
   });
 
   // === CATEGORIES ===
   app.get(api.categories.list.path, async (req, res) => {
-    const categories = await storage.getCategories();
-    res.json(categories);
+    res.json(await storage.getCategories(tenantId(req)));
   });
 
   app.post(api.categories.create.path, async (req, res) => {
     try {
       const input = api.categories.create.input.parse(req.body);
-      const category = await storage.createCategory(input);
-      res.status(201).json(category);
+      res.status(201).json(await storage.createCategory(tenantId(req), input));
     } catch (err) {
-      if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message });
-      }
+      if (sendValidationError(err, res)) return;
       throw err;
     }
   });
 
   app.delete(api.categories.delete.path, async (req, res) => {
-    await storage.deleteCategory(Number(req.params.id));
+    const ok = await storage.deleteCategory(tenantId(req), Number(req.params.id));
+    if (!ok) return res.status(404).json({ message: "Kategori bulunamadı." });
     res.status(204).end();
   });
 
   // === PRODUCTS ===
   app.get(api.products.list.path, async (req, res) => {
     const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
-    const products = await storage.getProducts(categoryId);
-    res.json(products);
+    res.json(await storage.getProducts(tenantId(req), categoryId));
   });
+
+  // 3D model attachment is validated and quota-checked by plan (spec §6).
+  const check3dUrl = async (req: import("express").Request, res: import("express").Response, value: unknown): Promise<boolean> => {
+    if (value === undefined) return false;
+    if (value !== null && (typeof value !== "string" || !isValid3dUrl(value))) {
+      res.status(400).json({ message: "3D model bağlantısı http(s) üzerinde .glb veya .gltf dosyası olmalı." });
+      return true;
+    }
+    try {
+      await assertWithin3dLimit(tenantId(req), (value as string | null) ?? null);
+      return false;
+    } catch (err) {
+      if (err instanceof Model3dLimitError) {
+        res.status(403).json({ message: err.message, code: err.code });
+        return true;
+      }
+      throw err;
+    }
+  };
 
   app.post(api.products.create.path, async (req, res) => {
     try {
       const input = api.products.create.input.parse(req.body);
-      const product = await storage.createProduct(input);
-      res.status(201).json(product);
+      if (await enforcePlanLimit(req, res, tenantId(req), "products")) return;
+      if (await check3dUrl(req, res, input.model3dUrl)) return;
+      res.status(201).json(await storage.createProduct(tenantId(req), input));
     } catch (err) {
-      if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message });
-      }
+      if (sendValidationError(err, res)) return;
       throw err;
     }
   });
 
   app.patch(api.products.update.path, async (req, res) => {
-    const product = await storage.updateProduct(Number(req.params.id), req.body);
-    res.json(product);
+    try {
+      const input = api.products.update.input.parse(req.body);
+      // Re-sending the model a product already has must not consume quota again.
+      if (input.model3dUrl !== undefined) {
+        const [current] = await storage.getProducts(tenantId(req)).then((ps) => ps.filter((p) => p.id === Number(req.params.id)));
+        if (current?.model3dUrl === input.model3dUrl) {
+          const product = await storage.updateProduct(tenantId(req), Number(req.params.id), input);
+          if (!product) return res.status(404).json({ message: "Ürün bulunamadı." });
+          return res.json(product);
+        }
+      }
+      if (await check3dUrl(req, res, input.model3dUrl)) return;
+      const product = await storage.updateProduct(tenantId(req), Number(req.params.id), input);
+      if (!product) return res.status(404).json({ message: "Ürün bulunamadı." });
+      res.json(product);
+    } catch (err) {
+      if (sendValidationError(err, res)) return;
+      if (err instanceof Error && err.message === "Category not found") return res.status(400).json({ message: "Kategori bulunamadı." });
+      throw err;
+    }
   });
 
   app.delete(api.products.delete.path, async (req, res) => {
-    await storage.deleteProduct(Number(req.params.id));
+    const ok = await storage.deleteProduct(tenantId(req), Number(req.params.id));
+    if (!ok) return res.status(404).json({ message: "Ürün bulunamadı." });
     res.status(204).end();
   });
 
   // === ORDERS ===
   app.get(api.orders.list.path, async (req, res) => {
     const status = req.query.status as string | undefined;
-    const orders = await storage.getOrders(status);
-    res.json(orders);
+    res.json(await storage.getOrders(tenantId(req), status));
   });
 
   app.get(api.orders.get.path, async (req, res) => {
-    const order = await storage.getOrder(Number(req.params.id));
+    const order = await storage.getOrder(tenantId(req), Number(req.params.id));
     if (!order) return res.status(404).json({ message: "Order not found" });
     res.json(order);
   });
 
   app.post(api.orders.create.path, async (req, res) => {
     try {
+      const tid = tenantId(req);
       const { items, ...orderData } = api.orders.create.input.parse(req.body);
+      if (items.length === 0) return res.status(400).json({ message: "Sipariş en az bir ürün içermeli." });
 
-      const products = await storage.getProducts();
+      // Prices always come from the database, never from the client
+      const products = await storage.getProducts(tid);
       const itemsWithPrices = items.map((item) => {
         const product = products.find((p) => p.id === item.productId);
         if (!product) throw new Error(`Product ${item.productId} not found`);
+        if (product.isAvailable === false) throw new Error(`Product ${item.productId} is unavailable`);
         return { ...item, price: product.price };
       });
 
@@ -138,21 +209,31 @@ export async function registerRoutes(
       );
       const totalAmount = (subtotal * 1.1).toFixed(2); // 10% tax, matches client display
 
-      const order = await storage.createOrder({ ...orderData, totalAmount }, itemsWithPrices);
+      const order = await storage.createOrder(tid, { ...orderData, totalAmount }, itemsWithPrices);
       res.status(201).json(order);
     } catch (err) {
-      if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message });
-      }
+      if (sendValidationError(err, res)) return;
       console.error(err);
-      res.status(400).json({ message: "Failed to create order" });
+      res.status(400).json({ message: "Sipariş oluşturulamadı." });
     }
   });
 
   app.patch(api.orders.updateStatus.path, async (req, res) => {
-    const order = await storage.updateOrderStatus(Number(req.params.id), req.body.status);
-    res.json(order);
+    try {
+      const input = api.orders.updateStatus.input.parse(req.body);
+      const order = await storage.updateOrderStatus(tenantId(req), Number(req.params.id), input.status);
+      if (!order) return res.status(404).json({ message: "Sipariş bulunamadı." });
+      res.json(order);
+    } catch (err) {
+      if (sendValidationError(err, res)) return;
+      throw err;
+    }
   });
+
+  // === PLATFORM ADMIN (all /api/admin and /api/integrations routes) ===
+  app.use(["/api/admin", "/api/integrations"], requirePlatformAdmin);
+  registerAdminPlanRoutes(app);
+  registerAdminBillingRoutes(app);
 
   // === ADMIN: RESTAURANTS / BUSINESSES ===
   app.get('/api/admin/restaurants', async (req, res) => {
@@ -459,8 +540,8 @@ export async function registerRoutes(
     }
   });
   
-  // === SEED DATA ===
-  await seedDatabase();
+  // Custom-domain host rewrite must come after all API routes and before vite/static (index.ts).
+  registerCustomDomainHostRewrite(app);
 
   return httpServer;
 }
@@ -471,36 +552,4 @@ function toRestaurantDto(row: Awaited<ReturnType<typeof storage.getRestaurants>>
     ...rest,
     coordinates: lat != null && lng != null ? { lat: Number(lat), lng: Number(lng) } : undefined,
   };
-}
-
-async function seedDatabase() {
-  const categories = await storage.getCategories();
-  if (categories.length === 0) {
-    console.log("Seeding database...");
-    
-    // Tables
-    await storage.createTable({ name: "Table 1", capacity: 4, status: "available", x: 0, y: 0 });
-    await storage.createTable({ name: "Table 2", capacity: 2, status: "available", x: 1, y: 0 });
-    await storage.createTable({ name: "Table 3", capacity: 4, status: "occupied", x: 0, y: 1 });
-    await storage.createTable({ name: "Table 4", capacity: 6, status: "reserved", x: 1, y: 1 });
-    await storage.createTable({ name: "Takeaway", capacity: 0, status: "available", x: 2, y: 0 });
-
-    // Categories
-    const catDrinks = await storage.createCategory({ name: "Drinks", slug: "drinks", imageUrl: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=800&q=80" });
-    const catMain = await storage.createCategory({ name: "Main Course", slug: "main-course", imageUrl: "https://images.unsplash.com/photo-1559847844-5315695dadae?w=800&q=80" });
-    const catDessert = await storage.createCategory({ name: "Desserts", slug: "desserts", imageUrl: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=800&q=80" });
-
-    // Products
-    await storage.createProduct({ categoryId: catDrinks.id, name: "Cola", price: "2.50", isAvailable: true, imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80", description: "Ice cold cola" });
-    await storage.createProduct({ categoryId: catDrinks.id, name: "Orange Juice", price: "3.50", isAvailable: true, imageUrl: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=800&q=80", description: "Freshly squeezed" });
-    
-    await storage.createProduct({ categoryId: catMain.id, name: "Cheeseburger", price: "12.99", isAvailable: true, imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80", description: "Juicy beef burger with cheese" });
-    await storage.createProduct({ categoryId: catMain.id, name: "Margherita Pizza", price: "14.50", isAvailable: true, imageUrl: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80", description: "Classic tomato and mozzarella" });
-    await storage.createProduct({ categoryId: catMain.id, name: "Pasta Carbonara", price: "13.50", isAvailable: true, imageUrl: "https://images.unsplash.com/photo-1612874742237-982867143825?auto=format&fit=crop&w=800&q=80", description: "Creamy sauce with bacon" });
-
-    await storage.createProduct({ categoryId: catDessert.id, name: "Chocolate Cake", price: "6.50", isAvailable: true, imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80", description: "Rich chocolate layer cake" });
-    await storage.createProduct({ categoryId: catDessert.id, name: "Tiramisu", price: "7.00", isAvailable: true, imageUrl: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=800&q=80", description: "Coffee flavored Italian dessert" });
-
-    console.log("Database seeded successfully!");
-  }
 }

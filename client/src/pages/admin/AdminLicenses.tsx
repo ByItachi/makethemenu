@@ -155,8 +155,8 @@ export default function AdminLicenses() {
       <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Lisanslar</h1>
-            <p className="text-gray-500 mt-1">İşletme lisans yönetimi ve takibi</p>
+            <h1 className="text-3xl font-bold text-foreground">Lisanslar</h1>
+            <p className="text-muted-foreground mt-1">İşletme lisans yönetimi ve takibi</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -278,7 +278,7 @@ export default function AdminLicenses() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Toplam Lisans</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Lisans</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{licenses?.length || 0}</div>
@@ -290,7 +290,7 @@ export default function AdminLicenses() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Yaklaşan Yenilemeler</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Yaklaşan Yenilemeler</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">2</div>
@@ -302,7 +302,7 @@ export default function AdminLicenses() {
           </Card>
           <Card>
              <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Tahmini Gelir</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Tahmini Gelir</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">₺124,500</div>
@@ -323,7 +323,7 @@ export default function AdminLicenses() {
                     <CardContent>
                         <div className="space-y-4">
                             {licenses?.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">Henüz lisans bulunmuyor.</div>
+                                <div className="text-center py-8 text-muted-foreground">Henüz lisans bulunmuyor.</div>
                             ) : (
                                 licenses?.map((license) => (
                                     <div key={license.id} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
@@ -332,8 +332,8 @@ export default function AdminLicenses() {
                                                 {license.code.substring(0, 2)}
                                             </div>
                                             <div>
-                                                <p className="font-medium text-gray-900">{license.business}</p>
-                                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                                <p className="font-medium text-foreground">{license.business}</p>
+                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                     <Badge variant="outline" className="font-mono text-xs">{license.code}</Badge>
                                                     <span>•</span>
                                                     <span>{license.type}</span>
@@ -342,10 +342,10 @@ export default function AdminLicenses() {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="text-right hidden sm:block">
-                                                <Badge className={license.status === 'Active' ? 'bg-green-600' : 'bg-gray-500'}>
+                                                <Badge className={license.status === 'Active' ? 'bg-green-600' : 'bg-muted-foreground/50'}>
                                                     {license.status === 'Active' ? 'Aktif' : license.status}
                                                 </Badge>
-                                                <p className="text-xs text-gray-500 mt-1">Bitiş: {license.expiry}</p>
+                                                <p className="text-xs text-muted-foreground mt-1">Bitiş: {license.expiry}</p>
                                             </div>
                                             <div className="flex gap-1">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditClick(license)}>
@@ -378,23 +378,23 @@ export default function AdminLicenses() {
                     </CardHeader>
                     <CardContent>
                          {activities && activities.length > 0 ? (
-                            <div className="relative border-l border-gray-200 ml-3 space-y-6 pb-2">
+                            <div className="relative border-l border-border ml-3 space-y-6 pb-2">
                                 {activities.map((activity) => (
                                     <div key={activity.id} className="ml-6 relative">
-                                        <span className="absolute -left-[31px] top-1 h-2.5 w-2.5 rounded-full bg-primary border-2 border-white ring-2 ring-gray-100"></span>
+                                        <span className="absolute -left-[31px] top-1 h-2.5 w-2.5 rounded-full bg-primary border-2 border-background ring-2 ring-border"></span>
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-medium text-gray-900">{activity.details}</span>
+                                            <span className="text-sm font-medium text-foreground">{activity.details}</span>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{activity.action}</Badge>
-                                                <span className="text-xs text-gray-500">{activity.date}</span>
+                                                <span className="text-xs text-muted-foreground">{activity.date}</span>
                                             </div>
-                                            <span className="text-xs font-mono text-gray-400 mt-1">{activity.code}</span>
+                                            <span className="text-xs font-mono text-muted-foreground/70 mt-1">{activity.code}</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center justify-center py-8 text-center text-gray-500">
+                            <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                                 <FileText className="h-10 w-10 mb-2 opacity-20" />
                                 <p>Henüz görüntülenecek veri yok</p>
                             </div>

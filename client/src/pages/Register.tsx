@@ -23,9 +23,38 @@ export default function Register() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleRegister = () => {
-    // Mock register functionality
-    window.location.href = "/giris";
+  const [form, setForm] = useState({ firstName: "", lastName: "", businessName: "", email: "", password: "" });
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          fullName: `${form.firstName} ${form.lastName}`.trim(),
+          businessName: form.businessName,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.message ?? "Kayıt yapılamadı. Lütfen tekrar deneyin.");
+        return;
+      }
+      const data = await res.json();
+      window.location.href = data.restaurantSlug ? "/panel" : "/giris";
+    } catch {
+      setError("Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -103,12 +132,16 @@ export default function Register() {
             <p className="text-muted-foreground text-base">makethemenu ile işletmenizi büyütmeye başlayın</p>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleRegister}>
+            {error && <p role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">{error}</p>}
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="relative group">
                     <Input
                     id="register-firstname"
+                    value={form.firstName}
+                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                    required
                     name="firstName"
                     placeholder="Ad"
                     className="h-[52px] pl-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 focus:border-primary focus:ring-primary transition-all text-base placeholder:text-muted-foreground"
@@ -118,6 +151,9 @@ export default function Register() {
                 <div className="relative group">
                     <Input
                     id="register-lastname"
+                    value={form.lastName}
+                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                    required
                     name="lastName"
                     placeholder="Soyad"
                     className="h-[52px] pl-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 focus:border-primary focus:ring-primary transition-all text-base placeholder:text-muted-foreground"
@@ -129,6 +165,9 @@ export default function Register() {
               <div className="relative group">
                 <Input
                   id="register-company"
+                  value={form.businessName}
+                  onChange={(e) => setForm({ ...form, businessName: e.target.value })}
+                  required
                   name="organization"
                   placeholder="İşletme Adı"
                   className="h-[52px] pl-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 focus:border-primary focus:ring-primary transition-all text-base placeholder:text-muted-foreground"
@@ -139,6 +178,9 @@ export default function Register() {
               <div className="relative group">
                 <Input
                   id="register-email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
                   name="email"
                   type="email"
                   placeholder="E-Posta Adresi"
@@ -161,6 +203,10 @@ export default function Register() {
               <div className="relative group">
                 <Input
                   id="register-password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  minLength={8}
+                  required
                   name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Şifre"
@@ -191,7 +237,8 @@ export default function Register() {
             <Button 
               className="w-full h-[52px] text-[16px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 rounded-lg mt-2 transition-all" 
               size="lg"
-              onClick={handleRegister}
+              type="submit"
+              disabled={submitting}
             >
               Kayıt Ol
             </Button>

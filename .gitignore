@@ -13,3 +13,5 @@ RestaurantPOS-Portable/
 .vscode/
 *.backup
 .local/
+test-results/
+playwright-report/

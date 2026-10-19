@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Headset, Eye, EyeOff, Wifi } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
+import { queryClient } from "@/lib/queryClient";
 
 const testimonials = [
   {
@@ -40,19 +41,34 @@ export default function Login() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleLogin = () => {
-    // Mock login functionality with demo user
-    const mockUser = {
-      id: "demo-user-id",
-      email: "demo@makethemenu.com",
-      firstName: "Demo",
-      lastName: "User",
-      profileImageUrl: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    localStorage.setItem("demo_user", JSON.stringify(mockUser));
-    window.location.href = "/panel";
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ identifier, password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.message ?? "Giriş yapılamadı. Lütfen tekrar deneyin.");
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      window.location.href = "/panel";
+    } catch {
+      setError("Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -167,11 +183,15 @@ export default function Login() {
             <p className="text-muted-foreground text-base">Lütfen üyelik bilgileriniz ile giriş yapınız</p>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleLogin}>
+            {error && <p role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">{error}</p>}
             <div className="space-y-4">
               <div className="relative group">
                 <Input
                   id="login-email"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  required
                   name="email"
                   type="email"
                   placeholder="E-Posta Adresi veya Telefon Numarası"
@@ -183,6 +203,9 @@ export default function Login() {
               <div className="relative group">
                 <Input
                   id="login-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Şifre"
@@ -220,7 +243,8 @@ export default function Login() {
             <Button 
               className="w-full h-[52px] text-[16px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 rounded-lg mt-2 transition-all" 
               size="lg"
-              onClick={handleLogin}
+              type="submit"
+              disabled={submitting}
             >
               Giriş Yap
             </Button>

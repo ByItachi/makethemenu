@@ -65,11 +65,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <div className="p-4 border-t border-sidebar-border">
         <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 flex items-center gap-3 mb-3">
           <Avatar className="h-9 w-9 border border-primary/20">
-            <AvatarImage src={user?.profileImageUrl || undefined} />
-            <AvatarFallback className="bg-primary/20 text-primary">{user?.firstName?.[0] || 'U'}</AvatarFallback>
+            
+            <AvatarFallback className="bg-primary/20 text-primary">{user?.fullName?.[0] || 'U'}</AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-medium truncate text-sidebar-foreground">{user?.firstName} {user?.lastName}</p>
+            <p className="text-sm font-medium truncate text-sidebar-foreground">{user?.fullName}</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>

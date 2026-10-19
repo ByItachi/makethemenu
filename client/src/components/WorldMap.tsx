@@ -94,13 +94,13 @@ export default function WorldMap({ restaurants, className }: WorldMapProps) {
         </div>
         
         {/* Legend */}
-        <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-lg border shadow-sm text-xs space-y-1">
+        <div className="absolute bottom-4 left-4 bg-background/90 dark:bg-card/90 backdrop-blur-sm p-2 rounded-lg border border-border shadow-sm text-xs space-y-1 text-foreground">
             <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-600 border border-white"></div>
+                <div className="w-3 h-3 rounded-full bg-red-600 border border-border"></div>
                 <span>Restoran</span>
             </div>
             <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-600 border border-white"></div>
+                <div className="w-3 h-3 rounded-full bg-blue-600 border border-border"></div>
                 <span>Kafe / Diğer</span>
             </div>
         </div>
