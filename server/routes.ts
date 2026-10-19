@@ -165,6 +165,7 @@ export async function registerRoutes(
       res.status(201).json(await storage.createProduct(tenantId(req), input));
     } catch (err) {
       if (sendValidationError(err, res)) return;
+      if (err instanceof Error && err.message === "Category not found") return res.status(400).json({ message: "Kategori bulunamadı." });
       throw err;
     }
   });
