@@ -189,13 +189,13 @@ const Urun3DGosterimIntegration: React.FC = () => {
               </CardHeader>
               <CardContent>
                 {viewerStatus === 'error' ? (
-                  <div className="h-96 flex flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 text-sm text-muted-foreground">
+                  <div className="h-48 flex flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 text-sm text-muted-foreground">
                     <Box className="h-8 w-8 text-destructive" />
                     3D görüntüleyici yüklenemedi. İnternet bağlantınızı kontrol edin.
                   </div>
                 ) : viewerStatus === 'loading' ? (
                   <div className="relative">
-                    <div className="h-96 rounded-lg border" style={{ backgroundColor: bgStyle === 'transparent' ? undefined : bgStyle }}>
+                    <div className="h-48 rounded-lg border" style={{ backgroundColor: bgStyle === 'transparent' ? undefined : bgStyle }}>
                       <Skeleton className="h-full w-full rounded-lg opacity-40" />
                     </div>
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -204,7 +204,7 @@ const Urun3DGosterimIntegration: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="relative h-96 overflow-hidden rounded-lg border cursor-grab active:cursor-grabbing">
+                  <div className="relative h-48 overflow-hidden rounded-lg border cursor-grab active:cursor-grabbing">
                     <model-viewer
                       ref={viewerRef}
                       src={modelUrl}
