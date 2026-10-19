@@ -19,7 +19,7 @@ import {
 
 const Urun3DGosterimIntegration: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [modelUrl, setModelUrl] = useState<string>('');
+  const [modelUrl, setModelUrl] = useState<string>('pizza');
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'rotate' | 'pan' | 'zoom'>('rotate');
   const [zoom, setZoom] = useState(1);
@@ -160,9 +160,19 @@ const Urun3DGosterimIntegration: React.FC = () => {
       color2 = '#db2777';
       color3 = '#be185d';
       draw3DCake(ctx, size);
+    } else if (uploadedImageRef.current) {
+      // Yüklenen ürün görselini döndürerek göster (küp yerine gerçek ürün)
+      productName = selectedFile?.name?.replace(/\.[^.]+$/, '') || 'Ürün 3D';
+      const img = uploadedImageRef.current;
+      const fit = size * 1.6;
+      const scale = Math.min(fit / img.width, fit / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, -w / 2, -h / 2, w, h);
     } else {
-      // Varsayılan küp
-      draw3DCube(ctx, size, color1, color2, color3);
+      // Varsayılan: pizza
+      productName = 'Pizza 3D';
+      draw3DCylinder(ctx, size, '#f59e0b', '#d97706', '#b45309');
     }
     
     // Ürün adı - canvas kutusunun tam ortasına yerleştir
@@ -214,33 +224,6 @@ const Urun3DGosterimIntegration: React.FC = () => {
     ctx.shadowOffsetY = 0;
     
     ctx.restore();
-  };
-
-  // 3D Küp çizim fonksiyonu
-  const draw3DCube = (ctx: CanvasRenderingContext2D, size: number, color1: string, color2: string, color3: string) => {
-    // Ön yüzey
-    ctx.fillStyle = color1;
-    ctx.fillRect(-size/2, -size/2, size, size);
-    
-    // Üst yüzey
-    ctx.fillStyle = color2;
-    ctx.beginPath();
-    ctx.moveTo(-size/2, -size/2);
-    ctx.lineTo(-size/2 + size * 0.3, -size/2 - size * 0.3);
-    ctx.lineTo(size/2 + size * 0.3, -size/2 - size * 0.3);
-    ctx.lineTo(size/2, -size/2);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Sağ yüzey
-    ctx.fillStyle = color3;
-    ctx.beginPath();
-    ctx.moveTo(size/2, -size/2);
-    ctx.lineTo(size/2 + size * 0.3, -size/2 - size * 0.3);
-    ctx.lineTo(size/2 + size * 0.3, size/2 - size * 0.3);
-    ctx.lineTo(size/2, size/2);
-    ctx.closePath();
-    ctx.fill();
   };
 
   // 3D Silindir (Pizza) çizim fonksiyonu
@@ -445,6 +428,21 @@ const Urun3DGosterimIntegration: React.FC = () => {
     }
   };
 
+  // Yüklenen ürün görseli: küp yerine gerçek ürünü döndürerek göstermek için
+  const uploadedImageRef = useRef<HTMLImageElement | null>(null);
+  const [, setImageReady] = useState(0);
+
+  useEffect(() => {
+    if (!modelUrl || /^(pizza|hamburger|drink|dessert)$/.test(modelUrl)) {
+      uploadedImageRef.current = null;
+      return;
+    }
+    const img = new Image();
+    img.onload = () => setImageReady((n) => n + 1);
+    img.src = modelUrl;
+    uploadedImageRef.current = img;
+  }, [modelUrl]);
+
   const handleSampleModelSelect = (model: typeof sampleModels[0]) => {
     setModelUrl(model.url);
     setSelectedFile(null);
@@ -503,7 +501,7 @@ const Urun3DGosterimIntegration: React.FC = () => {
         {/* Header */}
         <div className="fx-header-band -m-6 mb-8 px-6 pt-8 pb-6 sm:rounded-b-2xl border-b border-primary/10">
           <div className="flex items-center gap-4 mb-3">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/25 text-primary text-2xl fx-float">🧊</span>
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/25 text-primary text-2xl fx-float">🍕</span>
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
                 <span className="fx-gradient-text">Ürün 3D Gösterim</span>
