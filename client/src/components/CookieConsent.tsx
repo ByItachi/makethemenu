@@ -60,24 +60,24 @@ export function CookieConsent() {
 
   return (
     <>
-      <div className="fixed bottom-0 inset-x-0 z-[60] p-4 sm:p-6">
+      <div className="fixed bottom-0 inset-x-0 z-[60] p-3 sm:p-6">
         <div className="site-container">
-          <div className="bg-card border border-border rounded-2xl shadow-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Cookie className="h-6 w-6" />
+          <div className="bg-card border border-border rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+            <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Cookie className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-display font-bold text-base mb-1">{t("cookie.title")}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{t("cookie.description")}</p>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-display font-bold text-sm sm:text-base mb-1">{t("cookie.title")}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2 sm:line-clamp-none">{t("cookie.description")}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
-              <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={handleRejectAll}>
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9" onClick={handleRejectAll}>
                 {t("cookie.reject")}
               </Button>
-              <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => setCustomizeOpen(true)}>
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9" onClick={() => setCustomizeOpen(true)}>
                 {t("cookie.customize")}
               </Button>
-              <Button size="sm" className="flex-1 sm:flex-none" onClick={handleAcceptAll}>
+              <Button size="sm" className="flex-1 sm:flex-none h-9" onClick={handleAcceptAll}>
                 {t("cookie.accept")}
               </Button>
             </div>

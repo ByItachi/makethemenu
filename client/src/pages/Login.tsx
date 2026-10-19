@@ -259,7 +259,7 @@ export default function Login() {
                 </div>
                 <div className="flex justify-between">
                   <span>Şifre:</span>
-                  <span className="font-mono font-medium text-foreground">demo123</span>
+                  <span className="font-mono font-medium text-foreground">demo1234</span>
                 </div>
               </div>
             </div>
