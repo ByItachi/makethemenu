@@ -48,6 +48,7 @@ import {
   Filter,
   TrendingUp,
   Puzzle,
+  CreditCard,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -95,6 +96,7 @@ import BoostfeelIntegration from "@/pages/restoran/integrations/BoostfeelIntegra
 import ButiksoftIntegration from "@/pages/restoran/integrations/ButiksoftIntegration";
 import AdisyoHaritaIntegration from "@/pages/restoran/integrations/AdisyoHaritaIntegration";
 import VeriAktarimiAPIIntegration from "@/pages/restoran/integrations/VeriAktarimiAPIIntegration";
+import { PaymentTypesSettings } from "@/pages/restoran/online/PaymentTypesPage";
 import DigitalMenuLayout from "@/pages/restoran/DigitalMenuLayout";
 import ProductsOverview from "@/pages/restoran/online/ProductsOverview";
 import CustomersPage from "@/pages/restoran/online/CustomersPage";
@@ -774,6 +776,7 @@ function OnlineLayoutContent() {
             <SidebarItem icon={Printer} label="Yazıcı Ayarları" href="/restoran/settings/printers" active={isActive("/restoran/settings/printers")} />
             <SidebarItem icon={Smartphone} label="Android CallerId Ayarları" href="/restoran/settings/callerid" active={isActive("/restoran/settings/callerid")} />
             <SidebarItem icon={Monitor} label="Müşteri Bilgi Ekranı" href="/restoran/settings/customer-display" active={isActive("/restoran/settings/customer-display")} />
+            <SidebarItem icon={CreditCard} label="Ödeme Tipleri" href="/restoran/settings/payment-types" active={isActive("/restoran/settings/payment-types")} />
           </SidebarItem>
 
           <SidebarItem
@@ -884,6 +887,7 @@ function OnlineLayoutContent() {
             <Route path="/restoran/settings/restaurant" component={OnlineManagement} />
             <Route path="/restoran/settings/printers" component={PrinterSettingsPage} />
             <Route path="/restoran/settings/callerid" component={CallerIdSettingsPage} />
+            <Route path="/restoran/settings/payment-types" component={PaymentTypesSettings} />
             <Route path="/restoran/settings/customer-display" component={CustomerDisplaySettingsPage} />
             <Route path="/restoran/digital-menu" component={DigitalMenuLayout} />
             <Route path="/restoran/online-menu" component={OnlineMenuPreview} />

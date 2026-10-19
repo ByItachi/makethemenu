@@ -12,6 +12,17 @@ import { writeAudit } from "./audit";
 
 const CURRENCIES = ["TRY", "USD", "EUR", "GBP"] as const;
 
+const MENU_THEMES = ["yesil", "mavi", "kirmizi", "mor", "turuncu", "grafit"] as const;
+const MENU_TEMPLATES = ["liste", "izgara", "kart"] as const;
+const MENU_LANGUAGES = ["tr", "en", "ar"] as const;
+
+const paymentTypeSchema = z.object({
+  id: z.string().trim().min(1).max(40),
+  name: z.string().trim().min(1).max(60),
+  group: z.enum(["qrmenu", "kiosk", "kapida"]),
+  enabled: z.boolean(),
+});
+
 const updateSettingsSchema = z
   .object({
     name: z.string().trim().min(2).max(120),
@@ -23,6 +34,12 @@ const updateSettingsSchema = z
     isPublished: z.boolean(),
     ordersEnabled: z.boolean(),
     slug: z.string().trim().toLowerCase(),
+    menuTheme: z.enum(MENU_THEMES),
+    menuRadius: z.number().int().min(0).max(32),
+    menuTemplate: z.enum(MENU_TEMPLATES),
+    showProductImages: z.boolean(),
+    menuLanguage: z.enum(MENU_LANGUAGES),
+    paymentTypes: z.array(paymentTypeSchema).max(60).nullable(),
   })
   .partial();
 
@@ -46,6 +63,12 @@ function settingsDto(r: typeof restaurants.$inferSelect) {
     isPublished: r.isPublished,
     ordersEnabled: r.ordersEnabled,
     planCode: r.planCode,
+    menuTheme: r.menuTheme,
+    menuRadius: r.menuRadius,
+    menuTemplate: r.menuTemplate,
+    showProductImages: r.showProductImages,
+    menuLanguage: r.menuLanguage,
+    paymentTypes: r.paymentTypes ?? null,
     publicUrl: r.slug ? `${publicBaseUrl()}/p/${r.slug}` : null,
   };
 }

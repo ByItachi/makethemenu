@@ -22,6 +22,7 @@
     "db:migrate-v5": "tsx server/migrations/v5.ts",
     "db:migrate-v6": "tsx server/migrations/v6.ts",
     "db:migrate-v7": "tsx server/migrations/v7.ts",
+    "db:migrate-v8": "tsx server/migrations/v8.ts",
     "test:e2e": "playwright test",
     "test:all": "playwright test && tsx --test tests/unit.test.ts tests/email.test.ts tests/billing.test.ts tests/billing-http.test.ts tests/orders-analytics.test.ts tests/integration.test.ts"
   },

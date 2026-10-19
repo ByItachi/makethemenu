@@ -114,6 +114,13 @@ export const restaurants = mysqlTable("restaurants", {
   phone: varchar("phone", { length: 32 }),
   currency: varchar("currency", { length: 3 }).notNull().default("TRY"),
   planCode: varchar("plan_code", { length: 32 }).notNull().default("free"),
+  // Dijital menü kişiselleştirme + ödeme tipleri (QRall benzeri)
+  menuTheme: varchar("menu_theme", { length: 32 }).notNull().default("yesil"),
+  menuRadius: int("menu_radius").notNull().default(12),
+  menuTemplate: varchar("menu_template", { length: 32 }).notNull().default("liste"),
+  showProductImages: boolean("show_product_images").notNull().default(true),
+  menuLanguage: varchar("menu_language", { length: 8 }).notNull().default("tr"),
+  paymentTypes: json("payment_types"),
 });
 
 // Old slugs kept so renamed businesses keep working (301 redirects)

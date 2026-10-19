@@ -6,6 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
+// Menü kişiselleştirme temaları (Tasarım Sihirbazı'ndaki seçeneklerle aynı anahtarlar)
+const MENU_THEME_HEX: Record<string, string> = {
+  yesil: "#059669",
+  mavi: "#2563eb",
+  kirmizi: "#dc2626",
+  mor: "#9333ea",
+  turuncu: "#ea580c",
+  grafit: "#334155",
+};
+
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
@@ -45,6 +55,11 @@ type PublicMenu = {
     address: string | null;
     city: string | null;
     currency: string;
+    menuTheme?: string;
+    menuRadius?: number;
+    menuTemplate?: string;
+    showProductImages?: boolean;
+    menuLanguage?: string;
   };
   categories: { id: number; name: string; products: PublicProduct[] }[];
 };
@@ -288,10 +303,49 @@ export default function PublicMenuPage() {
 
   const { restaurant, categories } = menu;
   const currency = restaurant.currency;
+  const accent = MENU_THEME_HEX[restaurant.menuTheme ?? "yesil"] ?? MENU_THEME_HEX.yesil;
+  const radius = Math.max(0, Math.min(32, restaurant.menuRadius ?? 12));
+  const template = restaurant.menuTemplate ?? "liste";
+  const showImages = restaurant.showProductImages !== false;
+  const gridMode = template === "izgara" || template === "kart";
+
+  const renderProduct = (p: PublicProduct) => (
+    <button
+      type="button"
+      onClick={() => openProduct(p)}
+      className={`w-full text-left transition-colors hover:bg-muted/40 ${gridMode ? "border border-border p-3 flex flex-col gap-2" : "py-3 flex items-start justify-between gap-4 px-2 -mx-2 rounded-md"}`}
+      style={{ borderRadius: radius }}
+    >
+      {gridMode && showImages && p.imageUrl && (
+        <img src={p.imageUrl} alt={p.name} className="w-full h-28 object-cover" style={{ borderRadius: Math.max(2, radius - 4) }} loading="lazy" />
+      )}
+      <div className="flex items-start justify-between gap-4 w-full">
+        <div className="flex items-start gap-2 min-w-0">
+          {!gridMode && showImages && p.imageUrl && (
+            <img src={p.imageUrl} alt={p.name} className="w-12 h-12 object-cover shrink-0" style={{ borderRadius: Math.max(2, radius - 4) }} loading="lazy" />
+          )}
+          <div className="min-w-0">
+            <p className="font-medium">
+              {p.name}
+              {p.model3dUrl && (
+                <span className="ml-2 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-semibold align-middle" style={{ backgroundColor: `${accent}1a`, color: accent }}>
+                  <Box className="h-3 w-3" /> 3D
+                </span>
+              )}
+              {p.isAvailable === false && <span className="ml-2 text-xs text-red-600">Tükendi</span>}
+            </p>
+            {p.description && <p className="text-sm text-muted-foreground">{p.description}</p>}
+          </div>
+        </div>
+        <span className="whitespace-nowrap font-semibold" style={{ color: accent }}>{formatPrice(p.price, currency)}</span>
+      </div>
+    </button>
+  );
 
   return (
-    <main className="min-h-screen bg-background text-foreground pb-28">
+    <main className="min-h-screen bg-background text-foreground pb-28" style={{ ["--pm-accent" as string]: accent }}>
       <header className="border-b border-border px-4 sm:px-6 py-8 text-center">
+        <div className="mx-auto mb-3 h-1.5 w-16 rounded-full" style={{ backgroundColor: accent }} />
         <h1 className="text-2xl sm:text-3xl font-bold break-words">{restaurant.name}</h1>
         {restaurant.description && <p className="mt-2 text-muted-foreground text-sm sm:text-base">{restaurant.description}</p>}
         {(restaurant.city || restaurant.phone) && (
@@ -305,32 +359,20 @@ export default function PublicMenuPage() {
         {categories.length === 0 && <p className="text-center text-muted-foreground">Bu menüde henüz ürün yok.</p>}
         {categories.map((cat) => (
           <section key={cat.id} aria-labelledby={`cat-${cat.id}`}>
-            <h2 id={`cat-${cat.id}`} className="text-xl font-semibold mb-4">{cat.name}</h2>
-            <ul className="divide-y divide-border">
-              {cat.products.map((p) => (
-                <li key={p.id}>
-                  <button
-                    type="button"
-                    onClick={() => openProduct(p)}
-                    className="w-full text-left py-3 flex items-start justify-between gap-4 hover:bg-muted/40 transition-colors px-2 -mx-2 rounded-md"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {p.name}
-                        {p.model3dUrl && (
-                          <span className="ml-2 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold align-middle">
-                            <Box className="h-3 w-3" /> 3D
-                          </span>
-                        )}
-                        {p.isAvailable === false && <span className="ml-2 text-xs text-red-600">Tükendi</span>}
-                      </p>
-                      {p.description && <p className="text-sm text-muted-foreground">{p.description}</p>}
-                    </div>
-                    <span className="whitespace-nowrap font-semibold">{formatPrice(p.price, currency)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <h2 id={`cat-${cat.id}`} className="text-xl font-semibold mb-4" style={{ color: accent }}>{cat.name}</h2>
+            {gridMode ? (
+              <div className={template === "izgara" ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : "space-y-3"}>
+                {cat.products.map((p) => (
+                  <div key={p.id}>{renderProduct(p)}</div>
+                ))}
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {cat.products.map((p) => (
+                  <li key={p.id}>{renderProduct(p)}</li>
+                ))}
+              </ul>
+            )}
           </section>
         ))}
       </div>

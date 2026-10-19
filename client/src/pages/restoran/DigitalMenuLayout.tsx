@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Home, QrCode, Settings, Copy, Check, Download, Globe, ExternalLink, UtensilsCrossed, Rocket, Info } from "lucide-react";
+import { Home, QrCode, Settings, Copy, Check, Download, Globe, ExternalLink, UtensilsCrossed, Rocket, Info, Palette } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useTables, useProducts } from "@/hooks/use-resto";
 import { apiRequest } from "@/lib/queryClient";
+import { MenuDesignWizard } from "@/pages/restoran/online/PaymentTypesPage";
 
 type RestaurantSettings = {
   id: number;
@@ -18,6 +19,11 @@ type RestaurantSettings = {
   isPublished: boolean;
   ordersEnabled: boolean;
   publicUrl: string | null;
+  menuTheme: string;
+  menuRadius: number;
+  menuTemplate: string;
+  showProductImages: boolean;
+  menuLanguage: string;
 };
 
 function useRestaurant() {
@@ -279,6 +285,7 @@ export default function DigitalMenuLayout() {
 
   const tabs = [
     { key: "home", label: "Giriş", icon: Home },
+    { key: "design", label: "Tasarım Sihirbazı", icon: Palette },
     { key: "tables", label: "Masa Karekod İşlemleri", icon: QrCode },
     { key: "settings", label: "Ayarlar", icon: Settings },
   ];
@@ -287,6 +294,8 @@ export default function DigitalMenuLayout() {
     switch (activePage) {
       case "tables":
         return <TableQrCodes />;
+      case "design":
+        return <MenuDesignWizard />;
       case "settings":
         return <DigitalMenuSettings />;
       default:
