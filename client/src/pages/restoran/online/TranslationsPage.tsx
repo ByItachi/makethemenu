@@ -20,18 +20,13 @@ import { Globe, Coins, Languages, Save } from "lucide-react";
 type Translation = { name?: string; description?: string };
 type Translations = { en?: Translation; ar?: Translation };
 
-function useRestaurantAny<T>(): { data: T | undefined; isLoading: boolean } {
-  const q = useQuery<T>({
-    queryKey: ["/api/restaurant"],
-    queryFn: async () => (await apiRequest("GET", "/api/restaurant")).json(),
-  });
-  return { data: q.data, isLoading: q.isLoading };
-}
-
 export const TranslationsPage: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const restaurant = useRestaurantAny<{ menuLanguage: string; currency: string }>();
+  const restaurant = useQuery<{ menuLanguage: string; currency: string }>({
+    queryKey: ["/api/restaurant"],
+    queryFn: async () => (await apiRequest("GET", "/api/restaurant")).json(),
+  });
   const productsQuery = useProducts();
   const [editing, setEditing] = useState<Record<number, Translations>>({});
 
@@ -73,7 +68,8 @@ export const TranslationsPage: React.FC = () => {
 
   if (restaurant.isLoading || productsQuery.isLoading) return <Skeleton className="h-64 w-full" />;
 
-  const r = restaurant.data!;
+  const r = restaurant.data;
+  if (!r) return null;
   const products = productsQuery.data ?? [];
   const CURRENCIES = ["TRY", "USD", "EUR", "GBP"];
   const LANGS: { key: keyof Translations; name: string; flag: string }[] = [

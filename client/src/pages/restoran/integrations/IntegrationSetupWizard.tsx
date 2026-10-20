@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -204,21 +203,3 @@ export function usePluginState() {
     queryFn: async () => (await apiRequest("GET", "/api/plugins")).json(),
   });
 }
-
-export const PluginQuickPanel: React.FC<{ integration: IntegrationInfo }> = ({ integration }) => {
-  const pluginKey = INTEGRATION_PLUGIN_KEYS[integration.id] ?? integration.id;
-  const { data } = usePluginState();
-  const row = data?.plugins?.find((p) => p.key === pluginKey);
-  if (!row?.isEnabled) return null;
-  return (
-    <Card className="border-green-600/40">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-600" /> {integration.name} etkin</CardTitle>
-        <CardDescription>Kurulum sihirbazıyla kaydettiğiniz bilgiler hesabınızda saklanıyor.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-xs text-muted-foreground">Çalışma tipi: {(row.settings as { workMode?: string } | null)?.workMode ?? "temel"}</p>
-      </CardContent>
-    </Card>
-  );
-};
