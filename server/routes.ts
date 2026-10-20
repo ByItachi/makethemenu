@@ -49,8 +49,15 @@ export async function registerRoutes(
     if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) return next();
     const origin = req.headers.origin;
     if (origin) {
+      // Ters proxy arkasında (örn. LiteSpeed/Apache [P] kuralı) Host başlığı
+      // genellikle backend adresine (127.0.0.1:PORT) yeniden yazılır; gerçek
+      // host X-Forwarded-Host içinde gelir. "trust proxy" zaten ayarlı.
+      const forwardedHost = (req.headers["x-forwarded-host"] as string | undefined)
+        ?.split(",")[0]
+        ?.trim();
+      const expectedHost = forwardedHost || req.headers.host;
       try {
-        if (new URL(origin).host !== req.headers.host) {
+        if (new URL(origin).host !== expectedHost) {
           return res.status(403).json({ message: "Geçersiz istek kaynağı." });
         }
       } catch {
