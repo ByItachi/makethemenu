@@ -16,7 +16,7 @@ type Settings = {
   showProductImages: boolean;
 };
 
-const THEME_HEX: Record<string, string> = {
+export const THEME_HEX: Record<string, string> = {
   yesil: "#059669",
   mavi: "#2563eb",
   kirmizi: "#dc2626",
@@ -25,7 +25,7 @@ const THEME_HEX: Record<string, string> = {
   grafit: "#334155",
 };
 
-type Preset = {
+export type Preset = {
   id: string;
   name: string;
   category: string;
@@ -35,9 +35,9 @@ type Preset = {
   showProductImages: boolean;
 };
 
-const CATEGORIES = ["Tümü", "Mutfağa Özel", "Mekan Türü", "Yemek & İçecek", "Modern"];
+export const CATEGORIES = ["Tümü", "Mutfağa Özel", "Mekan Türü", "Yemek & İçecek", "Modern"];
 
-const PRESETS: Preset[] = [
+export const PRESETS: Preset[] = [
   { id: "kebapci", name: "Kebapçı & Izgara", category: "Mutfağa Özel", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true },
   { id: "pizza", name: "Pizza & İtalyan", category: "Mutfağa Özel", menuTheme: "kirmizi", menuTemplate: "kart", menuRadius: 16, showProductImages: true },
   { id: "sushi", name: "Sushi & Uzakdoğu", category: "Mutfağa Özel", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 4, showProductImages: true },
@@ -58,7 +58,7 @@ const PRESETS: Preset[] = [
   { id: "modern", name: "Modern Restoran", category: "Modern", menuTheme: "grafit", menuTemplate: "kart", menuRadius: 12, showProductImages: true },
 ];
 
-function TemplatePreview({ preset }: { preset: Preset }) {
+export function TemplatePreview({ preset }: { preset: Preset }) {
   const hex = THEME_HEX[preset.menuTheme] ?? THEME_HEX.yesil;
   const isGrid = preset.menuTemplate !== "liste";
   const items = preset.menuTemplate === "kart" ? 2 : 4;

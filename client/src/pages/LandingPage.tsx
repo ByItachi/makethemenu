@@ -3,6 +3,9 @@ import {
 } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrialPopup } from "@/components/TrialPopup";
+import { Link } from "wouter";
+import { Badge } from "@/components/ui/badge";
+import { PRESETS, TemplatePreview } from "@/pages/restoran/online/ReadyTemplatesGallery";
 import {
   UtensilsCrossed,
   BarChart3,
@@ -172,6 +175,36 @@ export default function LandingPage() {
               title={t("landing.features.loyalty")}
               description={t("landing.features.loyaltyDesc")}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Templates Section */}
+      <section id="templates" className="py-24 bg-secondary/10">
+        <div className="site-container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">Ücretsiz Dijital Menü Şablonları</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Mutfak ve mekan türünüze uygun {PRESETS.length} hazır şablondan birini seçin, tamamı ücretsiz ve tek tıkla uygulanır.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            {PRESETS.slice(0, 4).map((p) => (
+              <Card key={p.id}>
+                <CardContent className="p-4 space-y-3">
+                  <TemplatePreview preset={p} />
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-medium text-sm">{p.name}</p>
+                    <Badge variant="secondary" className="shrink-0">Ücretsiz</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="text-center">
+            <Link href="/sablonlar">
+              <Button size="lg" variant="outline">Tüm Şablonları Gör</Button>
+            </Link>
           </div>
         </div>
       </section>

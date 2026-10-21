@@ -22,6 +22,7 @@ export const translations = {
         seasonal: "Sezonluk İşletmeler",
       },
       feat: {
+        templates: "Şablonlar",
         digitalMenu: "Dijital Menü",
         stock: "Stok ve Maliyet Yönetimi",
         kitchen: "Mutfak Yönetimi",
@@ -231,6 +232,7 @@ export const translations = {
         seasonal: "Seasonal Businesses",
       },
       feat: {
+        templates: "Templates",
         digitalMenu: "Digital Menu",
         stock: "Stock & Cost Management",
         kitchen: "Kitchen Management",

@@ -22,6 +22,7 @@ import {
   Link as LinkIcon,
   Users,
   Monitor,
+  LayoutTemplate,
   Building2,
   Smile,
   Phone,
@@ -73,6 +74,7 @@ const businessTypes = [
 ];
 
 const features = [
+  { titleKey: "nav.feat.templates", icon: LayoutTemplate, href: "/sablonlar" },
   { titleKey: "nav.feat.digitalMenu", icon: Smartphone, href: "/ozellikler/dijital-menu" },
   { titleKey: "nav.feat.stock", icon: Package, href: "/ozellikler/stok-yonetimi" },
   { titleKey: "nav.feat.kitchen", icon: ChefHat, href: "/ozellikler/mutfak" },

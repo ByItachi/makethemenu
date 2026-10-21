@@ -25,6 +25,7 @@ import PlanCheckoutPage from "@/pages/billing/PlanCheckoutPage";
 import { PaymentSuccessPage, PaymentFailedPage } from "@/pages/billing/PaymentResultPage";
 import LandingPage from "@/pages/LandingPage";
 import FeaturesPage from "@/pages/FeaturesPage";
+import TemplatesPage from "@/pages/TemplatesPage";
 import PricingPage from "@/pages/PricingPage";
 import DownloadPage from "@/pages/DownloadPage";
 import AboutPage from "@/pages/AboutPage";
@@ -93,6 +94,7 @@ function Router() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/ozellikler" component={FeaturesPage} />
+      <Route path="/sablonlar" component={TemplatesPage} />
       <Route path="/ozellikler/:slug" component={FeatureDetailPage} />
       <Route path="/fiyatlar" component={PricingPage} />
       <Route path="/indir" component={DownloadPage} />
