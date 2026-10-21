@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { MENU_PRESET_BY_ID, MENU_PRESET_FONTS } from "@/lib/menu-presets";
 
 // Menü kişiselleştirme temaları (Tasarım Sihirbazı'ndaki seçeneklerle aynı anahtarlar)
 const MENU_THEME_HEX: Record<string, string> = {
@@ -57,6 +58,7 @@ type PublicMenu = {
     city: string | null;
     currency: string;
     menuTheme?: string;
+    menuPreset?: string | null;
     menuRadius?: number;
     menuTemplate?: string;
     showProductImages?: boolean;
@@ -304,7 +306,11 @@ export default function PublicMenuPage() {
 
   const { restaurant, categories } = menu;
   const currency = restaurant.currency;
-  const accent = MENU_THEME_HEX[restaurant.menuTheme ?? "yesil"] ?? MENU_THEME_HEX.yesil;
+  // Hazır şablon stili: işletme panelden bir şablon seçtiyse tüm sayfa o markanın
+  // arka planı, metin rengi, vurgusu ve fontlarıyla çizilir.
+  const preset = restaurant.menuPreset ? MENU_PRESET_BY_ID[restaurant.menuPreset] : undefined;
+  const ps = preset?.style;
+  const accent = ps?.accent ?? MENU_THEME_HEX[restaurant.menuTheme ?? "yesil"] ?? MENU_THEME_HEX.yesil;
   const radius = Math.max(0, Math.min(32, restaurant.menuRadius ?? 12));
   const template = restaurant.menuTemplate ?? "liste";
   const showImages = restaurant.showProductImages !== false;
@@ -319,8 +325,8 @@ export default function PublicMenuPage() {
     <button
       type="button"
       onClick={() => openProduct(p)}
-      className={`w-full text-left transition-colors hover:bg-muted/40 ${gridMode ? "border border-border p-3 flex flex-col gap-2" : "py-3 flex items-start justify-between gap-4 px-2 -mx-2 rounded-md"}`}
-      style={{ borderRadius: radius }}
+      className={`w-full text-left transition-colors ${gridMode ? "border p-3 flex flex-col gap-2" : "py-3 flex items-start justify-between gap-4 px-2 -mx-2 rounded-md"}`}
+      style={{ borderRadius: radius, borderColor: ps ? `${ps.muted}55` : undefined }}
     >
       {gridMode && showImages && p.imageUrl && (
         <img src={p.imageUrl} alt={name} className="w-full h-28 object-cover" style={{ borderRadius: Math.max(2, radius - 4) }} loading="lazy" />
@@ -340,7 +346,7 @@ export default function PublicMenuPage() {
               )}
               {p.isAvailable === false && <span className="ml-2 text-xs text-red-600">Tükendi</span>}
             </p>
-            {description && <p className="text-sm text-muted-foreground">{description}</p>}
+            {description && <p className="text-sm" style={ps ? { color: ps.muted } : undefined}>{description}</p>}
           </div>
         </div>
         <span className="whitespace-nowrap font-semibold" style={{ color: accent }}>{formatPrice(p.price, currency)}</span>
@@ -350,23 +356,63 @@ export default function PublicMenuPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground pb-28" style={{ ["--pm-accent" as string]: accent }}>
-      <header className="border-b border-border px-4 sm:px-6 py-8 text-center">
+    <main
+      className="min-h-screen pb-28 text-foreground"
+      style={{
+        ["--pm-accent" as string]: accent,
+        backgroundColor: ps?.bg,
+        color: ps?.text,
+      }}
+    >
+      <header className="border-b px-4 sm:px-6 py-10 text-center" style={{ borderColor: ps ? `${ps.muted}44` : undefined }}>
+        {preset && (
+          <p
+            className="mb-2 text-[11px] uppercase"
+            style={{ color: accent, letterSpacing: "0.3em", fontFamily: MENU_PRESET_FONTS.sans }}
+          >
+            {preset.emoji} {preset.name}
+          </p>
+        )}
         <div className="mx-auto mb-3 h-1.5 w-16 rounded-full" style={{ backgroundColor: accent }} />
-        <h1 className="text-2xl sm:text-3xl font-bold break-words">{restaurant.name}</h1>
-        {restaurant.description && <p className="mt-2 text-muted-foreground text-sm sm:text-base">{restaurant.description}</p>}
+        <h1
+          className="text-2xl sm:text-3xl font-bold break-words"
+          style={preset ? {
+            fontFamily: MENU_PRESET_FONTS[preset.style.logoFont],
+            textTransform: preset.style.logoUpper ? "uppercase" : undefined,
+            fontStyle: preset.style.logoItalic ? "italic" : undefined,
+            color: accent,
+          } : undefined}
+        >
+          {restaurant.name}
+        </h1>
+        {restaurant.description && (
+          <p className="mt-2 text-sm sm:text-base" style={ps ? { color: ps.muted, fontFamily: MENU_PRESET_FONTS[preset.style.headingFont] } : undefined}>
+            {restaurant.description}
+          </p>
+        )}
         {(restaurant.city || restaurant.phone) && (
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground" style={ps ? { color: ps.muted } : undefined}>
             {[restaurant.city, restaurant.phone].filter(Boolean).join(" · ")}
           </p>
         )}
       </header>
 
       <div className="mx-auto max-w-2xl px-4 sm:px-6 py-8 space-y-10">
-        {categories.length === 0 && <p className="text-center text-muted-foreground">Bu menüde henüz ürün yok.</p>}
+        {categories.length === 0 && (
+          <p className="text-center" style={ps ? { color: ps.muted } : undefined}>Bu menüde henüz ürün yok.</p>
+        )}
         {categories.map((cat) => (
           <section key={cat.id} aria-labelledby={`cat-${cat.id}`}>
-            <h2 id={`cat-${cat.id}`} className="text-xl font-semibold mb-4" style={{ color: accent }}>{cat.name}</h2>
+            <h2
+              id={`cat-${cat.id}`}
+              className="text-xl font-semibold mb-4"
+              style={{
+                color: accent,
+                fontFamily: preset ? MENU_PRESET_FONTS[preset.style.headingFont] : undefined,
+              }}
+            >
+              {cat.name}
+            </h2>
             {gridMode ? (
               <div className={template === "izgara" ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : "space-y-3"}>
                 {cat.products.map((p) => (
@@ -374,9 +420,9 @@ export default function PublicMenuPage() {
                 ))}
               </div>
             ) : (
-              <ul className="divide-y divide-border">
+              <ul className="divide-y" style={ps ? { borderColor: `${ps.muted}44` } : undefined}>
                 {cat.products.map((p) => (
-                  <li key={p.id}>{renderProduct(p)}</li>
+                  <li key={p.id} style={ps ? { borderColor: `${ps.muted}44` } : undefined}>{renderProduct(p)}</li>
                 ))}
               </ul>
             )}

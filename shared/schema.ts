@@ -120,6 +120,7 @@ export const restaurants = mysqlTable("restaurants", {
   menuTheme: varchar("menu_theme", { length: 32 }).notNull().default("yesil"),
   menuRadius: int("menu_radius").notNull().default(12),
   menuTemplate: varchar("menu_template", { length: 32 }).notNull().default("liste"),
+  menuPreset: varchar("menu_preset", { length: 64 }),
   showProductImages: boolean("show_product_images").notNull().default(true),
   menuLanguage: varchar("menu_language", { length: 8 }).notNull().default("tr"),
   paymentTypes: json("payment_types"),

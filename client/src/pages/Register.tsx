@@ -49,7 +49,7 @@ export default function Register() {
         return;
       }
       const data = await res.json();
-      window.location.href = data.restaurantSlug ? "/panel" : "/giris";
+      window.location.href = data.restaurantSlug ? "/sablon-sec" : "/giris";
     } catch {
       setError("Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.");
     } finally {
@@ -102,7 +102,7 @@ export default function Register() {
 
         {/* Top Header */}
         <div className="flex items-center justify-between flex-wrap gap-y-3 mb-8 relative z-10">
-          <Link href="/">
+          <Link asChild href="/">
             <a className="flex items-center gap-2 group cursor-pointer">
               <img
                 src="/makethemenu-header.png"
@@ -126,7 +126,7 @@ export default function Register() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col justify-center max-w-[480px] mx-auto w-full space-y-8 relative z-10">
+        <div className="flex-1 flex flex-col justify-center max-w-[480px] mx-auto lg:mx-0 w-full space-y-8 relative z-10">
           <div className="space-y-2 text-center lg:text-left">
             <h2 className="text-[28px] font-bold tracking-tight text-foreground">Hemen Kayıt Olun</h2>
             <p className="text-muted-foreground text-base">makethemenu ile işletmenizi büyütmeye başlayın</p>
@@ -223,13 +223,13 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 pt-1">
+            <div className="flex items-start space-x-2 pt-1">
                 <Checkbox
                   id="terms"
                   name="acceptTerms"
-                  className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  className="w-5 h-5 mt-0.5 shrink-0 border-2 border-slate-300 dark:border-slate-600 rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
-                <Label htmlFor="terms" className="text-[14px] font-medium text-muted-foreground cursor-pointer select-none">
+                <Label htmlFor="terms" className="text-[14px] font-medium text-muted-foreground cursor-pointer select-none leading-relaxed">
                   <a href="#" className="text-primary hover:underline">Kullanım Koşullarını</a> ve <a href="#" className="text-primary hover:underline">Gizlilik Politikasını</a> kabul ediyorum.
                 </Label>
             </div>
@@ -246,7 +246,7 @@ export default function Register() {
 
           <div className="pt-4 text-center lg:text-left">
              <p className="text-muted-foreground font-medium">
-               Zaten üye misiniz? <Link href="/giris"><a className="text-primary font-bold hover:underline">Giriş Yapın</a></Link>
+               Zaten üye misiniz? <Link asChild href="/giris"><a className="text-primary font-bold hover:underline">Giriş Yapın</a></Link>
              </p>
           </div>
         </div>

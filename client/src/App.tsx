@@ -19,6 +19,7 @@ import Login from "@/pages/Login";
 import Demo from "@/pages/Demo";
 import ForgotPassword from "@/pages/ForgotPassword";
 import Register from "@/pages/Register";
+import OnboardingTemplates from "@/pages/OnboardingTemplates";
 import PublicMenuPage from "@/pages/PublicMenu";
 import { VerifyEmailPage, ResetPasswordPage } from "@/pages/AuthToken";
 import RestaurantSettingsPage from "@/pages/RestaurantSettings";
@@ -91,6 +92,28 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   return <Component />;
 }
 
+function AdminRoute({ component: Component }: { component: React.ComponentType }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Redirect to="/giris" />;
+  }
+
+  if (!user.isPlatformAdmin) {
+    return <Redirect to="/desktop" />;
+  }
+
+  return <Component />;
+}
+
 function Router() {
   return (
     <Switch>
@@ -132,15 +155,37 @@ function Router() {
       <Route path="/sifremi-unuttum" component={ForgotPassword} />
       <Route path="/kayit" component={Register} />
 
-      <Route path="/admin" component={AdminOverview} />
-      <Route path="/admin/businesses" component={AdminBusinesses} />
-      <Route path="/admin/venues" component={AdminVenues} />
-      <Route path="/admin/licenses" component={AdminLicenses} />
-      <Route path="/admin/payments" component={AdminPayments} />
-      <Route path="/admin/coupons" component={AdminCoupons} />
-      <Route path="/admin/invoices" component={AdminInvoices} />
-      <Route path="/admin/notifications" component={AdminNotifications} />
-      <Route path="/admin/settings" component={AdminSettings} />
+      <Route path="/sablon-sec">
+        {() => <ProtectedRoute component={OnboardingTemplates} />}
+      </Route>
+
+      <Route path="/admin">
+        {() => <AdminRoute component={AdminOverview} />}
+      </Route>
+      <Route path="/admin/businesses">
+        {() => <AdminRoute component={AdminBusinesses} />}
+      </Route>
+      <Route path="/admin/venues">
+        {() => <AdminRoute component={AdminVenues} />}
+      </Route>
+      <Route path="/admin/licenses">
+        {() => <AdminRoute component={AdminLicenses} />}
+      </Route>
+      <Route path="/admin/payments">
+        {() => <AdminRoute component={AdminPayments} />}
+      </Route>
+      <Route path="/admin/coupons">
+        {() => <AdminRoute component={AdminCoupons} />}
+      </Route>
+      <Route path="/admin/invoices">
+        {() => <AdminRoute component={AdminInvoices} />}
+      </Route>
+      <Route path="/admin/notifications">
+        {() => <AdminRoute component={AdminNotifications} />}
+      </Route>
+      <Route path="/admin/settings">
+        {() => <AdminRoute component={AdminSettings} />}
+      </Route>
 
       <Route path="/desktop">
         {() => <ProtectedRoute component={DesktopDashboard} />}

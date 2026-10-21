@@ -84,6 +84,7 @@ export function registerPublicRoutes(app: Express) {
         menuTheme: r.menuTheme,
         menuRadius: r.menuRadius,
         menuTemplate: r.menuTemplate,
+        menuPreset: r.menuPreset ?? null,
         showProductImages: r.showProductImages,
         menuLanguage: r.menuLanguage,
         lat: r.lat,

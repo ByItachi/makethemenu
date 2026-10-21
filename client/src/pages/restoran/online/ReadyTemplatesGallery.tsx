@@ -7,81 +7,106 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Check, ExternalLink, Sparkles } from "lucide-react";
+import { CATEGORIES, MENU_PRESETS, MENU_PRESET_FONTS, type MenuPreset } from "@/lib/menu-presets";
+
+export { CATEGORIES };
+export type Preset = MenuPreset;
+export const PRESETS = MENU_PRESETS;
 
 type Settings = {
   publicUrl: string | null;
   menuTheme: string;
   menuRadius: number;
   menuTemplate: string;
+  menuPreset?: string | null;
   showProductImages: boolean;
 };
 
-export const THEME_HEX: Record<string, string> = {
-  yesil: "#059669",
-  mavi: "#2563eb",
-  kirmizi: "#dc2626",
-  mor: "#9333ea",
-  turuncu: "#ea580c",
-  grafit: "#334155",
-};
+export function logoTextStyle(preset: Preset): React.CSSProperties {
+  const s = preset.style;
+  return {
+    fontFamily: MENU_PRESET_FONTS[s.logoFont],
+    textTransform: s.logoUpper ? "uppercase" : "none",
+    fontStyle: s.logoItalic ? "italic" : "normal",
+    color: s.accent,
+  };
+}
 
-export type Preset = {
-  id: string;
-  name: string;
-  category: string;
-  menuTheme: string;
-  menuTemplate: "liste" | "izgara" | "kart";
-  menuRadius: number;
-  showProductImages: boolean;
-};
+export function TemplatePreview({ preset, attached = false }: { preset: Preset; attached?: boolean }) {
+  const s = preset.style;
+  const itemRadius = Math.min(preset.menuRadius, 14);
+  const logoStyle = logoTextStyle(preset);
+  const half = Math.ceil(preset.items.length / 2);
+  const sections: [string, typeof preset.items][] = [
+    [preset.sectionTitles[0], preset.items.slice(0, half)],
+    [preset.sectionTitles[1], preset.items.slice(half)],
+  ];
 
-export const CATEGORIES = ["Tümü", "Mutfağa Özel", "Mekan Türü", "Yemek & İçecek", "Modern"];
-
-export const PRESETS: Preset[] = [
-  { id: "kebapci", name: "Kebapçı & Izgara", category: "Mutfağa Özel", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true },
-  { id: "pizza", name: "Pizza & İtalyan", category: "Mutfağa Özel", menuTheme: "kirmizi", menuTemplate: "kart", menuRadius: 16, showProductImages: true },
-  { id: "sushi", name: "Sushi & Uzakdoğu", category: "Mutfağa Özel", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 4, showProductImages: true },
-  { id: "mexican", name: "Meksika & Taco", category: "Mutfağa Özel", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 24, showProductImages: true },
-  { id: "kafe", name: "Kafe & Pastane", category: "Mekan Türü", menuTheme: "mor", menuTemplate: "kart", menuRadius: 24, showProductImages: true },
-  { id: "kahve", name: "Kahve Dükkanı", category: "Mekan Türü", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 12, showProductImages: false },
-  { id: "bar", name: "Bar & Kokteyl", category: "Mekan Türü", menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: false },
-  { id: "sarap", name: "Şarap Evi", category: "Mekan Türü", menuTheme: "kirmizi", menuTemplate: "liste", menuRadius: 0, showProductImages: false },
-  { id: "caybahcesi", name: "Çay Bahçesi", category: "Mekan Türü", menuTheme: "yesil", menuTemplate: "liste", menuRadius: 24, showProductImages: false },
-  { id: "otel", name: "Otel & Resort", category: "Mekan Türü", menuTheme: "mavi", menuTemplate: "kart", menuRadius: 20, showProductImages: true },
-  { id: "finedining", name: "Fine Dining", category: "Mekan Türü", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 0, showProductImages: false },
-  { id: "bistro", name: "Bistro & Pub", category: "Mekan Türü", menuTheme: "mavi", menuTemplate: "liste", menuRadius: 8, showProductImages: false },
-  { id: "burger", name: "Burger & Fast Food", category: "Yemek & İçecek", menuTheme: "kirmizi", menuTemplate: "izgara", menuRadius: 8, showProductImages: true },
-  { id: "deniz", name: "Deniz Ürünleri", category: "Yemek & İçecek", menuTheme: "mavi", menuTemplate: "kart", menuRadius: 16, showProductImages: true },
-  { id: "vegan", name: "Vegan & Sağlıklı", category: "Yemek & İçecek", menuTheme: "yesil", menuTemplate: "izgara", menuRadius: 20, showProductImages: true },
-  { id: "tatlici", name: "Tatlıcı & Dondurma", category: "Yemek & İçecek", menuTheme: "mor", menuTemplate: "izgara", menuRadius: 24, showProductImages: true },
-  { id: "kahvalti", name: "Kahvaltı & Brunch", category: "Yemek & İçecek", menuTheme: "turuncu", menuTemplate: "izgara", menuRadius: 16, showProductImages: true },
-  { id: "modern", name: "Modern Restoran", category: "Modern", menuTheme: "grafit", menuTemplate: "kart", menuRadius: 12, showProductImages: true },
-];
-
-export function TemplatePreview({ preset }: { preset: Preset }) {
-  const hex = THEME_HEX[preset.menuTheme] ?? THEME_HEX.yesil;
-  const isGrid = preset.menuTemplate !== "liste";
-  const items = preset.menuTemplate === "kart" ? 2 : 4;
   return (
-    <div className="rounded-lg border bg-background p-3 h-32 flex flex-col gap-2" style={{ borderRadius: Math.min(preset.menuRadius, 16) }}>
-      <div className="h-2 w-16 rounded-full" style={{ backgroundColor: hex }} />
-      <div className={isGrid ? "grid grid-cols-2 gap-1.5 flex-1" : "flex flex-col gap-1.5 flex-1"}>
-        {Array.from({ length: items }).map((_, i) => (
-          <div
-            key={i}
-            className="flex-1 border bg-muted/40 flex items-center gap-1.5 px-1.5"
-            style={{ borderRadius: `${Math.min(preset.menuRadius, 12)}px` }}
-          >
-            {preset.showProductImages && <div className="h-4 w-4 rounded" style={{ backgroundColor: `${hex}55` }} />}
-            <div className="h-1 flex-1 rounded-full bg-muted-foreground/20" />
-          </div>
-        ))}
+    <div
+      className={
+        attached
+          ? "relative flex aspect-[9/16] w-full flex-col overflow-hidden rounded-t-2xl border border-b-0"
+          : "relative flex aspect-[9/16] w-full flex-col overflow-hidden rounded-2xl border shadow-sm"
+      }
+      style={{ background: s.bg, color: s.text, borderColor: `${s.muted}55` }}
+      data-testid={`template-preview-${preset.id}`}
+    >
+      {/* Marka / logo alanı */}
+      <div className="flex shrink-0 flex-col items-center justify-center gap-1 px-3 pb-3 pt-6 text-center">
+        <span className="text-xl leading-tight" style={{ ...logoStyle, fontWeight: 700 }}>
+          {preset.logo}
+        </span>
+        {preset.tagline && (
+          <span className="text-[7px] uppercase" style={{ color: s.muted, letterSpacing: "0.28em", fontFamily: MENU_PRESET_FONTS.sans }}>
+            {preset.tagline}
+          </span>
+        )}
       </div>
+      {/* Ürün listesi */}
+      <div className="min-h-0 flex-1 space-y-3 overflow-hidden px-3 pb-3">
+        {sections.map(([title, items]) =>
+          items.length === 0 ? null : (
+            <div key={title} className="space-y-1.5">
+              <p className="text-[11px] font-bold" style={{ color: s.accent, fontFamily: MENU_PRESET_FONTS[`${s.headingFont}` as "serif" | "sans"] }}>
+                {title}
+              </p>
+              {items.map((item, i) => (
+                <div key={i} className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[9px] font-semibold leading-snug" style={{ color: s.text }}>
+                      {item.name}
+                    </p>
+                    {item.desc && (
+                      <p className="line-clamp-2 text-[7px] leading-snug" style={{ color: s.muted }}>
+                        {item.desc}
+                      </p>
+                    )}
+                    <p className="text-[8px] font-bold" style={{ color: s.accent }}>{item.price}₺</p>
+                  </div>
+                  {preset.showProductImages && (
+                    <div
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-sm"
+                      style={{ backgroundColor: `${s.accent}22`, border: `1px solid ${s.accent}33` }}
+                    >
+                      {preset.emoji}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ),
+        )}
+      </div>
+      <div className="shrink-0 px-3 pb-2">
+        <div className="mx-auto h-1 w-10 rounded-full" style={{ backgroundColor: `${s.muted}66` }} />
+      </div>
+      <span className="sr-only">{`borderRadius: ${itemRadius}px`}</span>
     </div>
   );
 }
 
-export function ReadyTemplatesGallery() {
+export function ReadyTemplatesGallery({ onApplied }: { onApplied?: () => void } = {}) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [category, setCategory] = useState("Tümü");
@@ -97,6 +122,7 @@ export function ReadyTemplatesGallery() {
         menuTheme: preset.menuTheme,
         menuTemplate: preset.menuTemplate,
         menuRadius: preset.menuRadius,
+        menuPreset: preset.id,
         showProductImages: preset.showProductImages,
       });
       return res.json();
@@ -104,14 +130,14 @@ export function ReadyTemplatesGallery() {
     onSuccess: (_d, preset) => {
       queryClient.invalidateQueries({ queryKey: ["/api/restaurant"] });
       toast({ title: `"${preset.name}" şablonu uygulandı`, description: "Menünüz anında güncellendi." });
+      onApplied?.();
     },
     onError: (e: Error) => toast({ title: "Uygulanamadı", description: e.message, variant: "destructive" }),
   });
 
   if (isLoading || !r) return <Skeleton className="h-64 w-full" />;
 
-  const isActive = (p: Preset) =>
-    r.menuTheme === p.menuTheme && r.menuTemplate === p.menuTemplate && r.menuRadius === p.menuRadius && r.showProductImages === p.showProductImages;
+  const isActive = (p: Preset) => r.menuPreset ? r.menuPreset === p.id : (r.menuTheme === p.menuTheme && r.menuTemplate === p.menuTemplate && r.menuRadius === p.menuRadius && r.showProductImages === p.showProductImages);
 
   const visible = category === "Tümü" ? PRESETS : PRESETS.filter((p) => p.category === category);
 
