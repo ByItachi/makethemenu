@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MENU_PRESET_BY_ID, MENU_PRESET_FONTS } from "@/lib/menu-presets";
 import { SHOWCASE_BY_SLUG } from "@/lib/template-showcase";
+import { demoItemImage } from "@/lib/demo-item-images";
 
 /**
  * Şablon vitrininin canlı örnek menüsü: /sablon-demo/:slug
@@ -68,9 +69,18 @@ export default function TemplateDemoPage() {
               {title}
             </h2>
             <ul className="divide-y" style={{ borderColor: `${ps.muted}44` }}>
-              {section.map((item) => (
-                <li key={item.name} className="flex items-baseline justify-between gap-4 py-3" style={{ borderColor: `${ps.muted}44` }}>
-                  <div className="min-w-0">
+              {section.map((item, j) => (
+                <li key={item.name} className="flex items-center gap-3 py-3" style={{ borderColor: `${ps.muted}44` }}>
+                  <img
+                    src={demoItemImage(item.name, preset.category, j)}
+                    alt=""
+                    width={56}
+                    height={56}
+                    loading="lazy"
+                    className="h-14 w-14 shrink-0 object-cover"
+                    style={{ borderRadius: Math.max(4, preset.menuRadius) }}
+                  />
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium sm:text-base">{item.name}</p>
                     {item.desc && <p className="mt-0.5 text-xs sm:text-sm" style={{ color: ps.muted }}>{item.desc}</p>}
                   </div>
