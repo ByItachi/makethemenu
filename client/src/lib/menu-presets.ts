@@ -13,6 +13,10 @@ export type MenuPresetStyle = {
   text: string;
   muted: string;
   accent: string;
+  /** Bolum basliklarinin rengi (varsayilan: accent). mmmmenu orneklerinde bazi temalarda beyazdir. */
+  sectionTitleColor?: string;
+  /** Urun adi/fiyat rengi (varsayilan: text). */
+  itemColor?: string;
   logoFont: MenuPresetFontKey;
   headingFont: MenuPresetFontKey;
   logoUpper?: boolean;
@@ -41,7 +45,7 @@ export const CATEGORIES = ["Tümü", "Mutfağa Özel", "Mekan Türü", "Yemek & 
 
 export const MENU_PRESETS: MenuPreset[] = [
   // --- Mutfağa Özel ---
-  { id: "food-truck", name: "Food Truck", category: "Mutfağa Özel", logo: "Roll & Eat", tagline: "FOOD TRUCK", emoji: "🚚", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true, sectionTitles: ["Yemek", "Yanında"], style: { bg: "#482311", text: "#ff5c00", muted: "#fbf0da", accent: "#ff5c00", logoFont: "badge", headingFont: "badge", logoUpper: true },
+  { id: "food-truck", name: "Food Truck", category: "Mutfağa Özel", logo: "Roll & Eat", tagline: "FOOD TRUCK", emoji: "🚚", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true, sectionTitles: ["Yemek", "Yanında"], style: { bg: "#482311", text: "#ff5c00", muted: "#fbf0da", accent: "#ff5c00", sectionTitleColor: "#feffff", itemColor: "#ff5c00", logoFont: "badge", headingFont: "badge", logoUpper: true },
     items: [
       { name: "Tavuk Dürüm", desc: "Izgara tavuk / falafel, taze salata, yoğurt veya tahin sosu", price: 85 },
       { name: "Burger", desc: "Buttermilk tavuk veya bitkisel köfte, slaw, turşu, acılı mayonez", price: 120 },
@@ -187,7 +191,7 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Americano", desc: "Çift shot, sıcak su ile", price: 30 },
       { name: "Cappuccino", desc: "İpek sütle çift shot", price: 38 },
     ] },
-  { id: "cocktailbar", name: "Kokteyl Bar", category: "Mekan Türü", logo: "Cocktails", tagline: "BAR & LOUNGE", emoji: "🍸", menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["Signature", "Klasikler"], style: { bg: "#f2a0c0", text: "#8e1230", muted: "#b04a68", accent: "#c2185b", logoFont: "condensed", headingFont: "sans" },
+  { id: "cocktailbar", name: "Kokteyl Bar", category: "Mekan Türü", logo: "Cocktails", tagline: "BAR & LOUNGE", emoji: "🍸", menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["Signature", "Klasikler"], style: { bg: "#f4a4c0", text: "#ffffff", muted: "#f6f3f3", accent: "#fe1e0b", sectionTitleColor: "#fe1e0b", itemColor: "#ffffff", logoFont: "condensed", headingFont: "sans" },
     items: [
       { name: "Espresso Martini", desc: "Vodka, kahve likörü", price: 150 },
       { name: "Negroni", desc: "Gin, campari, vermut", price: 145 },

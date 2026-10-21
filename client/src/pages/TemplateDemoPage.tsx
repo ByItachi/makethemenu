@@ -68,7 +68,7 @@ export default function TemplateDemoPage() {
             <h2
               className="pb-2 text-2xl font-semibold"
               style={{
-                color: accent,
+                color: ps.sectionTitleColor || accent,
                 fontSize: 24,
                 fontFamily: MENU_PRESET_FONTS[ps.headingFont],
                 textTransform: "uppercase",
@@ -82,7 +82,7 @@ export default function TemplateDemoPage() {
                 <div key={item.name} className="-mx-4 px-4 py-3.5 transition-colors hover:bg-black/[0.03]">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <h3 className="flex items-center gap-1.5 text-base font-semibold leading-5" style={{ color: ps.text }}>
+                      <h3 className="flex items-center gap-1.5 text-base font-semibold leading-5" style={{ color: ps.itemColor || ps.text }}>
                         {item.name}
                       </h3>
                       {item.desc && (
@@ -90,7 +90,7 @@ export default function TemplateDemoPage() {
                           {item.desc}
                         </p>
                       )}
-                      <p className="font-medium" style={{ color: ps.text }}>
+                      <p className="font-medium" style={{ color: ps.itemColor || ps.text }}>
                         {item.price}₺
                       </p>
                     </div>
