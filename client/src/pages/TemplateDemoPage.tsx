@@ -1,10 +1,29 @@
 import { useEffect } from "react";
 import { Link, useRoute } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft, Truck, Coffee, Pizza, Martini, Wine, Beer, Fish, CakeSlice, CupSoda,
+  Croissant, Sandwich, Beef, Cookie, Soup, Salad, UtensilsCrossed, Hotel, PartyPopper,
+  Cake, Sparkles, Wheat, Grape, Cherry, Candy, Flame, Leaf, GlassWater, Popcorn,
+  Milk, Drumstick, Carrot, CookingPot, IceCreamBowl, Donut, Ham, Apple, Citrus,
+  Egg as Egg_, type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MENU_PRESET_BY_ID, MENU_PRESET_FONTS } from "@/lib/menu-presets";
 import { SHOWCASE_BY_SLUG } from "@/lib/template-showcase";
 import { demoItemImage } from "@/lib/demo-item-images";
+
+/** Her temanın demo logosu: referanslardaki çizgi-tarz (line-art) illüstrasyon karşılığı. */
+const PRESET_ICONS: Record<string, LucideIcon> = {
+  "food-truck": Truck, "cin-restorani": Soup, kore: CookingPot, meksika: Flame,
+  pizza: Pizza, ramen: Soup, sushi: Fish, hint: CookingPot, tay: Soup,
+  italyan: Pizza, barbeku: Beef, kebapci: Drumstick, deniz: Fish, vegan: Leaf,
+  cafe: Coffee, kahve: Coffee, cocktailbar: Martini, icecek: CupSoda, sarap: Wine,
+  birahane: Beer, pub: Beer, "gastro-pub": Beef, nargile: Sparkles, firin: Croissant,
+  dondurma: IceCreamBowl, "dondurma-kamyonu": Truck, otel: Hotel, dugun: Cake,
+  burger: Sandwich, kahvalti: Egg_, tatli: CakeSlice, tatlici: Donut,
+  yilbasi: PartyPopper, hasat: Wheat, "gunun-ozeli": Sparkles, modern: UtensilsCrossed,
+  catering: Popcorn, // catering için sepet hissi
+};
 
 /**
  * Şablon vitrininin canlı örnek menüsü: /sablon-demo/:slug
@@ -39,13 +58,15 @@ export default function TemplateDemoPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: ps.bg, color: ps.text }} data-testid="template-demo">
-      <div className="mx-auto max-w-2xl px-4 pt-12 pb-6 text-center sm:px-6 sm:pt-16">
-        <p className="mb-2 text-[11px] uppercase" style={{ color: accent, letterSpacing: "0.3em", fontFamily: MENU_PRESET_FONTS.sans }}>
-          {preset.emoji} {preset.name} · ÖRNEK MENÜ
-        </p>
-        <div className="mx-auto mb-3 h-1.5 w-16 rounded-full" style={{ backgroundColor: accent }} />
+      <div className="mx-auto max-w-2xl px-4 pt-14 pb-4 text-center sm:px-6 sm:pt-20">
+        <div className="flex justify-center py-8">
+          {(() => {
+            const Icon = PRESET_ICONS[preset.id] || UtensilsCrossed;
+            return <Icon size={150} strokeWidth={0.9} style={{ color: accent }} aria-hidden />;
+          })()}
+        </div>
         <h1
-          className="text-3xl font-bold break-words sm:text-5xl"
+          className="break-words text-2xl font-bold tracking-wide sm:text-4xl"
           style={{
             fontFamily: MENU_PRESET_FONTS[ps.logoFont],
             textTransform: ps.logoUpper ? "uppercase" : undefined,
@@ -55,48 +76,49 @@ export default function TemplateDemoPage() {
         >
           {preset.logo}
         </h1>
-        <p className="mt-2 text-sm sm:text-base" style={{ color: ps.muted, fontFamily: MENU_PRESET_FONTS[ps.headingFont] }}>
+        <p className="mt-1 text-[11px] uppercase" style={{ color: ps.muted, letterSpacing: "0.25em", fontFamily: MENU_PRESET_FONTS.sans }}>
           {preset.tagline}
         </p>
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 pb-16 sm:px-6">
+      <div className="mx-auto max-w-2xl px-4 pb-20 sm:px-6">
         {preset.sectionTitles.map((title, i) => {
           const section = preset.items.slice(i * 3, i * 3 + 3);
           return (
-          <section key={i} className="mt-6" aria-labelledby={`demo-cat-${i}`}>
+          <section key={i} className={i === 0 ? "mt-8" : "mt-16"} aria-labelledby={`demo-cat-${i}`}>
             <h2
-              className="pb-2 text-2xl font-semibold"
+              className="pb-3 text-[28px] font-bold leading-none"
               style={{
                 color: ps.sectionTitleColor || accent,
-                fontSize: 24,
                 fontFamily: MENU_PRESET_FONTS[ps.headingFont],
                 textTransform: "uppercase",
-                letterSpacing: "0.02em",
+                letterSpacing: "0.04em",
               }}
             >
-              {title}
+              <span className="inline-block" style={{ transform: "scaleX(1.22)", transformOrigin: "left" }}>
+                {title}
+              </span>
             </h2>
             <div>
               {section.map((item, j) => (
-                <div key={item.name} className="-mx-4 px-4 py-3.5 transition-colors hover:bg-black/[0.03]">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <h3 className="flex items-center gap-1.5 text-base font-semibold leading-5" style={{ color: ps.itemColor || ps.text }}>
+                <div key={item.name} className="-mx-4 px-4 py-6 transition-colors first:pt-4 hover:bg-black/[0.03]">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
+                      <h3 className="text-[15px] font-semibold leading-5" style={{ color: ps.itemColor || ps.text }}>
                         {item.name}
                       </h3>
                       {item.desc && (
-                        <p className="line-clamp-3 text-sm" style={{ color: ps.muted, opacity: 0.75 }}>
+                        <p className="line-clamp-3 text-[13px] leading-snug" style={{ color: ps.muted, opacity: 0.72 }}>
                           {item.desc}
                         </p>
                       )}
-                      <p className="font-medium" style={{ color: ps.itemColor || ps.text }}>
+                      <p className="text-sm font-medium" style={{ color: ps.itemColor || ps.text }}>
                         {item.price}₺
                       </p>
                     </div>
                     <div
                       className="aspect-video w-2/5 shrink-0 overflow-hidden bg-neutral-100"
-                      style={{ borderRadius: Math.max(2, Math.min(preset.menuRadius, 8)) }}
+                      style={{ borderRadius: Math.min(preset.menuRadius, 6) }}
                     >
                       <img
                         src={demoItemImage(item.name, preset.category, j)}
