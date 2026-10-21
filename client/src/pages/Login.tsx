@@ -267,7 +267,7 @@ export default function Login() {
 
           <div className="pt-4 text-center lg:text-left">
              <p className="text-muted-foreground font-medium">
-               Üye Değil Misiniz? <Link href="/kayit-ol"><a className="text-primary font-bold hover:underline">Şimdi Kaydolun</a></Link>
+               Üye Değil Misiniz? <Link href="/kayit"><a className="text-primary font-bold hover:underline">Şimdi Kaydolun</a></Link>
              </p>
           </div>
         </div>

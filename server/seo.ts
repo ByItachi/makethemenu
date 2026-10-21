@@ -48,6 +48,11 @@ export function registerSeoRoutes(app: Express) {
     );
   });
 
+  const STATIC_PAGES = [
+    "/", "/ozellikler", "/sablonlar", "/fiyatlar", "/indir", "/hakkimizda",
+    "/iletisim", "/blog", "/cozumler", "/basari-hikayeleri", "/kayit", "/giris",
+  ];
+
   app.get("/sitemap.xml", async (_req: Request, res: Response) => {
     const base = publicBaseUrl();
     const rows = await db
@@ -55,12 +60,14 @@ export function registerSeoRoutes(app: Express) {
       .from(restaurants)
       .where(eq(restaurants.isPublished, true))
       .orderBy(desc(restaurants.id));
+    const staticUrls = STATIC_PAGES.map((p) => `  <url><loc>${xmlEscape(`${base}${p}`)}</loc></url>`);
     const urls = rows
       .filter((r) => r.slug)
       .map((r) => {
         const lastmod = r.joinedAt ? `<lastmod>${new Date(r.joinedAt).toISOString().slice(0, 10)}</lastmod>` : "";
         return `  <url><loc>${xmlEscape(`${base}/p/${r.slug}`)}</loc>${lastmod}</url>`;
       });
+    urls.unshift(...staticUrls);
     res.type("application/xml").setHeader("Cache-Control", "public, max-age=300");
     res.send(
       `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`,
