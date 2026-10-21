@@ -14,7 +14,7 @@ export type MenuPresetStyle = {
   muted: string;
   accent: string;
   logoFont: MenuPresetFontKey;
-  headingFont: "serif" | "sans";
+  headingFont: MenuPresetFontKey;
   logoUpper?: boolean;
   logoItalic?: boolean;
 };
@@ -41,14 +41,14 @@ export const CATEGORIES = ["Tümü", "Mutfağa Özel", "Mekan Türü", "Yemek & 
 
 export const MENU_PRESETS: MenuPreset[] = [
   // --- Mutfağa Özel ---
-  { id: "food-truck", name: "Food Truck", category: "Mutfağa Özel", logo: "Roll & Eat", tagline: "FOOD TRUCK", emoji: "🚚", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true, sectionTitles: ["Dürümler", "Yanında"], style: { bg: "#4a2416", text: "#fdf3e7", muted: "#e0b89a", accent: "#ff6b35", logoFont: "condensed", headingFont: "sans", logoUpper: true },
+  { id: "food-truck", name: "Food Truck", category: "Mutfağa Özel", logo: "Roll & Eat", tagline: "FOOD TRUCK", emoji: "🚚", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true, sectionTitles: ["Yemek", "Yanında"], style: { bg: "#482311", text: "#ff5c00", muted: "#fbf0da", accent: "#ff5c00", logoFont: "badge", headingFont: "badge", logoUpper: true },
     items: [
-      { name: "Tavuk Dürüm", desc: "Acılı sos, turşu, patates", price: 85 },
+      { name: "Tavuk Dürüm", desc: "Izgara tavuk / falafel, taze salata, yoğurt veya tahin sosu", price: 85 },
+      { name: "Burger", desc: "Buttermilk tavuk veya bitkisel köfte, slaw, turşu, acılı mayonez", price: 120 },
       { name: "Halloumi Dürüm", desc: "Izgara halloumi, humus, roka", price: 90 },
+      { name: "Tatlı Patates Kızartması", desc: "Sarımsaklı mayonez veya acı sos ile", price: 48 },
+      { name: "Yüklü Kızartma", desc: "Peynir sosu, bacon veya vejetaryen sos, taze soğan", price: 55 },
       { name: "Ev Limonatası", desc: "Taze naneli, buz gibi", price: 35 },
-      { name: "Dolmalık Wrap", desc: "Tavuklu falafel, taze salata, yoğurtlu sos", price: 95 },
-      { name: "Burger", desc: "Dana köfte, turşu, karamelize soğan", price: 120 },
-      { name: "Tatlı Patates Kızartması", desc: "Sarımsaklı mayonezle", price: 48 },
     ] },
   { id: "cin-restorani", name: "Çin Restoranı", category: "Mutfağa Özel", logo: "Fat Cat", tagline: "NO.88 · ASIAN KITCHEN", emoji: "🐱", menuTheme: "kirmizi", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["Paylaşımlık", "Öneriler"], style: { bg: "#9e9e9e", text: "#26221e", muted: "#4d4740", accent: "#b71c1c", logoFont: "badge", headingFont: "sans" },
     items: [
@@ -404,5 +404,5 @@ export const MENU_PRESET_FONTS: Record<MenuPresetFontKey, string> = {
   condensed: '"Arial Narrow", "Helvetica Neue", Arial, sans-serif',
   badge: '"Trebuchet MS", Verdana, sans-serif',
   round: '"Verdana", "Trebuchet MS", sans-serif',
-  script: 'Georgia, "Times New Roman", serif',
+  script: '"Brush Script MT", "Segoe Script", cursive',
 };
