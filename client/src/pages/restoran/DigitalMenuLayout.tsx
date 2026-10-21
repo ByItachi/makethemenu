@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Home, QrCode, Settings, Copy, Check, Download, Globe, ExternalLink, UtensilsCrossed, Rocket, Info, Palette, Monitor } from "lucide-react";
+import { Home, QrCode, Settings, Copy, Check, Download, Globe, ExternalLink, UtensilsCrossed, Rocket, Info, Palette, Monitor, LayoutTemplate } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { useTables, useProducts } from "@/hooks/use-resto";
 import { apiRequest } from "@/lib/queryClient";
 import { MenuDesignWizard } from "@/pages/restoran/online/PaymentTypesPage";
 import { KioskDesignWizard } from "@/pages/restoran/online/KioskDesignWizard";
+import { ReadyTemplatesGallery } from "@/pages/restoran/online/ReadyTemplatesGallery";
 
 type RestaurantSettings = {
   id: number;
@@ -286,6 +287,7 @@ export default function DigitalMenuLayout() {
 
   const tabs = [
     { key: "home", label: "Giriş", icon: Home },
+    { key: "templates", label: "Hazır Şablonlar", icon: LayoutTemplate },
     { key: "design", label: "Tasarım Sihirbazı", icon: Palette },
     { key: "kiosk", label: "Kiosk Tasarımı", icon: Monitor },
     { key: "tables", label: "Masa Karekod İşlemleri", icon: QrCode },
@@ -296,6 +298,8 @@ export default function DigitalMenuLayout() {
     switch (activePage) {
       case "tables":
         return <TableQrCodes />;
+      case "templates":
+        return <ReadyTemplatesGallery />;
       case "design":
         return <MenuDesignWizard />;
       case "kiosk":
