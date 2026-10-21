@@ -29,6 +29,8 @@ import { PaymentSuccessPage, PaymentFailedPage } from "@/pages/billing/PaymentRe
 import LandingPage from "@/pages/LandingPage";
 import FeaturesPage from "@/pages/FeaturesPage";
 import TemplatesPage from "@/pages/TemplatesPage";
+import TemplateDetailPage from "@/pages/TemplateDetailPage";
+import TemplateDemoPage from "@/pages/TemplateDemoPage";
 import PricingPage from "@/pages/PricingPage";
 import DownloadPage from "@/pages/DownloadPage";
 import AboutPage from "@/pages/AboutPage";
@@ -120,6 +122,8 @@ function Router() {
       <Route path="/" component={LandingPage} />
       <Route path="/ozellikler" component={FeaturesPage} />
       <Route path="/sablonlar" component={TemplatesPage} />
+      <Route path="/sablonlar/:slug" component={TemplateDetailPage} />
+      <Route path="/sablon-demo/:slug" component={TemplateDemoPage} />
       <Route path="/ozellikler/:slug" component={FeatureDetailPage} />
       <Route path="/fiyatlar" component={PricingPage} />
       <Route path="/indir" component={DownloadPage} />
