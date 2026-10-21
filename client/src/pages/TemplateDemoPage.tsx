@@ -45,7 +45,7 @@ export default function TemplateDemoPage() {
         </p>
         <div className="mx-auto mb-3 h-1.5 w-16 rounded-full" style={{ backgroundColor: accent }} />
         <h1
-          className="text-2xl font-bold break-words sm:text-3xl"
+          className="text-3xl font-bold break-words sm:text-5xl"
           style={{
             fontFamily: MENU_PRESET_FONTS[ps.logoFont],
             textTransform: ps.logoUpper ? "uppercase" : undefined,
@@ -64,32 +64,51 @@ export default function TemplateDemoPage() {
         {preset.sectionTitles.map((title, i) => {
           const section = preset.items.slice(i * 3, i * 3 + 3);
           return (
-          <section key={i} className="mt-10" aria-labelledby={`demo-cat-${i}`}>
-            <h2 className="mb-4 text-xl font-semibold" style={{ color: accent, fontFamily: MENU_PRESET_FONTS[ps.headingFont] }}>
+          <section key={i} className="mt-6" aria-labelledby={`demo-cat-${i}`}>
+            <h2
+              className="pb-2 text-2xl font-semibold"
+              style={{
+                color: accent,
+                fontSize: 24,
+                fontFamily: MENU_PRESET_FONTS[ps.headingFont],
+                textTransform: "uppercase",
+                letterSpacing: "0.02em",
+              }}
+            >
               {title}
             </h2>
-            <ul className="divide-y" style={{ borderColor: `${ps.muted}44` }}>
+            <div>
               {section.map((item, j) => (
-                <li key={item.name} className="flex items-center gap-3 py-3" style={{ borderColor: `${ps.muted}44` }}>
-                  <img
-                    src={demoItemImage(item.name, preset.category, j)}
-                    alt=""
-                    width={56}
-                    height={56}
-                    loading="lazy"
-                    className="h-14 w-14 shrink-0 object-cover"
-                    style={{ borderRadius: Math.max(4, preset.menuRadius) }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium sm:text-base">{item.name}</p>
-                    {item.desc && <p className="mt-0.5 text-xs sm:text-sm" style={{ color: ps.muted }}>{item.desc}</p>}
+                <div key={item.name} className="-mx-4 px-4 py-3.5 transition-colors hover:bg-black/[0.03]">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <h3 className="flex items-center gap-1.5 text-base font-semibold leading-5" style={{ color: ps.text }}>
+                        {item.name}
+                      </h3>
+                      {item.desc && (
+                        <p className="line-clamp-3 text-sm" style={{ color: ps.muted, opacity: 0.75 }}>
+                          {item.desc}
+                        </p>
+                      )}
+                      <p className="font-medium" style={{ color: ps.text }}>
+                        {item.price}₺
+                      </p>
+                    </div>
+                    <div
+                      className="aspect-video w-2/5 shrink-0 overflow-hidden bg-neutral-100"
+                      style={{ borderRadius: Math.max(2, Math.min(preset.menuRadius, 8)) }}
+                    >
+                      <img
+                        src={demoItemImage(item.name, preset.category, j)}
+                        alt={item.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
                   </div>
-                  <p className="shrink-0 text-sm font-semibold sm:text-base" style={{ color: accent }}>
-                    {item.price}₺
-                  </p>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </section>
           );
         })}
