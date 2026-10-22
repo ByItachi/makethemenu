@@ -88,7 +88,9 @@ export default function TemplateDemoPage() {
                         </p>
                       )}
                       <div className="font-medium" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
-                        {preset.currency ? `${preset.currency}${item.price.toFixed(2)}` : `${item.price}₺`}
+                        {preset.currency
+                          ? `${preset.currency}${item.price.toFixed(2)}`
+                          : `${item.price}${item.priceSuffix !== undefined ? item.priceSuffix : (ps.priceSuffix ?? "₺")}`}
                       </div>
                     </div>
                     <div className="aspect-video w-2/5 shrink-0 overflow-hidden rounded-sm bg-neutral-100">

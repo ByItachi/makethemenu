@@ -6,7 +6,7 @@
  * style.logoFont / style.headingFont anahtarları PublicMenu ve galeride aynı
  * CSS eşlemesiyle yorumlanır (bkz. MENU_PRESET_FONTS).
  */
-export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins";
+export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins" | "manrope";
 
 export type MenuPresetStyle = {
   bg: string;
@@ -21,13 +21,15 @@ export type MenuPresetStyle = {
   sectionTitleSize?: number;
   /** Urun adi/açiklama/fiyat fontu (varsayilan: sistem sans). */
   itemFont?: MenuPresetFontKey;
+  /** Fiyat son eki (orn. " / g"); fiyat "10 / g" biciminde gosterilir. */
+  priceSuffix?: string;
   logoFont: MenuPresetFontKey;
   headingFont: MenuPresetFontKey;
   logoUpper?: boolean;
   logoItalic?: boolean;
 };
 
-export type MenuPresetItem = { name: string; desc?: string; price: number; image?: string };
+export type MenuPresetItem = { name: string; desc?: string; price: number; image?: string; /** Urun bazli fiyat son eki (stildeki priceSuffix'i gecer). */ priceSuffix?: string };
 
 export type MenuPreset = {
   id: string;
@@ -171,14 +173,15 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Karides Güveç", desc: "Sarımsaklı tereyağı ve biber", price: 250 },
       { name: "Kalamar Tava", desc: "Çıtır un kızartması, tartar sos", price: 180 },
     ] },
-  { id: "vegan", name: "Vegan & Sağlıklı", category: "Mutfağa Özel", logo: "Yeşil Kase", tagline: "PLANT BASED", emoji: "🥗", menuTheme: "yesil", menuTemplate: "izgara", menuRadius: 20, showProductImages: true, sectionTitles: ["Kaseler", "Salatalar"], style: { bg: "#e9f4e4", text: "#2c3a22", muted: "#5f7a52", accent: "#4c8c3f", logoFont: "round", headingFont: "sans" },
+  { id: "vegan", name: "Vegan & Sağlıklı", category: "Mutfağa Özel", logo: "Yeşil Kase", tagline: "PLANT BASED", emoji: "🥗", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/acbb0565-61ea-45a5-9171-b10a55395737-1766054364957.png", logoHeight: 180, menuTheme: "yesil", menuTemplate: "izgara", menuRadius: 20, showProductImages: false, sectionTitles: ["FLOWER", "EDIBLES"], style: { bg: "#263d29", text: "#ffffff", muted: "#86a289", accent: "#fefe93", sectionTitleColor: "#fefe93", itemColor: "#ffffff", sectionTitleSize: 26, logoFont: "round", headingFont: "manrope", itemFont: "manrope", priceSuffix: " / g" },
     items: [
-      { name: "Buddha Bowl", desc: "Kinoa, nohut, avokado", price: 115 },
-      { name: "Vegan Wrap", desc: "Sebzeli, tahin soslu", price: 98 },
-      { name: "Detoks Suyu", desc: "Yeşil elma, ıspanak, zencefil", price: 55 },
-      { name: "Falafel Tabağı", desc: "Nohut köftesi, tahin sos, turşu", price: 110 },
-      { name: "Avokado Salata", desc: "Kinoa, ceviz, narenciye sosu", price: 90 },
-      { name: "Vegan Burger", desc: "Nohut-mantar köfte, baharatlı mayo", price: 130 },
+      { name: "OG Kush", desc: "Earthy, pine aroma, balanced effects", price: 10 },
+      { name: "Gelato", desc: "Sweet, creamy flavor, relaxing", price: 12 },
+      { name: "Sour Diesel", desc: "Citrusy, energizing", price: 11 },
+      { name: "Blue Dream", desc: "Smooth, berry notes", price: 11 },
+      { name: "Gummies", desc: "Assorted flavors (10 pcs)", price: 18, priceSuffix: "" },
+      { name: "Chocolate Bar", desc: "Milk or dark chocolate", price: 16, priceSuffix: "" },
+      { name: "Hard Candies", desc: "Fruit flavors (20 pcs)", price: 15, priceSuffix: "" },
     ] },
 
   // --- Mekan Türü ---
@@ -419,5 +422,6 @@ export const MENU_PRESET_FONTS: Record<MenuPresetFontKey, string> = {
   script: '"Brush Script MT", "Segoe Script", cursive',
   bbh: '"BBH Bartle", "BBH Sans Bartle", "Trebuchet MS", Verdana, sans-serif',
   bebas: '"Bebas Neue", "Arial Narrow", sans-serif',
+  manrope: '"Manrope", system-ui, sans-serif',
   poppins: '"Poppins", system-ui, sans-serif',
 };
