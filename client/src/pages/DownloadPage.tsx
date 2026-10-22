@@ -32,16 +32,16 @@ export default function DownloadPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-white/0 dark:to-transparent pointer-events-none" />
         <div className="site-container relative z-10">
-          <div className="text-center mb-12">
+          <div className="text-center pt-32 mb-12">
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">Masaüstü Uygulamayı İndir</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               MakeTheMenu POS'u Windows'a kurun; internet kesilse bile kasa, masa ve adisyon
               işlemleriniz kesintisiz devam etsin.
             </p>
-            <Button size="lg" className="h-14 px-8 text-base" asChild>
+            <Button size="lg" className="h-14 px-8 text-base mt-4" asChild>
               <a href={DOWNLOAD_URL} download="MakeTheMenu-Setup-1.0.1.exe">
                 <Download className="h-5 w-5" />
                 Windows için indir (v1.0.1)

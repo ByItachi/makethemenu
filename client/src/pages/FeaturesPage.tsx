@@ -7,7 +7,7 @@ export default function FeaturesPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative pt-56 pb-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-white/0 dark:to-transparent pointer-events-none" />
         <div className="site-container relative z-10">
           <div className="text-center mb-16">

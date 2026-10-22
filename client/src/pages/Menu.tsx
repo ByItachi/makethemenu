@@ -1,7 +1,7 @@
 import { useCategories, useProducts, useCreateCategory, useCreateProduct, useDeleteProduct, useUpdateProduct } from "@/hooks/use-resto";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -157,6 +157,7 @@ function AddCategoryDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Kategori Oluştur</DialogTitle>
+          <DialogDescription>Menünüze yeni bir ürün kategorisi ekleyin.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-2">
@@ -205,6 +206,7 @@ function AddProductDialog({ categories }: { categories: any[] }) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Ürün Oluştur</DialogTitle>
+          <DialogDescription>Menünüze yeni bir ürün ekleyin.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-2">
@@ -307,6 +309,7 @@ function Model3dButton({ product }: { product: ProductRow }) {
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>3D Model · {product.name}</DialogTitle>
+          <DialogDescription>Ürün için 3D model bağlantısını ekleyin veya güncelleyin.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
@@ -402,6 +405,7 @@ function AiMenuDialog() {
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" /> AI ile Menü Oluştur
           </DialogTitle>
+          <DialogDescription>Yapay zeka ile işletmenize uygun bir menü taslağı oluşturun.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="grid grid-cols-2 gap-3">

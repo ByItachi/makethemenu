@@ -48,7 +48,7 @@ export default function Features() {
   ];
 
   return (
-    <div className="pt-32 pb-24">
+    <div className="pt-56 pb-24">
       {/* Header */}
       <div className="site-container text-center mb-20">
         <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-slate-900">

@@ -131,7 +131,7 @@ export default function Login() {
 
         {/* Top Header */}
         <div className="flex items-center justify-between flex-wrap gap-y-3 mb-8 relative z-10">
-          <Link href="/">
+          <Link asChild href="/">
             <a className="flex items-center gap-2 group cursor-pointer">
               <img
                 src="/makethemenu-header.png"
@@ -267,7 +267,7 @@ export default function Login() {
 
           <div className="pt-4 text-center lg:text-left">
              <p className="text-muted-foreground font-medium">
-               Üye Değil Misiniz? <Link href="/kayit"><a className="text-primary font-bold hover:underline">Şimdi Kaydolun</a></Link>
+               Üye Değil Misiniz? <Link asChild href="/kayit"><a className="text-primary font-bold hover:underline">Şimdi Kaydolun</a></Link>
              </p>
           </div>
         </div>

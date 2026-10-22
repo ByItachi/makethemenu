@@ -214,6 +214,7 @@ export default function AdminLicenses() {
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Lisans Düzenle</DialogTitle>
+                <DialogDescription>Seçili lisansın işletme, paket ve durum bilgilerini güncelleyin.</DialogDescription>
               </DialogHeader>
               {selectedLicense && (
                 <div className="grid gap-4 py-4">

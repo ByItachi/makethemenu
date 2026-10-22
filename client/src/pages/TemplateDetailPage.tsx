@@ -56,9 +56,9 @@ export default function TemplateDetailPage() {
     <div className="min-h-screen bg-white text-black">
       <div className="bg-white text-black">
       <Navbar />
-      <section className="py-20">
+      <section className="pt-56 pb-20">
         <div className="mx-auto flex w-full max-w-[1280px] flex-col px-8 max-lg:px-6">
-          <div className="flex flex-row items-center gap-14 max-lg:flex-col">
+          <div className="flex flex-row items-start gap-14 max-lg:flex-col">
             <div className="flex w-full flex-col items-start gap-8">
               <Link
                 href="/sablonlar"
@@ -131,7 +131,7 @@ export default function TemplateDetailPage() {
           </div>
           <div className="mt-12 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
             {others.map((o) => (
-              <Link key={o.slug} href={`/sablonlar/${o.slug}`} className="group flex flex-1 flex-col gap-4">
+              <Link key={o.slug} href={`/sablonlar/${o.slug}`} className="group flex flex-1 flex-col items-center gap-3">
                 <div className="relative flex flex-col items-center justify-end overflow-hidden rounded-xl bg-neutral-900/5 px-5 pt-5">
                   <div className="relative z-20 max-h-[450px] w-full max-w-[280px] overflow-hidden rounded-t-xl">
                     <img
@@ -143,6 +143,9 @@ export default function TemplateDetailPage() {
                   </div>
                 </div>
                 <h3 className="truncate text-base font-medium text-black">{o.name}</h3>
+                <span className="inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-black/10 bg-white px-5 text-sm font-medium text-black transition-colors group-hover:bg-black group-hover:text-white">
+                  Şablonu Gör
+                </span>
               </Link>
             ))}
           </div>

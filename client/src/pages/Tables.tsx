@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/Sidebar";
 import { useTables, useCreateTable, useUpdateTable, useDeleteTable } from "@/hooks/use-resto";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
@@ -31,6 +31,7 @@ export default function Tables() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Yeni Masa Ekle</DialogTitle>
+                <DialogDescription>Masa düzeninize yeni bir masa ekleyin.</DialogDescription>
               </DialogHeader>
               <TableForm onSuccess={() => setIsDialogOpen(false)} />
             </DialogContent>

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export default function About() {
   return (
-    <div className="pt-32 pb-24">
+    <div className="pt-56 pb-24">
       {/* Hero */}
       <div className="site-container mb-24">
         <div className="text-center">

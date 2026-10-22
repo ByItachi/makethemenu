@@ -82,7 +82,7 @@ export default function LandingPage() {
       <TrialPopup />
 
       {/* Hero Section */}
-      <section id="home" className="relative pt-32 pb-20 overflow-hidden">
+      <section id="home" className="relative pt-56 pb-20 overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-10">
           <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary rounded-full blur-[120px]" />
           <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-500 rounded-full blur-[120px]" />
@@ -120,7 +120,7 @@ export default function LandingPage() {
             </div>
 
             <div className="flex-1 relative w-full max-w-[600px] lg:max-w-none">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-200/50 transform rotate-2 hover:rotate-0 transition-transform duration-700">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-200/50 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <img
                   src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=800&q=80"
                   alt="POS Dashboard"

@@ -50,7 +50,7 @@ export default function Prices() {
   ];
 
   return (
-    <div className="pt-32 pb-24 bg-slate-50 min-h-screen">
+    <div className="pt-56 pb-24 bg-slate-50 min-h-screen">
       <div className="site-container text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-slate-900">
           Şeffaf ve Uygun <span className="text-primary">Fiyatlar</span>
