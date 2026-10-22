@@ -32,6 +32,8 @@ export type MenuPreset = {
   logo: string;
   tagline?: string;
   emoji: string;
+  /** Varsa, metin logosu yerine gosterilecek gercek logo gorseli (menu-logos). */
+  logoImage?: string;
   menuTheme: "yesil" | "mavi" | "kirmizi" | "mor" | "turuncu" | "grafit";
   menuTemplate: "liste" | "izgara" | "kart";
   menuRadius: number;
@@ -45,7 +47,7 @@ export const CATEGORIES = ["Tümü", "Mutfağa Özel", "Mekan Türü", "Yemek & 
 
 export const MENU_PRESETS: MenuPreset[] = [
   // --- Mutfağa Özel ---
-  { id: "food-truck", name: "Food Truck", category: "Mutfağa Özel", logo: "Roll & Eat", tagline: "FOOD TRUCK", emoji: "🚚", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true, sectionTitles: ["Yemek", "Yanında"], style: { bg: "#482311", text: "#ff5c00", muted: "#fbf0da", accent: "#ff5c00", sectionTitleColor: "#feffff", itemColor: "#ff5c00", logoFont: "badge", headingFont: "badge", logoUpper: true },
+  { id: "food-truck", name: "Food Truck", category: "Mutfağa Özel", logo: "Roll & Eat", tagline: "FOOD TRUCK", emoji: "🚚", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e9f60217-4b35-4faf-a2da-2dcd1db07a2c-1765985188849.png", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true, sectionTitles: ["Yemek", "Yanında"], style: { bg: "#482311", text: "#ff5c00", muted: "#fbf0da", accent: "#ff5c00", sectionTitleColor: "#feffff", itemColor: "#ff5c00", logoFont: "badge", headingFont: "badge", logoUpper: true },
     items: [
       { name: "Tavuk Dürüm", desc: "Izgara tavuk / falafel, taze salata, yoğurt veya tahin sosu", price: 85 },
       { name: "Burger", desc: "Buttermilk tavuk veya bitkisel köfte, slaw, turşu, acılı mayonez", price: 120 },

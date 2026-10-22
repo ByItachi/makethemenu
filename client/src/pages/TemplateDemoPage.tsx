@@ -40,25 +40,22 @@ export default function TemplateDemoPage() {
   return (
     <main className="min-h-screen p-4" style={{ backgroundColor: ps.bg, color: ps.text }} data-testid="template-demo">
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
-        <div className="flex flex-col items-center gap-3 py-10">
-          <div
-            className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full text-5xl"
-            style={{ maxHeight: 164, backgroundColor: `${accent}1f`, border: `1px solid ${accent}55` }}
-            aria-hidden
-          >
-            {preset.emoji}
-          </div>
-          <h1
-            className="break-words text-center text-3xl font-bold tracking-wide"
-            style={{
-              fontFamily: MENU_PRESET_FONTS[ps.logoFont],
-              textTransform: ps.logoUpper ? "uppercase" : undefined,
-              fontStyle: ps.logoItalic ? "italic" : undefined,
-              color: accent,
-            }}
-          >
-            {preset.logo}
-          </h1>
+        <div className="flex justify-center py-10">
+          {preset.logoImage ? (
+            <img src={preset.logoImage} alt="Menu logo" className="h-auto" style={{ maxHeight: 164 }} />
+          ) : (
+            <h1
+              className="break-words text-center text-3xl font-bold tracking-wide"
+              style={{
+                fontFamily: MENU_PRESET_FONTS[ps.logoFont],
+                textTransform: ps.logoUpper ? "uppercase" : undefined,
+                fontStyle: ps.logoItalic ? "italic" : undefined,
+                color: accent,
+              }}
+            >
+              {preset.logo}
+            </h1>
+          )}
         </div>
 
         {preset.sectionTitles.map((title, i) => {
