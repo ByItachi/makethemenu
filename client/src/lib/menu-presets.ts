@@ -6,7 +6,7 @@
  * style.logoFont / style.headingFont anahtarları PublicMenu ve galeride aynı
  * CSS eşlemesiyle yorumlanır (bkz. MENU_PRESET_FONTS).
  */
-export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script";
+export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh";
 
 export type MenuPresetStyle = {
   bg: string;
@@ -195,7 +195,7 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Americano", desc: "Çift shot, sıcak su ile", price: 30 },
       { name: "Cappuccino", desc: "İpek sütle çift shot", price: 38 },
     ] },
-  { id: "cocktailbar", name: "Kokteyl Bar", category: "Mekan Türü", logo: "Cocktails", tagline: "BAR & LOUNGE", emoji: "🍸", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e9fa19e0-5d6f-4549-93cd-617610f79f09-1765995876694.png", logoHeight: 184, menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["COCKTAILS"], style: { bg: "#f4a4c0", text: "#ffffff", muted: "#f6f3f3", accent: "#fe1e0b", sectionTitleColor: "#fe1e0b", itemColor: "#ffffff", logoFont: "condensed", headingFont: "sans" },
+  { id: "cocktailbar", name: "Kokteyl Bar", category: "Mekan Türü", logo: "Cocktails", tagline: "BAR & LOUNGE", emoji: "🍸", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e9fa19e0-5d6f-4549-93cd-617610f79f09-1765995876694.png", logoHeight: 184, menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["COCKTAILS"], style: { bg: "#f4a4c0", text: "#ffffff", muted: "#f6f3f3", accent: "#fe1e0b", sectionTitleColor: "#fe1e0b", itemColor: "#ffffff", logoFont: "condensed", headingFont: "bbh" },
     items: [
       { name: "Spritz (Aperol / Campari)", desc: "Aperitif, prosecco, soda\nLight bubbles, bitter smile.\nEasy drinking, hard to stop.", price: 12, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9fa19e0-5d6f-4549-93cd-617610f79f09/1765997146292.png" },
       { name: "Paloma", desc: "Tequila, grapefruit, soda\nFresh, bitter, and dangerously drinkable.\nSunshine with an edge.", price: 12, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9fa19e0-5d6f-4549-93cd-617610f79f09/1765997905612.png" },
@@ -410,4 +410,5 @@ export const MENU_PRESET_FONTS: Record<MenuPresetFontKey, string> = {
   badge: '"Trebuchet MS", Verdana, sans-serif',
   round: '"Verdana", "Trebuchet MS", sans-serif',
   script: '"Brush Script MT", "Segoe Script", cursive',
+  bbh: '"BBH Bartle", "BBH Sans Bartle", "Trebuchet MS", Verdana, sans-serif',
 };
