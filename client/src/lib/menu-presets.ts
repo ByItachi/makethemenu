@@ -186,9 +186,9 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Blueberry Muffin", desc: "Soft muffin packed with blueberries", price: 3.5, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/14f71338-5bf7-4e5a-960a-02a468659dda/1766000045559.png" },
       { name: "Cinnamon Roll", desc: "Warm roll with cinnamon sugar and glaze", price: 3.8, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/14f71338-5bf7-4e5a-960a-02a468659dda/1766000030497.png" },
       { name: "Banana Bread", desc: "Moist banana loaf, lightly sweetened", price: 3.6, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/14f71338-5bf7-4e5a-960a-02a468659dda/1766000148263.png" },
-      { name: "Espresso", price: 2.5 },
-      { name: "Americano", price: 3 },
-      { name: "Cappuccino", price: 3.8 },
+      { name: "Espresso", price: 2.5, image: "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=240&q=70" },
+      { name: "Americano", price: 3, image: "https://images.unsplash.com/photo-1551030173-122aabc4489c?auto=format&fit=crop&w=240&q=70" },
+      { name: "Cappuccino", price: 3.8, image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=240&q=70" },
     ] },
   { id: "kahve", name: "Kahve Dükkanı", category: "Mekan Türü", logo: "Bona", tagline: "CAFE", emoji: "🫘", menuTheme: "grafit", menuTemplate: "kart", menuRadius: 12, showProductImages: true, sectionTitles: ["Coffee", "Filtre"], style: { bg: "#101d18", text: "#f0ece4", muted: "#b5aa9a", accent: "#d4a24e", logoFont: "serif", headingFont: "sans", logoUpper: true },
     items: [
