@@ -18,9 +18,9 @@ export default function TemplateDemoPage() {
   const ps = preset?.style;
 
   useEffect(() => {
-    if (t) document.title = `Örnek Menü · ${t.name} | MakeTheMenu`;
+    if (t && preset) document.title = `${preset.logo} • ${t.name.replace(/ Menü Şablonu$/, "")} • MakeTheMenu`;
     return () => { document.title = "MakeTheMenu"; };
-  }, [t]);
+  }, [t, preset]);
 
   if (!t || !preset || !ps) {
     return (
