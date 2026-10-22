@@ -57,7 +57,7 @@ export default function TemplateDetailPage() {
       <div className="bg-white text-black">
       <Navbar />
       <section className="pt-56 pb-20">
-        <div className="mx-auto flex w-full max-w-[1280px] flex-col px-8 max-lg:px-6">
+        <div className="site-container flex w-full flex-col">
           <div className="flex flex-row items-start gap-14 max-lg:flex-col">
             <div className="flex w-full flex-col items-start gap-8">
               <Link
@@ -117,7 +117,7 @@ export default function TemplateDetailPage() {
       </section>
 
       <section className="overflow-hidden bg-white pb-20 pt-4">
-        <div className="mx-auto flex w-full max-w-[1280px] flex-col px-8 max-lg:px-6">
+        <div className="site-container flex w-full flex-col">
           <div className="flex flex-col items-center gap-5">
             <Badge className="rounded-full border-transparent bg-black/5 px-1.5 text-sm text-black hover:bg-black/5">
               Şablonlar
