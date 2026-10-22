@@ -42,7 +42,7 @@ export default function TemplateDemoPage() {
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
         <div className="flex justify-center py-10">
           {preset.logoImage ? (
-            <img src={preset.logoImage} alt="Menu logo" className="h-auto" style={{ maxHeight: 164 }} />
+            <img src={preset.logoImage} alt="Menu logo" className="h-auto" style={{ maxHeight: preset.logoHeight ?? 164 }} />
           ) : (
             <h1
               className="break-words text-center text-3xl font-bold tracking-wide"
@@ -81,7 +81,7 @@ export default function TemplateDemoPage() {
                         {item.name}
                       </h3>
                       {item.desc && (
-                        <p className="line-clamp-3 text-sm" style={{ color: ps.muted }}>
+                        <p className="line-clamp-3 whitespace-pre-line text-sm" style={{ color: ps.muted }}>
                           {item.desc}
                         </p>
                       )}

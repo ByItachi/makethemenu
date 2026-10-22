@@ -34,11 +34,13 @@ export type MenuPreset = {
   emoji: string;
   /** Varsa, metin logosu yerine gosterilecek gercek logo gorseli (menu-logos). */
   logoImage?: string;
+  /** Logo gorselinin azami yuksekligi (px) — orijinal orani korur. */
+  logoHeight?: number;
   menuTheme: "yesil" | "mavi" | "kirmizi" | "mor" | "turuncu" | "grafit";
   menuTemplate: "liste" | "izgara" | "kart";
   menuRadius: number;
   showProductImages: boolean;
-  sectionTitles: [string, string];
+  sectionTitles: string[];
   items: MenuPresetItem[];
   style: MenuPresetStyle;
 };
@@ -47,7 +49,7 @@ export const CATEGORIES = ["Tümü", "Mutfağa Özel", "Mekan Türü", "Yemek & 
 
 export const MENU_PRESETS: MenuPreset[] = [
   // --- Mutfağa Özel ---
-  { id: "food-truck", name: "Food Truck", category: "Mutfağa Özel", logo: "Roll & Eat", tagline: "FOOD TRUCK", emoji: "🚚", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e9f60217-4b35-4faf-a2da-2dcd1db07a2c-1765985188849.png", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true, sectionTitles: ["Yemek", "Yanında"], style: { bg: "#482311", text: "#ff5c00", muted: "#fbf0da", accent: "#ff5c00", sectionTitleColor: "#feffff", itemColor: "#ff5c00", logoFont: "badge", headingFont: "badge", logoUpper: true },
+  { id: "food-truck", name: "Food Truck", category: "Mutfağa Özel", logo: "Roll & Eat", tagline: "FOOD TRUCK", emoji: "🚚", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e9f60217-4b35-4faf-a2da-2dcd1db07a2c-1765985188849.png", logoHeight: 164, menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true, sectionTitles: ["Yemek", "Yanında"], style: { bg: "#482311", text: "#ff5c00", muted: "#fbf0da", accent: "#ff5c00", sectionTitleColor: "#feffff", itemColor: "#ff5c00", logoFont: "badge", headingFont: "badge", logoUpper: true },
     items: [
       { name: "Tavuk Dürüm", desc: "Izgara tavuk / falafel, taze salata, yoğurt veya tahin sosu", price: 85, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9f60217-4b35-4faf-a2da-2dcd1db07a2c/1765985649386.png" },
       { name: "Burger", desc: "Buttermilk tavuk veya bitkisel köfte, slaw, turşu, acılı mayonez", price: 120, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9f60217-4b35-4faf-a2da-2dcd1db07a2c/1765985741812.png" },
@@ -193,14 +195,11 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Americano", desc: "Çift shot, sıcak su ile", price: 30 },
       { name: "Cappuccino", desc: "İpek sütle çift shot", price: 38 },
     ] },
-  { id: "cocktailbar", name: "Kokteyl Bar", category: "Mekan Türü", logo: "Cocktails", tagline: "BAR & LOUNGE", emoji: "🍸", menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["Signature", "Klasikler"], style: { bg: "#f4a4c0", text: "#ffffff", muted: "#f6f3f3", accent: "#fe1e0b", sectionTitleColor: "#fe1e0b", itemColor: "#ffffff", logoFont: "condensed", headingFont: "sans" },
+  { id: "cocktailbar", name: "Kokteyl Bar", category: "Mekan Türü", logo: "Cocktails", tagline: "BAR & LOUNGE", emoji: "🍸", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e9fa19e0-5d6f-4549-93cd-617610f79f09-1765995876694.png", logoHeight: 184, menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["COCKTAILS"], style: { bg: "#f4a4c0", text: "#ffffff", muted: "#f6f3f3", accent: "#fe1e0b", sectionTitleColor: "#fe1e0b", itemColor: "#ffffff", logoFont: "condensed", headingFont: "sans" },
     items: [
-      { name: "Espresso Martini", desc: "Vodka, kahve likörü", price: 150 },
-      { name: "Negroni", desc: "Gin, campari, vermut", price: 145 },
-      { name: "Moscow Mule", desc: "Vodka, zencefil birası", price: 140 },
-      { name: "Spritz", desc: "Aperol, prosecco, soda — hafif ve ferah", price: 120 },
-      { name: "Paloma", desc: "Grepfrut soda, taze limon, tequila", price: 130 },
-      { name: "Frozen Daiquiri", desc: "Soğuk, keskin, doyurucu", price: 125 },
+      { name: "Spritz (Aperol / Campari)", desc: "Aperitif, prosecco, soda\nLight bubbles, bitter smile.\nEasy drinking, hard to stop.", price: 12, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9fa19e0-5d6f-4549-93cd-617610f79f09/1765997146292.png" },
+      { name: "Paloma", desc: "Tequila, grapefruit, soda\nFresh, bitter, and dangerously drinkable.\nSunshine with an edge.", price: 12, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9fa19e0-5d6f-4549-93cd-617610f79f09/1765997905612.png" },
+      { name: "Frozen Daiquiri", desc: "Rum, lime, sugar\nCold, sharp, and straight to the point.\nSummer in a fist.", price: 12, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9fa19e0-5d6f-4549-93cd-617610f79f09/1765997786925.png" },
     ] },
   { id: "icecek", name: "İçecek Menüsü", category: "Mekan Türü", logo: "Sipsip", tagline: "COCKTAIL BAR", emoji: "🍹", menuTheme: "mor", menuTemplate: "liste", menuRadius: 0, showProductImages: true, sectionTitles: ["Signature", "Classic"], style: { bg: "#0a0a0a", text: "#f5f5f5", muted: "#9e9e9e", accent: "#e6c069", logoFont: "script", headingFont: "sans", logoItalic: true },
     items: [
