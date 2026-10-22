@@ -38,8 +38,8 @@ export default function TemplateDemoPage() {
   const accent = ps.accent;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: ps.bg, color: ps.text }} data-testid="template-demo">
-      <div className="mx-auto flex max-w-2xl flex-col px-4 py-4 sm:px-6">
+    <main className="min-h-screen p-4" style={{ backgroundColor: ps.bg, color: ps.text }} data-testid="template-demo">
+      <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
         <div className="flex justify-center py-10">
           <h1
             className="break-words text-center text-3xl font-bold tracking-wide"
@@ -53,9 +53,6 @@ export default function TemplateDemoPage() {
             {preset.logo}
           </h1>
         </div>
-        <p className="-mt-6 mb-2 text-center text-[11px] uppercase" style={{ color: ps.muted, letterSpacing: "0.25em", fontFamily: MENU_PRESET_FONTS.sans }}>
-          {preset.tagline}
-        </p>
 
         {preset.sectionTitles.map((title, i) => {
           const section = preset.items.slice(i * 3, i * 3 + 3);
@@ -120,6 +117,6 @@ export default function TemplateDemoPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
