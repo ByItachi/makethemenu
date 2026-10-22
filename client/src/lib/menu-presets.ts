@@ -6,7 +6,7 @@
  * style.logoFont / style.headingFont anahtarları PublicMenu ve galeride aynı
  * CSS eşlemesiyle yorumlanır (bkz. MENU_PRESET_FONTS).
  */
-export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh";
+export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas";
 
 export type MenuPresetStyle = {
   bg: string;
@@ -17,6 +17,8 @@ export type MenuPresetStyle = {
   sectionTitleColor?: string;
   /** Urun adi/fiyat rengi (varsayilan: text). */
   itemColor?: string;
+  /** Bolum basligi punto (varsayilan: 24). mmmmenu orneklerinde bazi temalarda 40. */
+  sectionTitleSize?: number;
   logoFont: MenuPresetFontKey;
   headingFont: MenuPresetFontKey;
   logoUpper?: boolean;
@@ -36,6 +38,8 @@ export type MenuPreset = {
   logoImage?: string;
   /** Logo gorselinin azami yuksekligi (px) — orijinal orani korur. */
   logoHeight?: number;
+  /** Fiyat on eki (orn. "$"); tanimliysa fiyat "$8.00" biciminde gosterilir. */
+  currency?: string;
   menuTheme: "yesil" | "mavi" | "kirmizi" | "mor" | "turuncu" | "grafit";
   menuTemplate: "liste" | "izgara" | "kart";
   menuRadius: number;
@@ -58,14 +62,12 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Yüklü Kızartma", desc: "Peynir sosu, bacon veya vejetaryen sos, taze soğan", price: 55, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9f60217-4b35-4faf-a2da-2dcd1db07a2c/1765985994937.png" },
       { name: "Ev Limonatası", desc: "Taze naneli, buz gibi", price: 35 },
     ] },
-  { id: "cin-restorani", name: "Çin Restoranı", category: "Mutfağa Özel", logo: "Fat Cat", tagline: "NO.88 · ASIAN KITCHEN", emoji: "🐱", menuTheme: "kirmizi", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["Paylaşımlık", "Öneriler"], style: { bg: "#9e9e9e", text: "#26221e", muted: "#4d4740", accent: "#b71c1c", logoFont: "badge", headingFont: "sans" },
+  { id: "cin-restorani", name: "Çin Restoranı", category: "Mutfağa Özel", logo: "Fat Cat", tagline: "NO.88 · ASIAN KITCHEN", emoji: "🐱", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/a7c59a22-5be8-4ce2-a0cc-ba3e32f8b29c-1765999026510.png", logoHeight: 240, currency: "$", menuTheme: "kirmizi", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["to share", "just for you"], style: { bg: "#929292", text: "#ffffff", muted: "#f6f3f399", accent: "#c70f15", sectionTitleColor: "#c70f15", itemColor: "#ffffff", sectionTitleSize: 40, logoFont: "badge", headingFont: "bebas" },
     items: [
-      { name: "Kung Pao Tavuk", desc: "Fıstıklı, kurutulmuş biberli", price: 96 },
-      { name: "Wok Noodle", desc: "Sebzeli, soya soslu", price: 78 },
-      { name: "Buharda Mantı", desc: "Xiaolongbao, domuz dolgulu", price: 84 },
-      { name: "Kırmızı Yağlı Köfte", desc: "İpeksi köfte, yoğun kırmızı yağ sosu", price: 88 },
-      { name: "Kavrulmuş Yeşil Fasulye", desc: "Soya, sarımsak, tuzlu zeytin", price: 62 },
-      { name: "Haşlanmış Biber", desc: "Taze biber, hafif baharatlı", price: 74 },
+      { name: "Red Oil Dumplings", desc: "Silky pork & chive dumplings drowned in chili oil, black vinegar, and just enough heat to make you slow down.", price: 8, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/a7c59a22-5be8-4ce2-a0cc-ba3e32f8b29c/1765999149266.png" },
+      { name: "Charred Green Beans", desc: "Blistered hot, tossed with garlic, soy, and preserved olive greens. Salty. Smoky. Addictive.", price: 10, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/a7c59a22-5be8-4ce2-a0cc-ba3e32f8b29c/1765999166344.png" },
+      { name: "Black Pepper Beef", desc: "Tender beef, cracked pepper, onions, and glossy soy. Rich, loud, and unapologetic.", price: 21, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/a7c59a22-5be8-4ce2-a0cc-ba3e32f8b29c/1765999237597.png" },
+      { name: "Scallion Noodles", desc: "Hand-pulled wheat noodles slicked with scallion oil and soy. Simple, aromatic, impossible to stop eating.", price: 24, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/a7c59a22-5be8-4ce2-a0cc-ba3e32f8b29c/1765999795772.webp" },
     ] },
   { id: "kore", name: "Kore Mutfağı", category: "Mutfağa Özel", logo: "Kimchi", tagline: "MORE KIMCHI", emoji: "🍲", menuTheme: "kirmizi", menuTemplate: "liste", menuRadius: 6, showProductImages: true, sectionTitles: ["Ana Yemek", "Sıcak"], style: { bg: "#fde8d0", text: "#33241a", muted: "#7a6a5a", accent: "#e53935", logoFont: "condensed", headingFont: "sans" },
     items: [
@@ -411,4 +413,5 @@ export const MENU_PRESET_FONTS: Record<MenuPresetFontKey, string> = {
   round: '"Verdana", "Trebuchet MS", sans-serif',
   script: '"Brush Script MT", "Segoe Script", cursive',
   bbh: '"BBH Bartle", "BBH Sans Bartle", "Trebuchet MS", Verdana, sans-serif',
+  bebas: '"Bebas Neue", "Arial Narrow", sans-serif',
 };

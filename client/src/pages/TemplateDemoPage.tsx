@@ -59,7 +59,8 @@ export default function TemplateDemoPage() {
         </div>
 
         {preset.sectionTitles.map((title, i) => {
-          const section = preset.items.slice(i * 3, i * 3 + 3);
+          const half = Math.ceil(preset.items.length / preset.sectionTitles.length);
+          const section = preset.items.slice(i * half, i * half + half);
           return (
           <section key={i} className="py-4" aria-labelledby={`demo-cat-${i}`}>
             <h2
@@ -67,7 +68,7 @@ export default function TemplateDemoPage() {
               style={{
                 color: ps.sectionTitleColor || accent,
                 fontFamily: MENU_PRESET_FONTS[ps.headingFont],
-                fontSize: 24,
+                fontSize: ps.sectionTitleSize ?? 24,
               }}
             >
               {title}
@@ -86,7 +87,7 @@ export default function TemplateDemoPage() {
                         </p>
                       )}
                       <div className="font-medium" style={{ color: ps.itemColor || ps.text }}>
-                        {item.price}₺
+                        {preset.currency ? `${preset.currency}${item.price.toFixed(2)}` : `${item.price}₺`}
                       </div>
                     </div>
                     <div className="aspect-video w-2/5 shrink-0 overflow-hidden rounded-sm bg-neutral-100">
