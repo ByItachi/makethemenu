@@ -6,7 +6,7 @@
  * style.logoFont / style.headingFont anahtarları PublicMenu ve galeride aynı
  * CSS eşlemesiyle yorumlanır (bkz. MENU_PRESET_FONTS).
  */
-export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas";
+export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins";
 
 export type MenuPresetStyle = {
   bg: string;
@@ -179,14 +179,16 @@ export const MENU_PRESETS: MenuPreset[] = [
     ] },
 
   // --- Mekan Türü ---
-  { id: "cafe", name: "Kafe & Fırın", category: "Mekan Türü", logo: "Wake Cup", tagline: "COFFEE & BAKERY", emoji: "☕", menuTheme: "mavi", menuTemplate: "kart", menuRadius: 12, showProductImages: true, sectionTitles: ["Pastries", "Sıcak"], style: { bg: "#16265c", text: "#f0f2fa", muted: "#c2c8de", accent: "#f5c86e", logoFont: "script", headingFont: "sans" },
+  { id: "cafe", name: "Kafe & Fırın", category: "Mekan Türü", logo: "Wake Cup", tagline: "COFFEE & BAKERY", emoji: "☕", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/14f71338-5bf7-4e5a-960a-02a468659dda-1765998813745.png", logoHeight: 160, menuTheme: "mavi", menuTemplate: "kart", menuRadius: 12, showProductImages: true, sectionTitles: ["PASTRIES", "HOT DRINKS"], style: { bg: "#123071", text: "#ffffff", muted: "#9fb1db", accent: "#f5c86e", sectionTitleColor: "#ffffff", itemColor: "#ffffff", sectionTitleSize: 28, logoFont: "script", headingFont: "poppins" },
     items: [
-      { name: "Cappuccino", desc: "İtalyan espresso, sütlü köpük", price: 55 },
-      { name: "Cheesecake", desc: "Yaban mersini soslu", price: 85 },
-      { name: "Kurabiye & Süt", desc: "Çikolatalı, günlük", price: 60 },
-      { name: "Tereyağlı Kruvasan", desc: "Günlük kat kat açılmış hamur", price: 28 },
-      { name: "Çikolatalı Kruvasan", desc: "Bitter çikolata dolgulu", price: 32 },
-      { name: "Yaban Mersinli Muffin", desc: "Yumuşacık muffin, taze orman meyvesi", price: 35 },
+      { name: "Butter Croissant", desc: "Flaky, golden croissant baked fresh daily", price: 2.8, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/14f71338-5bf7-4e5a-960a-02a468659dda/1765999501798.png" },
+      { name: "Chocolate Croissant", desc: "Croissant filled with dark chocolate", price: 3.2, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/14f71338-5bf7-4e5a-960a-02a468659dda/1765999778167.png" },
+      { name: "Blueberry Muffin", desc: "Soft muffin packed with blueberries", price: 3.5, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/14f71338-5bf7-4e5a-960a-02a468659dda/1766000045559.png" },
+      { name: "Cinnamon Roll", desc: "Warm roll with cinnamon sugar and glaze", price: 3.8, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/14f71338-5bf7-4e5a-960a-02a468659dda/1766000030497.png" },
+      { name: "Banana Bread", desc: "Moist banana loaf, lightly sweetened", price: 3.6, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/14f71338-5bf7-4e5a-960a-02a468659dda/1766000148263.png" },
+      { name: "Espresso", price: 2.5 },
+      { name: "Americano", price: 3 },
+      { name: "Cappuccino", price: 3.8 },
     ] },
   { id: "kahve", name: "Kahve Dükkanı", category: "Mekan Türü", logo: "Bona", tagline: "CAFE", emoji: "🫘", menuTheme: "grafit", menuTemplate: "kart", menuRadius: 12, showProductImages: true, sectionTitles: ["Coffee", "Filtre"], style: { bg: "#101d18", text: "#f0ece4", muted: "#b5aa9a", accent: "#d4a24e", logoFont: "serif", headingFont: "sans", logoUpper: true },
     items: [
@@ -414,4 +416,5 @@ export const MENU_PRESET_FONTS: Record<MenuPresetFontKey, string> = {
   script: '"Brush Script MT", "Segoe Script", cursive',
   bbh: '"BBH Bartle", "BBH Sans Bartle", "Trebuchet MS", Verdana, sans-serif',
   bebas: '"Bebas Neue", "Arial Narrow", sans-serif',
+  poppins: '"Poppins", system-ui, sans-serif',
 };
