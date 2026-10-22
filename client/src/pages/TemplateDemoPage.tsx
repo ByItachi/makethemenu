@@ -91,7 +91,7 @@ export default function TemplateDemoPage() {
                     </div>
                     <div className="aspect-video w-2/5 shrink-0 overflow-hidden rounded-sm bg-neutral-100">
                       <img
-                        src={demoItemImage(item.name, preset.category, j)}
+                        src={item.image || demoItemImage(item.name, preset.category, j)}
                         alt={item.name}
                         loading="lazy"
                         className="h-full w-full object-cover"

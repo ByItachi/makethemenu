@@ -23,7 +23,7 @@ export type MenuPresetStyle = {
   logoItalic?: boolean;
 };
 
-export type MenuPresetItem = { name: string; desc?: string; price: number };
+export type MenuPresetItem = { name: string; desc?: string; price: number; image?: string };
 
 export type MenuPreset = {
   id: string;
@@ -49,8 +49,8 @@ export const MENU_PRESETS: MenuPreset[] = [
   // --- Mutfağa Özel ---
   { id: "food-truck", name: "Food Truck", category: "Mutfağa Özel", logo: "Roll & Eat", tagline: "FOOD TRUCK", emoji: "🚚", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e9f60217-4b35-4faf-a2da-2dcd1db07a2c-1765985188849.png", menuTheme: "turuncu", menuTemplate: "kart", menuRadius: 8, showProductImages: true, sectionTitles: ["Yemek", "Yanında"], style: { bg: "#482311", text: "#ff5c00", muted: "#fbf0da", accent: "#ff5c00", sectionTitleColor: "#feffff", itemColor: "#ff5c00", logoFont: "badge", headingFont: "badge", logoUpper: true },
     items: [
-      { name: "Tavuk Dürüm", desc: "Izgara tavuk / falafel, taze salata, yoğurt veya tahin sosu", price: 85 },
-      { name: "Burger", desc: "Buttermilk tavuk veya bitkisel köfte, slaw, turşu, acılı mayonez", price: 120 },
+      { name: "Tavuk Dürüm", desc: "Izgara tavuk / falafel, taze salata, yoğurt veya tahin sosu", price: 85, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9f60217-4b35-4faf-a2da-2dcd1db07a2c/1765985649386.png" },
+      { name: "Burger", desc: "Buttermilk tavuk veya bitkisel köfte, slaw, turşu, acılı mayonez", price: 120, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9f60217-4b35-4faf-a2da-2dcd1db07a2c/1765985741812.png" },
       { name: "Halloumi Dürüm", desc: "Izgara halloumi, humus, roka", price: 90 },
       { name: "Tatlı Patates Kızartması", desc: "Sarımsaklı mayonez veya acı sos ile", price: 48 },
       { name: "Yüklü Kızartma", desc: "Peynir sosu, bacon veya vejetaryen sos, taze soğan", price: 55 },
