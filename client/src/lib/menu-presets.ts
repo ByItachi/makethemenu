@@ -19,6 +19,8 @@ export type MenuPresetStyle = {
   itemColor?: string;
   /** Bolum basligi punto (varsayilan: 24). mmmmenu orneklerinde bazi temalarda 40. */
   sectionTitleSize?: number;
+  /** Urun adi/açiklama/fiyat fontu (varsayilan: sistem sans). */
+  itemFont?: MenuPresetFontKey;
   logoFont: MenuPresetFontKey;
   headingFont: MenuPresetFontKey;
   logoUpper?: boolean;
@@ -69,14 +71,15 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Black Pepper Beef", desc: "Tender beef, cracked pepper, onions, and glossy soy. Rich, loud, and unapologetic.", price: 21, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/a7c59a22-5be8-4ce2-a0cc-ba3e32f8b29c/1765999237597.png" },
       { name: "Scallion Noodles", desc: "Hand-pulled wheat noodles slicked with scallion oil and soy. Simple, aromatic, impossible to stop eating.", price: 24, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/a7c59a22-5be8-4ce2-a0cc-ba3e32f8b29c/1765999795772.webp" },
     ] },
-  { id: "kore", name: "Kore Mutfağı", category: "Mutfağa Özel", logo: "Kimchi", tagline: "MORE KIMCHI", emoji: "🍲", menuTheme: "kirmizi", menuTemplate: "liste", menuRadius: 6, showProductImages: true, sectionTitles: ["Ana Yemek", "Sıcak"], style: { bg: "#fde8d0", text: "#33241a", muted: "#7a6a5a", accent: "#e53935", logoFont: "condensed", headingFont: "sans" },
+  { id: "kore", name: "Kore Mutfağı", category: "Mutfağa Özel", logo: "Kimchi", tagline: "MORE KIMCHI", emoji: "🍲", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/d1e14f94-73e1-44eb-9cef-d35e50883ea3-1766051053430.png", logoHeight: 120, menuTheme: "kirmizi", menuTemplate: "liste", menuRadius: 6, showProductImages: true, sectionTitles: ["MAIN", "CHICKEN"], style: { bg: "#ffe9d6", text: "#000000", muted: "#000000", accent: "#fb1b17", sectionTitleColor: "#fb1b17", itemColor: "#000000", sectionTitleSize: 56, logoFont: "condensed", headingFont: "bebas", itemFont: "poppins" },
     items: [
-      { name: "Tteokbokki", desc: "Baharatlı pirinç erişte, mozzarella", price: 92 },
-      { name: "Kore Tavuğu", desc: "Çıtır, acı soslu", price: 145 },
-      { name: "Yuzu Soda", desc: "Yuzu şurubu, taze nane", price: 48 },
-      { name: "Bibimbap", desc: "Sebzeli pilav, yumurta ve gochujang", price: 129 },
-      { name: "Bulgogi", desc: "Marine dana eti, soğan ve susam", price: 159 },
-      { name: "Kimchi Jjigae", desc: "Acı kimchi güveç, domuz etiyle", price: 135 },
+      { name: "BIBIMBAP", desc: "Steamed rice with mixed vegetables, egg, and gochujang", price: 12.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/d1e14f94-73e1-44eb-9cef-d35e50883ea3/1766050183802.webp" },
+      { name: "BULGOGI", desc: "Marinated beef grilled with onions and sesame", price: 15.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/d1e14f94-73e1-44eb-9cef-d35e50883ea3/1766050195821.webp" },
+      { name: "KIMCHI JJIGAE", desc: "Spicy kimchi stew with pork and tofu", price: 13.5, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/d1e14f94-73e1-44eb-9cef-d35e50883ea3/1766050203364.webp" },
+      { name: "JAPCHAE", desc: "Stir-fried glass noodles with vegetables", price: 12.5, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/d1e14f94-73e1-44eb-9cef-d35e50883ea3/1766050218425.webp" },
+      { name: "SOY GARLIC", desc: "Crispy fried chicken glazed in soy garlic sauce", price: 14.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/d1e14f94-73e1-44eb-9cef-d35e50883ea3/1766050344272.webp" },
+      { name: "SPICY GOCHUJANG", desc: "Fried chicken tossed in spicy gochujang sauce", price: 14.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/d1e14f94-73e1-44eb-9cef-d35e50883ea3/1766050434416.webp" },
+      { name: "SWEET & CRISPY", desc: "Crunchy chicken with sweet chili glaze", price: 13.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/d1e14f94-73e1-44eb-9cef-d35e50883ea3/1766050512948.webp" },
     ] },
   { id: "meksika", name: "Meksika & Taco", category: "Mutfağa Özel", logo: "Mexi Tacos", tagline: "CANTINA", emoji: "🌮", menuTheme: "kirmizi", menuTemplate: "kart", menuRadius: 12, showProductImages: true, sectionTitles: ["Tacos", "İçecekler"], style: { bg: "#e53935", text: "#ffffff", muted: "#ffd9d4", accent: "#fff3d6", logoFont: "round", headingFont: "serif" },
     items: [

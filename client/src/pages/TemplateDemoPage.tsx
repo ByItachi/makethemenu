@@ -37,6 +37,7 @@ export default function TemplateDemoPage() {
 
   const accent = ps.accent;
 
+  const itemFont = ps.itemFont ? MENU_PRESET_FONTS[ps.itemFont] : undefined;
   return (
     <main className="min-h-screen p-4" style={{ backgroundColor: ps.bg, color: ps.text }} data-testid="template-demo">
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
@@ -78,15 +79,15 @@ export default function TemplateDemoPage() {
                 <div key={item.name} className="-mx-4 px-4 py-3.5 transition-colors hover:bg-black/[0.02]">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <h3 className="text-base font-semibold leading-5" style={{ color: ps.itemColor || ps.text }}>
+                      <h3 className="text-base font-semibold leading-5" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
                         {item.name}
                       </h3>
                       {item.desc && (
-                        <p className="line-clamp-3 whitespace-pre-line text-sm" style={{ color: ps.muted }}>
+                        <p className="line-clamp-3 whitespace-pre-line text-sm" style={{ color: ps.muted, fontFamily: itemFont }}>
                           {item.desc}
                         </p>
                       )}
-                      <div className="font-medium" style={{ color: ps.itemColor || ps.text }}>
+                      <div className="font-medium" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
                         {preset.currency ? `${preset.currency}${item.price.toFixed(2)}` : `${item.price}₺`}
                       </div>
                     </div>
