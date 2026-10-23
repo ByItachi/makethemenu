@@ -624,6 +624,24 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Mixed Green Salad", desc: "French vinaigrette", price: 4.2 },
       { name: "Fresh Baguettes", desc: "Butter included", price: 2.5 },
     ] },
+  { id: "bar", name: "Bar & Lounge", category: "İçecek", logo: "The Copper Tap", tagline: "CRAFT COCKTAILS", emoji: "🍸", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Cocktails", "On tap", "Wine", "Bar snacks"], sectionCounts: [4, 4, 3, 4], style: { bg: "#11231e", text: "#f1ece2", muted: "#9fb0a8", accent: "#d4a85a", sectionTitleColor: "#d4a85a", itemColor: "#f1ece2", sectionTitleSize: 26, itemFont: "manrope", priceSuffix: "", logoFont: "oswald", headingFont: "oswald" },
+    items: [
+      { name: "Old Fashioned", desc: "Bourbon, demerara, Angostura and orange bitters.", price: 12 },
+      { name: "Copper Mule", desc: "Vodka, ginger beer, lime, served in a copper mug.", price: 11 },
+      { name: "Margarita", desc: "Tequila, triple sec, fresh lime, salted rim.", price: 11 },
+      { name: "Espresso Martini", desc: "Vodka, coffee liqueur, fresh espresso.", price: 12 },
+      { name: "House Lager", desc: "4.6% · crisp and clean. Pint.", price: 6.5 },
+      { name: "Hazy IPA", desc: "6.2% · citrus and tropical fruit. Pint.", price: 7.5 },
+      { name: "Irish Stout", desc: "4.2% · roasted, creamy. Pint.", price: 7 },
+      { name: "Dry Cider", desc: "5.0% · apple, lightly sparkling. Pint.", price: 6.5 },
+      { name: "House Red", desc: "Merlot · glass / bottle.", price: 9 },
+      { name: "House White", desc: "Sauvignon Blanc · glass / bottle.", price: 9 },
+      { name: "Prosecco", desc: "Glass / bottle.", price: 10 },
+      { name: "Loaded Nachos", desc: "Cheese, jalapeños, pico de gallo, sour cream.", price: 11 },
+      { name: "Buffalo Wings", desc: "Eight wings, blue cheese dip, celery.", price: 12 },
+      { name: "Truffle Fries", desc: "Parmesan, truffle oil.", price: 7 },
+      { name: "Mixed Nuts", desc: "Smoked and salted.", price: 4 },
+    ] },
 ];
 
 export const MENU_PRESET_BY_ID: Record<string, MenuPreset> = Object.fromEntries(
