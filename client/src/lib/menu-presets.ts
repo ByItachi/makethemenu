@@ -31,7 +31,7 @@ export type MenuPresetStyle = {
   logoItalic?: boolean;
 };
 
-export type MenuPresetItem = { name: string; desc?: string; price: number; image?: string; /** Urun bazli fiyat son eki (stildeki priceSuffix'i gecer). */ priceSuffix?: string; /** Tum fiyat formatlamasini gecersiz kilan sabit metin (referans HTML'deki ham fiyat gibi). */ priceLabel?: string };
+export type MenuPresetItem = { name: string; desc?: string; price: number; image?: string; /** Urun bazli fiyat son eki (stildeki priceSuffix'i gecer). */ priceSuffix?: string; /** Tum fiyat formatlamasini gecersiz kilan sabit metin (referans HTML'deki ham fiyat gibi). */ priceLabel?: string; /** Vegan ikonu gosterilecek mi */ isVegan?: boolean };
 
 export type MenuPreset = {
   id: string;
@@ -709,13 +709,13 @@ export const MENU_PRESETS: MenuPreset[] = [
     ] },
   { id: "akdeniz", name: "Akdeniz Restoranı", category: "Restoran", logo: "Olea", tagline: "MEDITERRANEAN CUISINE", emoji: "🫒", menuTheme: "mavi", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Meze", "Salads", "From the grill", "Sweets"], sectionCounts: [5, 2, 4, 2], style: { bg: "#fbf6ee", text: "#2b2620", muted: "#7a6f62", accent: "#1f5f8b", sectionTitleColor: "#1f5f8b", itemColor: "#2b2620", sectionTitleSize: 26, itemFont: "lora", priceSuffix: "", logoFont: "lora", headingFont: "lora" },
     items: [
-      { name: "Hummus", desc: "Chickpeas, tahini, olive oil, warm pita.", price: 8 },
+      { name: "Hummus", desc: "Chickpeas, tahini, olive oil, warm pita.", price: 8, isVegan: true },
       { name: "Tzatziki", desc: "Greek yogurt, cucumber, garlic, dill.", price: 7 },
-      { name: "Falafel", desc: "Five falafel, tahini sauce, pickles.", price: 9 },
+      { name: "Falafel", desc: "Five falafel, tahini sauce, pickles.", price: 9, isVegan: true },
       { name: "Halloumi", desc: "Grilled, honey, sesame, mint.", price: 10 },
-      { name: "Dolmades", desc: "Vine leaves stuffed with herby rice.", price: 8 },
+      { name: "Dolmades", desc: "Vine leaves stuffed with herby rice.", price: 8, isVegan: true },
       { name: "Greek Salad", desc: "Tomato, cucumber, red onion, olives, feta, oregano.", price: 12 },
-      { name: "Fattoush", desc: "Crispy pita, sumac, pomegranate molasses.", price: 11 },
+      { name: "Fattoush", desc: "Crispy pita, sumac, pomegranate molasses.", price: 11, isVegan: true },
       { name: "Chicken Souvlaki", desc: "Two skewers, pita, tzatziki, fries.", price: 19 },
       { name: "Lamb Kofta", desc: "Spiced lamb, bulgur, yogurt, chili butter.", price: 21 },
       { name: "Moussaka", desc: "Aubergine, spiced beef, béchamel.", price: 19 },
@@ -732,8 +732,8 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Thai Milk Tea", desc: "Spiced Thai tea, condensed milk.", price: 6 },
       { name: "Mango Green Tea", desc: "Mango, jasmine green tea, popping boba.", price: 6 },
       { name: "Passion Fruit Tea", desc: "Passion fruit, green tea, aloe jelly.", price: 6 },
-      { name: "Strawberry Lemonade", desc: "Fresh strawberries, lemon, lychee jelly.", price: 6 },
-      { name: "Mango Slush", desc: "", price: 6.5 },
+      { name: "Strawberry Lemonade", desc: "Fresh strawberries, lemon, lychee jelly.", price: 6, isVegan: true },
+      { name: "Mango Slush", desc: "", price: 6.5, isVegan: true },
       { name: "Strawberry Yogurt Slush", desc: "", price: 6.5 },
       { name: "Tapioca Pearls", desc: "", price: 0.75 },
       { name: "Popping Boba", desc: "Mango, strawberry or lychee.", price: 0.75 },
@@ -746,7 +746,7 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Chicken Caesar Wrap", desc: "Grilled chicken, romaine, parmesan, Caesar dressing.", price: 10 },
       { name: "Turkey Club", desc: "Turkey, bacon, lettuce, tomato, mayo on toasted sourdough.", price: 11 },
       { name: "Caprese Ciabatta", desc: "Mozzarella, tomato, basil pesto.", price: 9.5 },
-      { name: "Falafel Pita", desc: "Hummus, pickled red cabbage, tahini.", price: 9.5 },
+      { name: "Falafel Pita", desc: "Hummus, pickled red cabbage, tahini.", price: 9.5, isVegan: true },
       { name: "Chicken Caesar Salad", desc: "Romaine, croutons, parmesan, anchovy dressing.", price: 12 },
       { name: "Poke Bowl", desc: "Salmon, rice, edamame, avocado, ponzu.", price: 14 },
       { name: "Harvest Bowl", desc: "Roasted squash, farro, kale, feta, honey mustard.", price: 12 },
@@ -763,7 +763,7 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Or: Wild Mushroom Velouté", desc: "Truffle cream, chives.", price: 0 },
       { name: "Butter-Poached Lobster", desc: "Cauliflower purée, caviar beurre blanc.", price: 0 },
       { name: "Beef Wellington", desc: "Fillet of beef, mushroom duxelles, red wine jus.", price: 0 },
-      { name: "Or: Roast Celeriac Wellington", desc: "Chestnut, spinach, red wine jus.", price: 0 },
+      { name: "Or: Roast Celeriac Wellington", desc: "Chestnut, spinach, red wine jus.", price: 0, isVegan: true },
       { name: "Midnight Chocolate Dome", desc: "Dark chocolate, gold leaf, passion fruit.", price: 0 },
       { name: "Petits Fours", desc: "Served with coffee or tea.", price: 0 },
     ] },
