@@ -47,7 +47,7 @@ export const SHOWCASE_TEMPLATES: ShowcaseTemplate[] = [
   { slug: "breakfast-menu", presetId: "kahvalti", name: "Kahvaltı Menü Şablonu", desc: "Kahvaltı ve brunch için aydınlık, davetkâr tasarım. Serpme içerikleri ve fiyatları kolayca düzenleyin.", image: "/templates/breakfast-menu.webp" },
   { slug: "dessert-menu", presetId: "tatli", name: "Tatlı Menü Şablonu", desc: "Tatlılarınız için tatlı pastel tasarım. Menünü oluştur, QR kodu masaya koy, tatlıyı görüp söyleyesinler.", image: "/templates/dessert-menu.webp" },
   { slug: "sushi-menu", presetId: "sushi", name: "Sushi Menü Şablonu", desc: "Sushi ve izakaya için minimalist koyu tasarım. Rollere, parça sayısına ve set menülere yer var.", image: "/templates/sushi-menu.webp" },
-  { slug: "indian-restaurant-menu", presetId: "hint", name: "Hint Restoranı Menü Şablonu", desc: "Hint mutfağı için baharatlı ve iddialı tasarım. Acılık derecesi ve açıklamalarla zengin liste.", image: "/templates/indian-restaurant-menu.webp" },
+  { slug: "indian-restaurant-menu", presetId: "modern", name: "Hint Restoranı Menü Şablonu", desc: "Hint mutfağı için baharatlı ve iddialı tasarım. Acılık derecesi ve açıklamalarla zengin liste.", image: "/templates/indian-restaurant-menu.webp" },
   { slug: "thai-restaurant-menu", presetId: "tay", name: "Tay Restoranı Menü Şablonu", desc: "Tay mutfağı için taze ve doğal tasarım. Sokak lezzetlerinden çorbalara tüm menü düzenli listelenir.", image: "/templates/thai-restaurant-menu.webp" },
   { slug: "wedding-menu", presetId: "dugun", name: "Düğün Menü Şablonu", desc: "Düğün ve nişan için romantik, zarif tasarım. Davetliler QR ile menüyü telefonda görür, kağıt masrafsı yok.", image: "/templates/wedding-menu.webp" },
 ];
