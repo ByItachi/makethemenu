@@ -344,14 +344,23 @@ export function Navbar() {
                         </AccordionContent>
                       </AccordionItem>
 
-                      <Link href="/fiyatlar" onClick={() => setIsOpen(false)}>
-                        <PencilIcon className="mr-2 h-4 w-4" />
-                        {t("nav.pricing")}
-                      </Link>
-                      <Link href="/indir" onClick={() => setIsOpen(false)}>
-                        <DownloadIcon className="mr-2 h-4 w-4" />
-                        İndir
-                      </Link>
+                      <AccordionItem value="pricing">
+                        <AccordionTrigger>{t("nav.pricing")}</AccordionTrigger>
+                        <AccordionContent>
+                          <Link href="/fiyatlar" onClick={() => setIsOpen(false)} className="block py-2 px-4 hover:bg-accent rounded-md transition-colors">
+                            {t("nav.pricing")}
+                          </Link>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      <AccordionItem value="download">
+                        <AccordionTrigger>İndir</AccordionTrigger>
+                        <AccordionContent>
+                          <Link href="/indir" onClick={() => setIsOpen(false)} className="block py-2 px-4 hover:bg-accent rounded-md transition-colors">
+                            İndir
+                          </Link>
+                        </AccordionContent>
+                      </AccordionItem>
 
                       <AccordionItem value="partners">
                         <AccordionTrigger>{t("nav.partners")}</AccordionTrigger>
