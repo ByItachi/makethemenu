@@ -10,6 +10,17 @@ import { SHOWCASE_BY_SLUG } from "@/lib/template-showcase";
  * Veritabanına yazmadan, şablonun marka stilleriyle örnek bir menü çizer.
  * Gerçek işletme menüsü /p/:restoran adresinde yayınlanır.
  */
+
+/** Hex rengin brightness'ına göre beyaz ya da siyah yazı rengi döndür (WCAG contrast). */
+function getContrastColor(hexColor: string): string {
+  const hex = hexColor.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128 ? "#000000" : "#ffffff";
+}
+
 export default function TemplateDemoPage() {
   const [, params] = useRoute("/sablon-demo/:slug");
   const t = params?.slug ? SHOWCASE_BY_SLUG[params.slug] : undefined;
@@ -127,7 +138,7 @@ export default function TemplateDemoPage() {
             Bu bir tasarım örneğidir. MakeTheMenu ile kendi menünüzü 2 dakikada oluşturun, QR koduyla masalara koyun.
           </p>
           <Link href="/kayit" className="mt-4 inline-block">
-            <Button size="lg" className="h-12 text-base" style={{ backgroundColor: accent, color: "#000" }} data-testid="demo-cta">
+            <Button size="lg" className="h-12 text-base" style={{ backgroundColor: accent, color: getContrastColor(accent) }} data-testid="demo-cta">
               Kendi Menünü Oluştur
             </Button>
           </Link>
