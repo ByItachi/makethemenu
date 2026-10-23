@@ -57,6 +57,7 @@ export default function TemplateDemoPage() {
   const accent = ps.accent;
 
   const itemFont = ps.itemFont ? MENU_PRESET_FONTS[ps.itemFont] : undefined;
+  const descFont = ps.descFont ? MENU_PRESET_FONTS[ps.descFont] : itemFont;
   return (
     <main className="min-h-screen p-4" style={{ backgroundColor: ps.bg, color: ps.text }} data-testid="template-demo">
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
@@ -119,7 +120,7 @@ export default function TemplateDemoPage() {
                         {item.isVegan && <Vegan className="size-3.5 shrink-0 text-green-500" aria-hidden="true" />}
                       </h3>
                       {item.desc && (
-                        <p className="line-clamp-3 whitespace-pre-line text-sm" style={{ color: ps.muted, fontFamily: itemFont }}>
+                        <p className="line-clamp-3 whitespace-pre-line text-sm" style={{ color: ps.muted, fontFamily: descFont }}>
                           {item.desc}
                         </p>
                       )}

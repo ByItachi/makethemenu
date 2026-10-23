@@ -21,6 +21,8 @@ export type MenuPresetStyle = {
   sectionTitleSize?: number;
   /** Urun adi/açiklama/fiyat fontu (varsayilan: sistem sans). */
   itemFont?: MenuPresetFontKey;
+  /** Urun aciklamasi fontu (varsayilan: itemFont). Referans HTML'de bazi temalarda baslik ve aciklama farkli fontlarda olur. */
+  descFont?: MenuPresetFontKey;
   /** Fiyat son eki (orn. " / g"); fiyat "10 / g" biciminde gosterilir. */
   priceSuffix?: string;
   /** true ise fiyat her zaman 2 ondalikla gosterilir (orn. "14.90"), para birimi simgesi olmadan. */
@@ -696,20 +698,20 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Hand-Cut Fries", desc: "Sea salt.", price: 6 },
       { name: "Seasonal Vegetables", desc: "Grilled or steamed.", price: 6 },
     ] },
-  { id: "vegan-menu", name: "Vegan Restaurant", category: "Restoran", logo: "Green Table", tagline: "PLANT-BASED CUISINE", emoji: "🌱", menuTheme: "yesil", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Small plates", "Bowls", "Mains", "Desserts & drinks"], sectionCounts: [3, 3, 3, 3], style: { bg: "#f1f5ea", text: "#2d4a2b", muted: "#6b8a69", accent: "#3d6b3a", sectionTitleColor: "#3d6b3a", itemColor: "#2d4a2b", sectionTitleSize: 24, itemFont: "manrope", priceSuffix: "", logoFont: "sans", headingFont: "manrope" },
+  { id: "vegan-menu", name: "Vegan Restaurant", category: "Restoran", logo: "Green Table", tagline: "PLANT-BASED CUISINE", emoji: "🌱", menuTheme: "yesil", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Small plates", "Bowls", "Mains", "Desserts & drinks"], sectionCounts: [3, 3, 3, 3], sectionDescriptions: ["Everything on our menu is 100% plant-based."], style: { bg: "#f1f5ea", text: "#2d4a2b", muted: "#66745f", accent: "#3d6b3a", sectionTitleColor: "#3d6b3a", itemColor: "#1f2e1e", sectionTitleSize: 24, itemFont: "manrope", descFont: "inter", priceSuffix: "", logoFont: "sans", headingFont: "manrope" },
     items: [
-      { name: "Hummus", desc: "Chickpea, tahini, lemon, olive oil.", price: 9 },
-      { name: "Falafel", desc: "Crispy, tahini sauce, pita.", price: 8 },
-      { name: "Edamame", desc: "Steamed, sea salt.", price: 9 },
-      { name: "Buddha Bowl", desc: "Quinoa, roasted vegetables, tahini dressing.", price: 15 },
-      { name: "Grain Bowl", desc: "Farro, kale, roasted beets, pumpkin seeds.", price: 15 },
-      { name: "Noodle Bowl", desc: "Rice noodles, vegetables, peanut sauce.", price: 13 },
-      { name: "Grilled Vegetables", desc: "Seasonal, herb oil, sea salt.", price: 16 },
-      { name: "Lentil Curry", desc: "Coconut milk, spinach, rice.", price: 14 },
-      { name: "Mushroom Risotto", desc: "Arborio rice, porcini, truffle oil.", price: 15 },
-      { name: "Chocolate Mousse", desc: "Dark chocolate, coconut cream.", price: 8 },
-      { name: "Fruit Sorbet", desc: "Seasonal, refreshing.", price: 4.5 },
-      { name: "Herbal Tea", desc: "Selection of organic teas.", price: 7 },
+      { name: "Crispy Cauliflower Bites", desc: "Buffalo glaze, vegan ranch.", price: 9, priceLabel: "$9", isVegan: true },
+      { name: "Beetroot Hummus", desc: "Toasted seeds, warm flatbread.", price: 8, priceLabel: "$8", isVegan: true },
+      { name: "Summer Rolls", desc: "Rice paper, tofu, herbs, peanut dip.", price: 9, priceLabel: "$9", isVegan: true },
+      { name: "Buddha Bowl", desc: "Quinoa, roasted sweet potato, chickpeas, avocado, tahini.", price: 15, priceLabel: "$15", isVegan: true },
+      { name: "Teriyaki Tofu Bowl", desc: "Sticky tofu, rice, edamame, pickled ginger.", price: 15, priceLabel: "$15", isVegan: true },
+      { name: "Green Goddess Salad", desc: "Kale, broccoli, avocado, herb dressing.", price: 13, priceLabel: "$13", isVegan: true },
+      { name: "Mushroom Burger", desc: "Portobello patty, vegan cheese, caramelized onion, fries.", price: 16, priceLabel: "$16", isVegan: true },
+      { name: "Jackfruit Tacos", desc: "BBQ jackfruit, slaw, lime crema.", price: 14, priceLabel: "$14", isVegan: true },
+      { name: "Lentil Bolognese", desc: "Spaghetti, rich tomato sauce, cashew parmesan.", price: 15, priceLabel: "$15", isVegan: true },
+      { name: "Chocolate Avocado Mousse", desc: "Raspberries, cacao nibs.", price: 8, priceLabel: "$8", isVegan: true },
+      { name: "Oat Milk Latte", price: 4.5, priceLabel: "$4.5", isVegan: true },
+      { name: "Green Smoothie", desc: "Spinach, banana, mango, oat milk.", price: 7, priceLabel: "$7", isVegan: true },
     ] },
   { id: "akdeniz", name: "Akdeniz Restoranı", category: "Restoran", logo: "Olea", tagline: "MEDITERRANEAN CUISINE", emoji: "🫒", menuTheme: "mavi", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Meze", "Salads", "From the grill", "Sweets"], sectionCounts: [5, 2, 4, 2], style: { bg: "#fbf6ee", text: "#2b2620", muted: "#7a6f62", accent: "#1f5f8b", sectionTitleColor: "#1f5f8b", itemColor: "#2b2620", sectionTitleSize: 26, itemFont: "lora", priceSuffix: "", logoFont: "lora", headingFont: "lora" },
     items: [
