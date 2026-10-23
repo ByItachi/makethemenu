@@ -50,6 +50,16 @@ export const SHOWCASE_TEMPLATES: ShowcaseTemplate[] = [
   { slug: "indian-restaurant-menu", presetId: "hint", name: "Hint Restoranı Menü Şablonu", desc: "Hint mutfağı için baharatlı ve iddialı tasarım. Acılık derecesi ve açıklamalarla zengin liste.", image: "/templates/indian-restaurant-menu.webp" },
   { slug: "thai-restaurant-menu", presetId: "tay", name: "Tay Restoranı Menü Şablonu", desc: "Tay mutfağı için taze ve doğal tasarım. Sokak lezzetlerinden çorbalara tüm menü düzenli listelenir.", image: "/templates/thai-restaurant-menu.webp" },
   { slug: "wedding-menu", presetId: "dugun", name: "Düğün Menü Şablonu", desc: "Düğün ve nişan için romantik, zarif tasarım. Davetliler QR ile menüyü telefonda görür, kağıt masrafsı yok.", image: "/templates/wedding-menu.webp" },
+  { slug: "burger-menu", presetId: "burger", name: "Burger Menü Şablonu", desc: "Burger restoranı ve fast food için cesur tasarım. Burgerler, yanındaki lezzetler ve içecekler net fiyatlarla listelenir.", image: "/templates/burger-menu.webp" },
+  { slug: "bar-menu", presetId: "bar", name: "Bar Menü Şablonu", desc: "Bar ve lounge için şık tasarım. Kokteyller, likörler ve meşrubatlar kategorize edilmiş listede.", image: "/templates/bar-menu.webp" },
+  { slug: "kids-menu", presetId: "cocuk", name: "Çocuk Menü Şablonu", desc: "Çocuklar için eğlenceli ve renkli tasarım. Beslenme bilgileri ve alerjen uyarılarıyla güvenli menü.", image: "/templates/kids-menu.webp" },
+  { slug: "steakhouse-menu", presetId: "biftek", name: "Steakhouse Menü Şablonu", desc: "Biftek ve ızgara restoranı için premium tasarım. Etler, pişirme dereceleri ve yanındaki lezzetler detaylı listelenir.", image: "/templates/steakhouse-menu.webp" },
+  { slug: "seafood-menu", presetId: "deniz-urunu", name: "Deniz Ürünleri Menü Şablonu", desc: "Balık ve deniz ürünleri restoranı için zarif tasarım. Taze ürünler günlük güncellenir, mevsimsel öneriler sunulur.", image: "/templates/seafood-menu.webp" },
+  { slug: "vegan-menu", presetId: "vegan-menu", name: "Vegan Menü Şablonu", desc: "Vegan ve bitkisel mutfak için ferah tasarım. Beslenme bilgileri ve ürün kaynakları detaylı listelenir.", image: "/templates/vegan-menu.webp" },
+  { slug: "mediterranean-restaurant-menu", presetId: "akdeniz", name: "Akdeniz Restoranı Menü Şablonu", desc: "Akdeniz mutfağı için sıcak ve davetkâr tasarım. Zeytinyağlılar, salatalar ve balık yemekleri zarif listelenir.", image: "/templates/mediterranean-restaurant-menu.webp" },
+  { slug: "bubble-tea-menu", presetId: "bubble-tea", name: "Bubble Tea Menü Şablonu", desc: "Bubble tea ve boba barı için modern tasarım. Çeşitli çay türleri, toppings ve özelleştirme seçenekleri sunulur.", image: "/templates/bubble-tea-menu.webp" },
+  { slug: "lunch-menu", presetId: "ogle-yemegi", name: "Öğle Yemeği Menü Şablonu", desc: "Öğle yemeği ve set menüler için pratik tasarım. Günün menüsü hızlı güncellenir, fiyat avantajları vurgulanır.", image: "/templates/lunch-menu.webp" },
+  { slug: "new-years-eve-menu", presetId: "yilbasi-gecesi", name: "Yılbaşı Gecesi Menü Şablonu", desc: "Yılbaşı partileri için şık ve kutlayıcı tasarım. Özel menüler, şampanya seçimleri ve gece boyunca sunulan lezzetler listelenir.", image: "/templates/new-years-eve-menu.webp" },
 ];
 
 export const SHOWCASE_BY_SLUG: Record<string, ShowcaseTemplate> = Object.fromEntries(
