@@ -6,7 +6,7 @@
  * style.logoFont / style.headingFont anahtarları PublicMenu ve galeride aynı
  * CSS eşlemesiyle yorumlanır (bkz. MENU_PRESET_FONTS).
  */
-export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins" | "manrope";
+export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins" | "manrope" | "inter";
 
 export type MenuPresetStyle = {
   bg: string;
@@ -274,14 +274,15 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Baget", desc: "Klasik baget, tartışmasız", price: 35 },
       { name: "Tereyağlı Kruvasan", desc: "Ekstra tereyağlı, pişmanlıksız", price: 30 },
     ] },
-  { id: "dondurma", name: "Dondurma & Sorbet", category: "Mekan Türü", logo: "Melto", tagline: "GELATO & SORBET", emoji: "🍨", menuTheme: "mavi", menuTemplate: "kart", menuRadius: 20, showProductImages: true, sectionTitles: ["Classic", "Signature"], style: { bg: "#283593", text: "#f2f4ff", muted: "#c4c9ea", accent: "#ffffff", logoFont: "script", headingFont: "sans", logoItalic: true },
+  { id: "dondurma", name: "Dondurma & Sorbet", category: "Mekan Türü", logo: "Melto", tagline: "GELATO & SORBET", emoji: "🍨", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/3a40c1fd-2f9a-48ab-af58-d745a9a6ba74-1766056104873.png", logoHeight: 112, menuTheme: "mavi", menuTemplate: "kart", menuRadius: 20, showProductImages: true, sectionTitles: ["CLASSIC", "SIGNATURE"], style: { bg: "#26368b", text: "#ffffff", muted: "#ffffff", accent: "#ffffff", sectionTitleColor: "#ffffff", itemColor: "#ffffff", sectionTitleSize: 20, logoFont: "script", headingFont: "inter" },
     items: [
-      { name: "2 Top Külah", desc: "Fıstık ve çilek", price: 65 },
-      { name: "Sundae", desc: "Sıcak çikolata, fındık", price: 95 },
-      { name: "Affogato", desc: "Vanilyalı, espresso dökme", price: 85 },
-      { name: "Vanilya", desc: "Kremalı Madagaskar vanilyası", price: 30 },
-      { name: "Çikolata", desc: "Kakaolu, fudge kuşaklı", price: 30 },
-      { name: "Çilek", desc: "Gerçek çilekli", price: 30 },
+      { name: "Vanilla", desc: "Creamy Madagascar vanilla", price: 3, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/3a40c1fd-2f9a-48ab-af58-d745a9a6ba74/1766056234915.webp" },
+      { name: "Chocolate", desc: "Rich cocoa with fudge swirls", price: 3, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/3a40c1fd-2f9a-48ab-af58-d745a9a6ba74/1766056613869.webp" },
+      { name: "Strawberry", desc: "Made with real strawberries", price: 3, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/3a40c1fd-2f9a-48ab-af58-d745a9a6ba74/1766056698775.webp" },
+      { name: "Salted Caramel", desc: "Sweet caramel with sea salt", price: 4, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/3a40c1fd-2f9a-48ab-af58-d745a9a6ba74/1766056757045.webp" },
+      { name: "Pistachio", desc: "Roasted pistachio ice cream", price: 4, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/3a40c1fd-2f9a-48ab-af58-d745a9a6ba74/1766056865951.webp" },
+      { name: "Mango Sorbet", desc: "Dairy-free, refreshing", price: 4, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/3a40c1fd-2f9a-48ab-af58-d745a9a6ba74/1766056955798.webp" },
+      { name: "Lemon Sorbet", desc: "Light and zesty", price: 4, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/3a40c1fd-2f9a-48ab-af58-d745a9a6ba74/1766057075666.webp" },
     ] },
   { id: "dondurma-kamyonu", name: "Dondurma Kamyonu", category: "Mekan Türü", logo: "Ice Cream Truck", tagline: "SOFT SERVE", emoji: "🍦", menuTheme: "kirmizi", menuTemplate: "kart", menuRadius: 24, showProductImages: true, sectionTitles: ["Küllah", "Serpme"], style: { bg: "#fdf3c9", text: "#4a3a1a", muted: "#a08a5a", accent: "#e53935", logoFont: "round", headingFont: "sans" },
     items: [
@@ -423,5 +424,6 @@ export const MENU_PRESET_FONTS: Record<MenuPresetFontKey, string> = {
   bbh: '"BBH Bartle", "BBH Sans Bartle", "Trebuchet MS", Verdana, sans-serif',
   bebas: '"Bebas Neue", "Arial Narrow", sans-serif',
   manrope: '"Manrope", system-ui, sans-serif',
+  inter: '"Inter", system-ui, sans-serif',
   poppins: '"Poppins", system-ui, sans-serif',
 };
