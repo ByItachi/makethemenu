@@ -642,6 +642,22 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Truffle Fries", desc: "Parmesan, truffle oil.", price: 7 },
       { name: "Mixed Nuts", desc: "Smoked and salted.", price: 4 },
     ] },
+  { id: "cocuk", name: "Çocuk Menüsü", category: "Özel", logo: "Little Bites", tagline: "KIDS MENU", emoji: "🍔", menuTheme: "mavi", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Mains", "Healthy picks", "Drinks", "Sweet treats"], sectionCounts: [5, 3, 3, 2], style: { bg: "#e9f6ff", text: "#183153", muted: "#55708f", accent: "#ff6a4d", sectionTitleColor: "#ff6a4d", itemColor: "#183153", sectionTitleSize: 26, itemFont: "poppins", priceSuffix: "", logoFont: "sans", headingFont: "sans" },
+    items: [
+      { name: "Mini Cheeseburger", desc: "Beef patty, cheese and ketchup, with fries.", price: 8 },
+      { name: "Chicken Tenders", desc: "Three crispy tenders with fries and ketchup.", price: 8 },
+      { name: "Mac & Cheese", desc: "Creamy cheddar sauce, cheesy crumb.", price: 7 },
+      { name: "Cheese Pizza", desc: "7-inch tomato and mozzarella pizza.", price: 7 },
+      { name: "Fish Fingers", desc: "With peas and mashed potato.", price: 8 },
+      { name: "Veggie Pasta", desc: "Tomato sauce with hidden veggies.", price: 7 },
+      { name: "Grilled Chicken Plate", desc: "Chicken strips, rice and cucumber sticks.", price: 8 },
+      { name: "Fruit Cup", desc: "Apple, grapes, melon and berries.", price: 3 },
+      { name: "Apple Juice", desc: "", price: 2.5 },
+      { name: "Chocolate Milk", desc: "", price: 2.5 },
+      { name: "Strawberry Milkshake", desc: "", price: 4 },
+      { name: "Ice Cream Sundae", desc: "Vanilla ice cream, chocolate sauce, sprinkles.", price: 4 },
+      { name: "Brownie Bite", desc: "Warm chocolate brownie.", price: 3 },
+    ] },
 ];
 
 export const MENU_PRESET_BY_ID: Record<string, MenuPreset> = Object.fromEntries(
