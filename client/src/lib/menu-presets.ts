@@ -6,7 +6,7 @@
  * style.logoFont / style.headingFont anahtarları PublicMenu ve galeride aynı
  * CSS eşlemesiyle yorumlanır (bkz. MENU_PRESET_FONTS).
  */
-export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins" | "manrope" | "inter" | "lora" | "playfair";
+export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins" | "manrope" | "inter" | "lora" | "playfair" | "oswald";
 
 export type MenuPresetStyle = {
   bg: string;
@@ -31,7 +31,7 @@ export type MenuPresetStyle = {
   logoItalic?: boolean;
 };
 
-export type MenuPresetItem = { name: string; desc?: string; price: number; image?: string; /** Urun bazli fiyat son eki (stildeki priceSuffix'i gecer). */ priceSuffix?: string };
+export type MenuPresetItem = { name: string; desc?: string; price: number; image?: string; /** Urun bazli fiyat son eki (stildeki priceSuffix'i gecer). */ priceSuffix?: string; /** Tum fiyat formatlamasini gecersiz kilan sabit metin (referans HTML'deki ham fiyat gibi). */ priceLabel?: string };
 
 export type MenuPreset = {
   id: string;
@@ -100,14 +100,21 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Margarita", desc: "Tequila, lime, triple sec", price: 10 },
       { name: "Paloma", desc: "Tequila and grapefruit soda", price: 10 },
     ] },
-  { id: "pizza", name: "Pizza & İtalyan", category: "Mutfağa Özel", logo: "Casa Pizza", tagline: "FORNO A LEGNA", emoji: "🍕", menuTheme: "yesil", menuTemplate: "liste", menuRadius: 8, showProductImages: true, sectionTitles: ["Pizza", "Fırından"], style: { bg: "#0f2e1d", text: "#f2f7f0", muted: "#cfe0d2", accent: "#c8f542", logoFont: "round", headingFont: "sans" },
+  { id: "pizza", name: "Pizza & İtalyan", category: "Mutfağa Özel", logo: "Casa Pizza", tagline: "FORNO A LEGNA", emoji: "🍕", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/69753e91-9cf9-4336-856b-b0444fe33fa8-1766155339866.png", logoHeight: 120, menuTheme: "yesil", menuTemplate: "liste", menuRadius: 8, showProductImages: true, sectionTitles: ["PIZZA", "SHARE", "DRINKS"], sectionCounts: [4, 3, 6], style: { bg: "#0f2418", text: "#ffffff", muted: "#63796c", accent: "#dfeb27", sectionTitleColor: "#dfeb27", itemColor: "#ffffff", sectionTitleSize: 40, itemFont: "inter", logoFont: "round", headingFont: "bebas" },
     items: [
-      { name: "Margherita", desc: "Fesleğen, mozzarella, San Marzano", price: 130 },
-      { name: "Pepperoni", desc: "Bol pepperoni, jalapeño", price: 150 },
-      { name: "Tiramisu", desc: "Mascarpone, espresso, kakao", price: 85 },
-      { name: "Margherita", desc: "Domates sosu, mozzarella, taze fesleğen", price: 85 },
-      { name: "Pepperoni", desc: "Acılı pepperoni, ekstra mozzarella", price: 105 },
-      { name: "Quattro Formaggi", desc: "Gorgonzola, parmesan, ricotta", price: 115 },
+      { name: "MARGHERITA", desc: "Tomato sauce, mozzarella, fresh basil", price: 8.5, priceLabel: "8.50", image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/69753e91-9cf9-4336-856b-b0444fe33fa8/1766155108176.webp" },
+      { name: "PEPPERONI", desc: "Tomato sauce, mozzarella, spicy pepperoni", price: 10.5, priceLabel: "10.50", image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/69753e91-9cf9-4336-856b-b0444fe33fa8/1766154986219.webp" },
+      { name: "QUATTRO FORMAGGI", desc: "Mozzarella, gorgonzola, parmesan, ricotta", price: 11.5, priceLabel: "11.50", image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/69753e91-9cf9-4336-856b-b0444fe33fa8/1766155204902.webp" },
+      { name: "PROSCIUTTO & MUSHROOMS", desc: "Tomato sauce, mozzarella, ham, mushrooms", price: 11, priceLabel: "11", image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/69753e91-9cf9-4336-856b-b0444fe33fa8/1766155327501.webp" },
+      { name: "GARLIC BREAD", desc: "Baked pizza bread with garlic butter", price: 4.5, priceLabel: "4.50" },
+      { name: "BRUSCHETTA CLASSICA", desc: "Grilled bread, tomato, garlic, olive oil", price: 5.5, priceLabel: "5.50" },
+      { name: "CAPRESE SALAD", desc: "Fresh mozzarella, tomatoes, basil", price: 7.5, priceLabel: "7.50" },
+      { name: "Sparkling Water", price: 3, priceLabel: "3" },
+      { name: "Still Water", price: 2.5, priceLabel: "2.50" },
+      { name: "Cola", price: 3, priceLabel: "3" },
+      { name: "Lemon Soda", price: 3.5, priceLabel: "3.50" },
+      { name: "Orange Juice", price: 5, priceLabel: "5" },
+      { name: "Espresso", price: 2.5, priceLabel: "2.50" },
     ] },
   { id: "ramen", name: "Japon Ramen", category: "Mutfağa Özel", logo: "Slurp", tagline: "RAMEN BAR", emoji: "🍜", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 6, showProductImages: true, sectionTitles: ["Ramenler", "Atıştırmalık"], style: { bg: "#0d0d0d", text: "#f5f0e8", muted: "#b8b0a2", accent: "#ff5a1f", logoFont: "round", headingFont: "sans" },
     items: [
@@ -247,14 +254,16 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Cloudie IPA", desc: "New England IPA · %6.5 — mango, narenciye", price: 75 },
       { name: "Copper Ale", desc: "Amber ale · %5.2 — karamel malt", price: 70 },
     ] },
-  { id: "pub", name: "Pub Mutfağı", category: "Mekan Türü", logo: "The King's Pint", tagline: "PUB GRUB", emoji: "🍗", menuTheme: "turuncu", menuTemplate: "liste", menuRadius: 6, showProductImages: false, sectionTitles: ["Snacks", "Sıcak"], style: { bg: "#5d3a2a", text: "#f5ede2", muted: "#d8c2ae", accent: "#f0d5a8", logoFont: "serif", headingFont: "sans" },
+  { id: "pub", name: "Pub Mutfağı", category: "Mekan Türü", logo: "The King's Pint", tagline: "PUB GRUB", emoji: "🍗", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e6656f1d-eec5-4586-923c-128e4b807135-1766157997489.png", logoHeight: 132, menuTheme: "turuncu", menuTemplate: "liste", menuRadius: 6, showProductImages: false, sectionTitles: ["SNACKS"], style: { bg: "#71432a", text: "#feeac0", muted: "#bb927c", accent: "#feeac0", sectionTitleColor: "#feeac0", itemColor: "#feeac0", sectionTitleSize: 28, itemFont: "inter", priceSuffix: "", logoFont: "serif", headingFont: "oswald" },
     items: [
-      { name: "Fish & Chips", desc: "Bira hamurunda, tartar sos", price: 165 },
-      { name: "Bangers & Mash", desc: "Sosis, patates püresi", price: 150 },
-      { name: "Shepherd's Pie", desc: "Kuzu kıymalı güveç", price: 160 },
-      { name: "Nachos", desc: "Erimiş peynir, salsa, jalapeño", price: 75 },
-      { name: "Loaded Fries", desc: "Çıtır patates, peynir sos, bacon", price: 69 },
-      { name: "Chicken Wings", desc: "BBQ veya acı soslu kanat", price: 85 },
+      { name: "NACHOS", desc: "Corn chips, melted cheese, salsa, jalapeños", price: 7.5, priceLabel: "7.50" },
+      { name: "LOADED FRIES", desc: "Crispy fries, cheese sauce, bacon bits", price: 6.9, priceLabel: "6.90" },
+      { name: "CHICKEN WINGS", desc: "Crispy wings with BBQ or spicy sauce", price: 8.5, priceLabel: "8.50" },
+      { name: "ONION RINGS", desc: "Golden-fried onion rings with dip", price: 5.5, priceLabel: "5.50" },
+      { name: "GARLIC BREAD", desc: "Toasted bread with garlic butter", price: 4.9, priceLabel: "4.90" },
+      { name: "MOZZARELLA STICKS", desc: "Fried mozzarella with marinara sauce", price: 6.5, priceLabel: "6.50" },
+      { name: "CHICKEN TENDERS", desc: "Breaded chicken strips with house dip", price: 7.9, priceLabel: "7.90" },
+      { name: "PRETZEL", desc: "Warm salted pretzel with mustard", price: 4.7, priceLabel: "4.70" },
     ] },
   { id: "gastro-pub", name: "Gastropub", category: "Mekan Türü", logo: "The Golden Fork", tagline: "GASTRO PUB", emoji: "🍽️", menuTheme: "mavi", menuTemplate: "liste", menuRadius: 6, showProductImages: true, sectionTitles: ["Main", "Favoriler"], style: { bg: "#102a43", text: "#eef2f6", muted: "#a4b6c8", accent: "#d4af37", logoFont: "serif", headingFont: "serif", logoUpper: true },
     items: [
@@ -438,4 +447,5 @@ export const MENU_PRESET_FONTS: Record<MenuPresetFontKey, string> = {
   poppins: '"Poppins", system-ui, sans-serif',
   lora: '"Lora", Georgia, serif',
   playfair: '"Playfair Display", Georgia, serif',
+  oswald: '"Oswald", "Arial Narrow", sans-serif',
 };

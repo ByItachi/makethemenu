@@ -81,7 +81,9 @@ export default function TemplateDemoPage() {
               {section.map((item) => {
                 const hasImage = Boolean(item.image);
                 const priceNum = ps.priceDecimals ? item.price.toFixed(2) : item.price;
-                const priceLabel = preset.currency
+                const priceLabel = item.priceLabel !== undefined
+                  ? item.priceLabel
+                  : preset.currency
                   ? `${preset.currency}${item.price.toFixed(2)}`
                   : `${priceNum}${item.priceSuffix !== undefined ? item.priceSuffix : (ps.priceSuffix ?? "₺")}`;
                 return (
