@@ -658,6 +658,24 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Ice Cream Sundae", desc: "Vanilla ice cream, chocolate sauce, sprinkles.", price: 4 },
       { name: "Brownie Bite", desc: "Warm chocolate brownie.", price: 3 },
     ] },
+  { id: "biftek", name: "Steakhouse", category: "Restoran", logo: "Ember & Oak", tagline: "PREMIUM STEAKS", emoji: "🥩", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Starters", "Steaks", "Sauces & sides", "Desserts"], sectionCounts: [3, 4, 4, 3], style: { bg: "#1a1311", text: "#f3ece2", muted: "#a5978a", accent: "#c9a46b", sectionTitleColor: "#c9a46b", itemColor: "#f3ece2", sectionTitleSize: 26, itemFont: "lora", priceSuffix: "", logoFont: "serif", headingFont: "playfair" },
+    items: [
+      { name: "Beef Tartare", desc: "Hand-cut fillet, egg yolk, capers, sourdough crisps.", price: 18 },
+      { name: "Oysters", desc: "Three oysters, mignonette, lemon.", price: 16 },
+      { name: "Foie Gras", desc: "Seared, brioche, fig jam.", price: 22 },
+      { name: "Ribeye 300g", desc: "Dry-aged, charred crust, herb butter.", price: 52 },
+      { name: "Filet Mignon 250g", desc: "Tender, buttery, truffle jus.", price: 58 },
+      { name: "New York Strip 280g", desc: "Bold flavor, peppercorn crust.", price: 48 },
+      { name: "Tomahawk 800g", desc: "For two, bone-in, smoked salt.", price: 95 },
+      { name: "Béarnaise", desc: "Classic French sauce.", price: 6 },
+      { name: "Peppercorn Sauce", desc: "Creamy, bold spice.", price: 6 },
+      { name: "Truffle Butter", desc: "Melting luxury.", price: 8 },
+      { name: "Creamed Spinach", desc: "Nutmeg, gruyère.", price: 7 },
+      { name: "Truffle Fries", desc: "Parmesan, truffle oil.", price: 8 },
+      { name: "Chocolate Soufflé", desc: "Warm center, vanilla ice cream.", price: 12 },
+      { name: "Crème Brûlée", desc: "Vanilla bean, caramelized sugar.", price: 10 },
+      { name: "Cheesecake", desc: "New York style, berry compote.", price: 9 },
+    ] },
 ];
 
 export const MENU_PRESET_BY_ID: Record<string, MenuPreset> = Object.fromEntries(
