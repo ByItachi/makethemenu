@@ -80,9 +80,10 @@ export default function TemplateDemoPage() {
             <div>
               {section.map((item) => {
                 const hasImage = Boolean(item.image);
+                const priceNum = ps.priceDecimals ? item.price.toFixed(2) : item.price;
                 const priceLabel = preset.currency
                   ? `${preset.currency}${item.price.toFixed(2)}`
-                  : `${item.price}${item.priceSuffix !== undefined ? item.priceSuffix : (ps.priceSuffix ?? "₺")}`;
+                  : `${priceNum}${item.priceSuffix !== undefined ? item.priceSuffix : (ps.priceSuffix ?? "₺")}`;
                 return (
                 <div key={item.name} className="-mx-4 px-4 py-3.5 transition-colors hover:bg-black/[0.02]">
                   <div className="flex items-start justify-between gap-3">

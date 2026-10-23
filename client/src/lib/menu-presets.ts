@@ -6,7 +6,7 @@
  * style.logoFont / style.headingFont anahtarları PublicMenu ve galeride aynı
  * CSS eşlemesiyle yorumlanır (bkz. MENU_PRESET_FONTS).
  */
-export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins" | "manrope" | "inter" | "lora";
+export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins" | "manrope" | "inter" | "lora" | "playfair";
 
 export type MenuPresetStyle = {
   bg: string;
@@ -23,6 +23,8 @@ export type MenuPresetStyle = {
   itemFont?: MenuPresetFontKey;
   /** Fiyat son eki (orn. " / g"); fiyat "10 / g" biciminde gosterilir. */
   priceSuffix?: string;
+  /** true ise fiyat her zaman 2 ondalikla gosterilir (orn. "14.90"), para birimi simgesi olmadan. */
+  priceDecimals?: boolean;
   logoFont: MenuPresetFontKey;
   headingFont: MenuPresetFontKey;
   logoUpper?: boolean;
@@ -403,14 +405,16 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Dana Tartar", desc: "Hardal, yumurta sarısı", price: 125 },
       { name: "Kızarmış Karnabahar", desc: "Tahini, nar ekşisi", price: 89 },
     ] },
-  { id: "catering", name: "Catering & Davet", category: "Modern", logo: "Le Petite Paris", tagline: "TRAITEUR", emoji: "🥘", menuTheme: "yesil", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["Main", "Vejetaryen"], style: { bg: "#1d3d34", text: "#eef2ee", muted: "#a8c0b4", accent: "#d4af37", logoFont: "script", headingFont: "serif", logoItalic: true },
+  { id: "catering", name: "Catering & Davet", category: "Modern", logo: "Le Petite Paris", tagline: "TRAITEUR", emoji: "🥘", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/33340ace-4747-4b10-9274-c587ff6735f2-1766075194009.png", logoHeight: 100, menuTheme: "yesil", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["MAIN", "SIDES"], sectionCounts: [4, 4], style: { bg: "#0d2b2a", text: "#FBF0DA", muted: "#FBF0DA99", accent: "#eecb88", sectionTitleColor: "#eecb88", itemColor: "#FBF0DA", sectionTitleSize: 28, itemFont: "inter", priceSuffix: "", priceDecimals: true, logoFont: "script", headingFont: "playfair", logoItalic: true },
     items: [
-      { name: "Meze Tabağı", desc: "10-15 kişiye, karışık", price: 850 },
-      { name: "Izgara Tabağı", desc: "20 kişilik, karışık et", price: 2400 },
-      { name: "Tatlı Büfesi", desc: "Karışık, 30 kişilik", price: 1500 },
-      { name: "Coq au Vin", desc: "Şarapla sote tavuk", price: 149 },
-      { name: "Beef Bourguignon", desc: "Yavaş pişmiş dana, mantarlar", price: 169 },
-      { name: "Sebzeli Ratatouille", desc: "Provans usulü sebzeler", price: 119 },
+      { name: "Coq au Vin", desc: "Chicken braised in red wine", price: 14.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/33340ace-4747-4b10-9274-c587ff6735f2/1766074794154.webp" },
+      { name: "Beef Bourguignon", desc: "Slow-cooked beef, mushrooms", price: 16.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/33340ace-4747-4b10-9274-c587ff6735f2/1766074862342.webp" },
+      { name: "Herb-Roasted Chicken", desc: "Garlic and thyme", price: 13.5, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/33340ace-4747-4b10-9274-c587ff6735f2/1766075065275.webp" },
+      { name: "Vegetable Ratatouille", desc: "Provençal-style vegetables", price: 11.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/33340ace-4747-4b10-9274-c587ff6735f2/1766075089713.webp" },
+      { name: "Gratin Dauphinois", desc: "Creamy potato gratin", price: 4.9 },
+      { name: "Green Beans Amandine", desc: "Almond butter", price: 4.5 },
+      { name: "Mixed Green Salad", desc: "French vinaigrette", price: 4.2 },
+      { name: "Fresh Baguettes", desc: "Butter included", price: 2.5 },
     ] },
 ];
 
@@ -432,4 +436,5 @@ export const MENU_PRESET_FONTS: Record<MenuPresetFontKey, string> = {
   inter: '"Inter", system-ui, sans-serif',
   poppins: '"Poppins", system-ui, sans-serif',
   lora: '"Lora", Georgia, serif',
+  playfair: '"Playfair Display", Georgia, serif',
 };
