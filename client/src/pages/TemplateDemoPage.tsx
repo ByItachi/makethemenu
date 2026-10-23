@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, X, Vegan } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MENU_PRESET_BY_ID, MENU_PRESET_FONTS } from "@/lib/menu-presets";
 import { SHOWCASE_BY_SLUG } from "@/lib/template-showcase";
@@ -110,8 +110,9 @@ export default function TemplateDemoPage() {
                 <div key={item.name} className="-mx-4 px-4 py-3.5 transition-colors hover:bg-black/[0.02] cursor-pointer" onClick={() => setSelected(item)}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <h3 className="text-base font-semibold leading-5" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
+                      <h3 className="flex items-center gap-1.5 text-base font-semibold leading-5" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
                         {item.name}
+                        {item.isVegan && <Vegan className="size-3.5 shrink-0 text-green-500" aria-hidden="true" />}
                       </h3>
                       {item.desc && (
                         <p className="line-clamp-3 whitespace-pre-line text-sm" style={{ color: ps.muted, fontFamily: itemFont }}>
@@ -178,8 +179,9 @@ export default function TemplateDemoPage() {
               <X className="h-5 w-5" />
             </button>
             <div className="mx-auto max-w-md">
-              <h2 className="text-2xl font-bold mb-2" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
+              <h2 className="mb-2 flex items-center gap-1.5 text-2xl font-bold" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
                 {selected.name}
+                {selected.isVegan && <Vegan className="size-4 shrink-0 text-green-500" aria-hidden="true" />}
               </h2>
               {selected.desc && (
                 <p className="text-sm mb-4 whitespace-pre-line" style={{ color: ps.muted, fontFamily: itemFont }}>
