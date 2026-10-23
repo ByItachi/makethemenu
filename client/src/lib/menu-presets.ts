@@ -29,6 +29,8 @@ export type MenuPresetStyle = {
   headingFont: MenuPresetFontKey;
   logoUpper?: boolean;
   logoItalic?: boolean;
+  /** Logo punto (varsayilan: 30, text-3xl). Referans HTML'de bazi temalarda ozel boyut kullanilir. */
+  logoSize?: number;
 };
 
 export type MenuPresetItem = { name: string; desc?: string; price: number; image?: string; /** Urun bazli fiyat son eki (stildeki priceSuffix'i gecer). */ priceSuffix?: string; /** Tum fiyat formatlamasini gecersiz kilan sabit metin (referans HTML'deki ham fiyat gibi). */ priceLabel?: string; /** Vegan ikonu gosterilecek mi */ isVegan?: boolean };
@@ -53,6 +55,8 @@ export type MenuPreset = {
   sectionTitles: string[];
   /** Bolum basina duesen urun sayisi (varsayilan: esit bolme). Ref HTML'de bolumler esit degilse kullanilir. */
   sectionCounts?: number[];
+  /** sectionTitles ile ayni indeksli, bolum basligi altinda gosterilen aciklama metni (opsiyonel). */
+  sectionDescriptions?: (string | undefined)[];
   items: MenuPresetItem[];
   style: MenuPresetStyle;
 };
@@ -642,7 +646,7 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Truffle Fries", desc: "Parmesan, truffle oil.", price: 7 },
       { name: "Mixed Nuts", desc: "Smoked and salted.", price: 4 },
     ] },
-  { id: "cocuk", name: "Çocuk Menüsü", category: "Özel", logo: "Little Bites", tagline: "KIDS MENU", emoji: "🍔", menuTheme: "mavi", menuTemplate: "liste", menuRadius: 8, showProductImages: false, sectionTitles: ["Mains", "Healthy picks", "Drinks", "Sweet treats"], sectionCounts: [5, 3, 3, 2], style: { bg: "#e9f6ff", text: "#183153", muted: "#55708f", accent: "#ff6a4d", sectionTitleColor: "#ff6a4d", itemColor: "#183153", sectionTitleSize: 26, itemFont: "poppins", priceSuffix: "", logoFont: "bbh", headingFont: "bbh" },
+  { id: "cocuk", name: "Çocuk Menüsü", category: "Özel", logo: "Little Bites", tagline: "KIDS MENU", emoji: "🍔", menuTheme: "mavi", menuTemplate: "liste", menuRadius: 8, showProductImages: false, sectionTitles: ["Mains", "Healthy picks", "Drinks", "Sweet treats"], sectionCounts: [5, 3, 3, 2], sectionDescriptions: ["All kids' meals come with a drink and a scoop of ice cream."], style: { bg: "#e9f6ff", text: "#183153", muted: "#55708f", accent: "#ff6a4d", sectionTitleColor: "#ff6a4d", itemColor: "#183153", sectionTitleSize: 26, itemFont: "poppins", priceSuffix: "", logoFont: "bbh", headingFont: "bbh", logoSize: 34 },
     items: [
       { name: "Mini Cheeseburger", desc: "Beef patty, cheese and ketchup, with fries.", price: 8 },
       { name: "Chicken Tenders", desc: "Three crispy tenders with fries and ketchup.", price: 8 },

@@ -65,12 +65,13 @@ export default function TemplateDemoPage() {
             <img src={preset.logoImage} alt="Menu logo" className="h-auto" style={{ maxHeight: preset.logoHeight ?? 164 }} />
           ) : (
             <h1
-              className="break-words text-center text-3xl font-bold tracking-wide"
+              className="break-words text-center font-bold tracking-wide"
               style={{
                 fontFamily: MENU_PRESET_FONTS[ps.logoFont],
                 textTransform: ps.logoUpper ? "uppercase" : undefined,
                 fontStyle: ps.logoItalic ? "italic" : undefined,
                 color: accent,
+                fontSize: ps.logoSize ?? 30,
               }}
             >
               {preset.logo}
@@ -97,6 +98,9 @@ export default function TemplateDemoPage() {
             >
               {title}
             </h2>
+            {preset.sectionDescriptions?.[i] && (
+              <p className="mb-4 text-neutral-600">{preset.sectionDescriptions[i]}</p>
+            )}
             <div>
               {section.map((item) => {
                 const hasImage = Boolean(item.image);
