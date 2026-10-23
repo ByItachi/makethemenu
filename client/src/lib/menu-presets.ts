@@ -684,7 +684,7 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "New England Clam Chowder", desc: "Creamy, clams, potatoes.", price: 12 },
       { name: "Fried Calamari", desc: "Crispy, marinara sauce.", price: 15 },
       { name: "Crab Cakes", desc: "Lump crab, remoulade.", price: 19 },
-      { name: "Lobster Roll", desc: "Maine lobster, butter, brioche.", price: 34 },
+      { name: "Lobster Roll", desc: "Butter-poached lobster, toasted brioche, fries.", price: 34 },
       { name: "Fish & Chips", desc: "Battered cod, tartar sauce, fries.", price: 24 },
       { name: "Grilled Salmon", desc: "Lemon butter, seasonal vegetables.", price: 29 },
       { name: "Mussels Marinière", desc: "White wine, garlic, parsley.", price: 25 },
