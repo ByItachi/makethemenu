@@ -6,7 +6,7 @@
  * style.logoFont / style.headingFont anahtarları PublicMenu ve galeride aynı
  * CSS eşlemesiyle yorumlanır (bkz. MENU_PRESET_FONTS).
  */
-export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins" | "manrope" | "inter";
+export type MenuPresetFontKey = "serif" | "sans" | "condensed" | "badge" | "round" | "script" | "bbh" | "bebas" | "poppins" | "manrope" | "inter" | "lora";
 
 export type MenuPresetStyle = {
   bg: string;
@@ -49,6 +49,8 @@ export type MenuPreset = {
   menuRadius: number;
   showProductImages: boolean;
   sectionTitles: string[];
+  /** Bolum basina duesen urun sayisi (varsayilan: esit bolme). Ref HTML'de bolumler esit degilse kullanilir. */
+  sectionCounts?: number[];
   items: MenuPresetItem[];
   style: MenuPresetStyle;
 };
@@ -83,14 +85,18 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "SPICY GOCHUJANG", desc: "Fried chicken tossed in spicy gochujang sauce", price: 14.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/d1e14f94-73e1-44eb-9cef-d35e50883ea3/1766050434416.webp" },
       { name: "SWEET & CRISPY", desc: "Crunchy chicken with sweet chili glaze", price: 13.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/d1e14f94-73e1-44eb-9cef-d35e50883ea3/1766050512948.webp" },
     ] },
-  { id: "meksika", name: "Meksika & Taco", category: "Mutfağa Özel", logo: "Mexi Tacos", tagline: "CANTINA", emoji: "🌮", menuTheme: "kirmizi", menuTemplate: "kart", menuRadius: 12, showProductImages: true, sectionTitles: ["Tacos", "İçecekler"], style: { bg: "#e53935", text: "#ffffff", muted: "#ffd9d4", accent: "#fff3d6", logoFont: "round", headingFont: "serif" },
+  { id: "meksika", name: "Meksika & Taco", category: "Mutfağa Özel", logo: "Mexi Tacos", tagline: "CANTINA", emoji: "🌮", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/68b95579-2b1e-4d00-abd9-14cab218aa22-1766073075419.png", logoHeight: 146, menuTheme: "kirmizi", menuTemplate: "kart", menuRadius: 12, showProductImages: true, sectionTitles: ["Tacos", "Drinks"], sectionCounts: [4, 6], style: { bg: "#fd1717", text: "#fff2c2", muted: "#fff2c2", accent: "#fff2c2", sectionTitleColor: "#fff2c2", itemColor: "#fff2c2", sectionTitleSize: 40, itemFont: "inter", priceSuffix: "", logoFont: "round", headingFont: "lora" },
     items: [
-      { name: "Quesadilla", desc: "Cheddar, mozzarella, acı sos", price: 105 },
-      { name: "Nacho Grande", desc: "Jalapeño, cheddar, salsa", price: 95 },
-      { name: "Margarita", desc: "Tequila, lime, agave", price: 140 },
-      { name: "Carne Asada", desc: "Izgara dana, soğan, kişniş", price: 59 },
-      { name: "Al Pastor", desc: "Ananaslı marine domuz", price: 55 },
-      { name: "Pollo", desc: "Baharatlı ızgara tavuk", price: 55 },
+      { name: "Carne Asada", desc: "Grilled beef, onion, cilantro", price: 5.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/68b95579-2b1e-4d00-abd9-14cab218aa22/1766072382651.webp" },
+      { name: "Al Pastor", desc: "Marinated pork with pineapple", price: 5.9, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/68b95579-2b1e-4d00-abd9-14cab218aa22/1766072507288.webp" },
+      { name: "Pollo", desc: "Seasoned grilled chicken", price: 5.5, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/68b95579-2b1e-4d00-abd9-14cab218aa22/1766072818494.webp" },
+      { name: "Vegetariano", desc: "Grilled vegetables and salsa", price: 5.5, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/68b95579-2b1e-4d00-abd9-14cab218aa22/1766072837509.webp" },
+      { name: "Fresh Lemonade", desc: "Homemade lemonade with fresh lemons and mint", price: 4 },
+      { name: "Sparkling Water", desc: "Chilled sparkling mineral water", price: 2 },
+      { name: "Horchata", desc: "Sweet rice milk with cinnamon", price: 3.9 },
+      { name: "Jamaica", desc: "Hibiscus iced tea", price: 3.9 },
+      { name: "Margarita", desc: "Tequila, lime, triple sec", price: 10 },
+      { name: "Paloma", desc: "Tequila and grapefruit soda", price: 10 },
     ] },
   { id: "pizza", name: "Pizza & İtalyan", category: "Mutfağa Özel", logo: "Casa Pizza", tagline: "FORNO A LEGNA", emoji: "🍕", menuTheme: "yesil", menuTemplate: "liste", menuRadius: 8, showProductImages: true, sectionTitles: ["Pizza", "Fırından"], style: { bg: "#0f2e1d", text: "#f2f7f0", muted: "#cfe0d2", accent: "#c8f542", logoFont: "round", headingFont: "sans" },
     items: [
@@ -425,4 +431,5 @@ export const MENU_PRESET_FONTS: Record<MenuPresetFontKey, string> = {
   manrope: '"Manrope", system-ui, sans-serif',
   inter: '"Inter", system-ui, sans-serif',
   poppins: '"Poppins", system-ui, sans-serif',
+  lora: '"Lora", Georgia, serif',
 };

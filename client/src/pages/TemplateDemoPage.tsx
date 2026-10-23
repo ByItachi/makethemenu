@@ -4,7 +4,6 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MENU_PRESET_BY_ID, MENU_PRESET_FONTS } from "@/lib/menu-presets";
 import { SHOWCASE_BY_SLUG } from "@/lib/template-showcase";
-import { demoItemImage } from "@/lib/demo-item-images";
 
 /**
  * Şablon vitrininin canlı örnek menüsü: /sablon-demo/:slug
@@ -61,7 +60,11 @@ export default function TemplateDemoPage() {
 
         {preset.sectionTitles.map((title, i) => {
           const half = Math.ceil(preset.items.length / preset.sectionTitles.length);
-          const section = preset.items.slice(i * half, i * half + half);
+          const start = preset.sectionCounts
+            ? preset.sectionCounts.slice(0, i).reduce((a, b) => a + b, 0)
+            : i * half;
+          const count = preset.sectionCounts ? preset.sectionCounts[i] : half;
+          const section = preset.items.slice(start, start + count);
           return (
           <section key={i} className="py-4" aria-labelledby={`demo-cat-${i}`}>
             <h2
@@ -75,7 +78,12 @@ export default function TemplateDemoPage() {
               {title}
             </h2>
             <div>
-              {section.map((item, j) => (
+              {section.map((item) => {
+                const hasImage = Boolean(item.image);
+                const priceLabel = preset.currency
+                  ? `${preset.currency}${item.price.toFixed(2)}`
+                  : `${item.price}${item.priceSuffix !== undefined ? item.priceSuffix : (ps.priceSuffix ?? "₺")}`;
+                return (
                 <div key={item.name} className="-mx-4 px-4 py-3.5 transition-colors hover:bg-black/[0.02]">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -87,23 +95,25 @@ export default function TemplateDemoPage() {
                           {item.desc}
                         </p>
                       )}
-                      <div className="font-medium" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
-                        {preset.currency
-                          ? `${preset.currency}${item.price.toFixed(2)}`
-                          : `${item.price}${item.priceSuffix !== undefined ? item.priceSuffix : (ps.priceSuffix ?? "₺")}`}
+                      {hasImage && (
+                        <div className="font-medium" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
+                          {priceLabel}
+                        </div>
+                      )}
+                    </div>
+                    {hasImage ? (
+                      <div className="aspect-video w-2/5 shrink-0 overflow-hidden rounded-sm bg-neutral-100">
+                        <img src={item.image} alt={item.name} loading="lazy" className="h-full w-full object-cover" />
                       </div>
-                    </div>
-                    <div className="aspect-video w-2/5 shrink-0 overflow-hidden rounded-sm bg-neutral-100">
-                      <img
-                        src={item.image || demoItemImage(item.name, preset.category, j)}
-                        alt={item.name}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
+                    ) : (
+                      <div className="ml-4 font-medium" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
+                        {priceLabel}
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </section>
           );
