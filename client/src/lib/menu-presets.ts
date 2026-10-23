@@ -707,6 +707,22 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Fruit Sorbet", desc: "Seasonal, refreshing.", price: 4.5 },
       { name: "Herbal Tea", desc: "Selection of organic teas.", price: 7 },
     ] },
+  { id: "akdeniz", name: "Akdeniz Restoranı", category: "Restoran", logo: "Olea", tagline: "MEDITERRANEAN CUISINE", emoji: "🫒", menuTheme: "mavi", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Meze", "Salads", "From the grill", "Sweets"], sectionCounts: [5, 2, 4, 2], style: { bg: "#fbf6ee", text: "#2b2620", muted: "#7a6f62", accent: "#1f5f8b", sectionTitleColor: "#1f5f8b", itemColor: "#2b2620", sectionTitleSize: 26, itemFont: "lora", priceSuffix: "", logoFont: "lora", headingFont: "lora" },
+    items: [
+      { name: "Hummus", desc: "Chickpeas, tahini, olive oil, warm pita.", price: 8 },
+      { name: "Tzatziki", desc: "Greek yogurt, cucumber, garlic, dill.", price: 7 },
+      { name: "Falafel", desc: "Five falafel, tahini sauce, pickles.", price: 9 },
+      { name: "Halloumi", desc: "Grilled, honey, sesame, mint.", price: 10 },
+      { name: "Dolmades", desc: "Vine leaves stuffed with herby rice.", price: 8 },
+      { name: "Greek Salad", desc: "Tomato, cucumber, red onion, olives, feta, oregano.", price: 12 },
+      { name: "Fattoush", desc: "Crispy pita, sumac, pomegranate molasses.", price: 11 },
+      { name: "Chicken Souvlaki", desc: "Two skewers, pita, tzatziki, fries.", price: 19 },
+      { name: "Lamb Kofta", desc: "Spiced lamb, bulgur, yogurt, chili butter.", price: 21 },
+      { name: "Moussaka", desc: "Aubergine, spiced beef, béchamel.", price: 19 },
+      { name: "Whole Sea Bream", desc: "Lemon, oregano, olive oil, greens.", price: 27 },
+      { name: "Baklava", desc: "Filo, walnuts, pistachio, honey syrup.", price: 7 },
+      { name: "Greek Yogurt", desc: "Honey and walnuts.", price: 6 },
+    ] },
 ];
 
 export const MENU_PRESET_BY_ID: Record<string, MenuPreset> = Object.fromEntries(

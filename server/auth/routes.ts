@@ -95,11 +95,13 @@ export function registerAuthRoutes(app: Express) {
 
   app.use(loadAuth);
 
-  // Current user (401 when logged out)
+  // Current user (null when logged out — this is a public session check, not a
+  // protected resource, so it replies 200/null instead of 401 to avoid noisy
+  // "Failed to load resource: 401" console errors on every anonymous page view)
   app.get("/api/auth/user", async (req: Request, res: Response) => {
-    if (!req.auth) return res.status(401).json({ message: "Giriş yapmanız gerekiyor." });
+    if (!req.auth) return res.json(null);
     const [user] = await db.select().from(users).where(eq(users.id, req.auth.userId));
-    if (!user) return res.status(401).json({ message: "Giriş yapmanız gerekiyor." });
+    if (!user) return res.json(null);
     res.json({ ...publicUser(user), impersonatedBy: (req.session as any).impersonatorId ?? null });
   });
 

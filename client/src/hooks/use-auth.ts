@@ -23,7 +23,8 @@ async function fetchUser(): Promise<AuthUser | null> {
     throw new Error(`${response.status}: ${response.statusText}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  return data ?? null;
 }
 
 async function logout(): Promise<void> {
