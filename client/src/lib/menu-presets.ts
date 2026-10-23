@@ -692,6 +692,21 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Hand-Cut Fries", desc: "Sea salt.", price: 6 },
       { name: "Seasonal Vegetables", desc: "Grilled or steamed.", price: 6 },
     ] },
+  { id: "vegan-menu", name: "Vegan Restaurant", category: "Restoran", logo: "Green Table", tagline: "PLANT-BASED CUISINE", emoji: "🌱", menuTheme: "yesil", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Small plates", "Bowls", "Mains", "Desserts & drinks"], sectionCounts: [3, 3, 3, 3], style: { bg: "#f1f5ea", text: "#2d4a2b", muted: "#6b8a69", accent: "#3d6b3a", sectionTitleColor: "#3d6b3a", itemColor: "#2d4a2b", sectionTitleSize: 24, itemFont: "manrope", priceSuffix: "", logoFont: "sans", headingFont: "manrope" },
+    items: [
+      { name: "Hummus", desc: "Chickpea, tahini, lemon, olive oil.", price: 9 },
+      { name: "Falafel", desc: "Crispy, tahini sauce, pita.", price: 8 },
+      { name: "Edamame", desc: "Steamed, sea salt.", price: 9 },
+      { name: "Buddha Bowl", desc: "Quinoa, roasted vegetables, tahini dressing.", price: 15 },
+      { name: "Grain Bowl", desc: "Farro, kale, roasted beets, pumpkin seeds.", price: 15 },
+      { name: "Noodle Bowl", desc: "Rice noodles, vegetables, peanut sauce.", price: 13 },
+      { name: "Grilled Vegetables", desc: "Seasonal, herb oil, sea salt.", price: 16 },
+      { name: "Lentil Curry", desc: "Coconut milk, spinach, rice.", price: 14 },
+      { name: "Mushroom Risotto", desc: "Arborio rice, porcini, truffle oil.", price: 15 },
+      { name: "Chocolate Mousse", desc: "Dark chocolate, coconut cream.", price: 8 },
+      { name: "Fruit Sorbet", desc: "Seasonal, refreshing.", price: 4.5 },
+      { name: "Herbal Tea", desc: "Selection of organic teas.", price: 7 },
+    ] },
 ];
 
 export const MENU_PRESET_BY_ID: Record<string, MenuPreset> = Object.fromEntries(
