@@ -586,14 +586,20 @@ export const MENU_PRESETS: MenuPreset[] = [
     ] },
 
   // --- Modern ---
-  { id: "modern", name: "Modern Restoran", category: "Modern", logo: "Ember & Stone", tagline: "CONTEMPORARY KITCHEN", emoji: "✦", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Start", "Main"], style: { bg: "#f0ede4", text: "#2b2b2b", muted: "#6b6b6b", accent: "#1a1a1a", logoFont: "badge", headingFont: "sans", logoUpper: true },
+  { id: "modern", name: "Modern Restoran", category: "Modern", logo: "Saffron House", tagline: "CONTEMPORARY KITCHEN", emoji: "✦", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/2ba8db58-6f47-4130-b7b8-e5ba3eb5c6c7-1766326751350.png", logoHeight: 20, menuTheme: "grafit", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["START", "MAIN", "SIDE"], sectionCounts: [4, 5, 3], style: { bg: "#EEEDE8", text: "#4b4b4b", muted: "#707070", accent: "#4a4b4b", sectionTitleColor: "#4a4b4b", itemColor: "#4b4b4b", sectionTitleSize: 18, itemFont: "inter", priceSuffix: "", logoFont: "serif", headingFont: "inter" },
     items: [
-      { name: "Dana Tartar", desc: "Yumurta sarısı, ekşi maya", price: 225 },
-      { name: "Balık Ceviche", desc: "Lime, turşu soğan", price: 185 },
-      { name: "İncirli Tatlı", desc: "Aktif kömür, taze incir", price: 110 },
-      { name: "Burrata", desc: "Domates, fesleğen yağı", price: 95 },
-      { name: "Dana Tartar", desc: "Hardal, yumurta sarısı", price: 125 },
-      { name: "Kızarmış Karnabahar", desc: "Tahini, nar ekşisi", price: 89 },
+      { name: "Burrata", desc: "Heirloom tomatoes, basil oil", price: 9.5, priceLabel: "9.5" },
+      { name: "Beef Tartare", desc: "Capers, mustard, egg yolk", price: 12.5, priceLabel: "12.5" },
+      { name: "Crispy Cauliflower", desc: "Tahini, pomegranate", price: 8.9, priceLabel: "8.9" },
+      { name: "Tuna Crudo", desc: "Citrus, olive oil, sea salt", price: 13.9, priceLabel: "13.9" },
+      { name: "Grilled Sea Bass", desc: "Lemon beurre blanc, greens", price: 21, priceLabel: "21" },
+      { name: "Ribeye Steak", desc: "Pepper sauce, fries", price: 37, priceLabel: "37" },
+      { name: "Roasted Chicken", desc: "Thyme jus, seasonal vegetables", price: 24, priceLabel: "24" },
+      { name: "Mushroom Risotto", desc: "Parmesan, truffle oil", price: 17, priceLabel: "17" },
+      { name: "Pasta al Limone", desc: "Lemon, cream, parmesan", price: 16, priceLabel: "16" },
+      { name: "Roasted Potatoes", price: 4.5, priceLabel: "4.5" },
+      { name: "Green Salad", price: 4.9, priceLabel: "4.9" },
+      { name: "Grilled Broccolini", price: 5.5, priceLabel: "5.5" },
     ] },
   { id: "catering", name: "Catering & Davet", category: "Modern", logo: "Le Petite Paris", tagline: "TRAITEUR", emoji: "🥘", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/33340ace-4747-4b10-9274-c587ff6735f2-1766075194009.png", logoHeight: 100, menuTheme: "yesil", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["MAIN", "SIDES"], sectionCounts: [4, 4], style: { bg: "#0d2b2a", text: "#FBF0DA", muted: "#FBF0DA99", accent: "#eecb88", sectionTitleColor: "#eecb88", itemColor: "#FBF0DA", sectionTitleSize: 28, itemFont: "inter", priceSuffix: "", priceDecimals: true, logoFont: "script", headingFont: "playfair", logoItalic: true },
     items: [
