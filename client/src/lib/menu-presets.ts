@@ -254,7 +254,13 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Vanilla Latte", price: 4.8, priceLabel: "4.8" },
       { name: "Caramel Latte", price: 4.8, priceLabel: "4.8" },
     ] },
-  { id: "beer-menu", name: "Kokteyl Bar", category: "Mekan Türü", logo: "Cocktails", tagline: "CRAFT BEER BAR", emoji: "🍺", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/b0487b8c-dd78-4cad-8f2e-7a7839d82b49-1791013161675.png", logoHeight: 130, menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["On tap", "Seasonal", "Bottles & cans", "Tasting flight", "Alcohol-free", "Snacks"], sectionCounts: [5, 1, 3, 1, 2, 2], style: { bg: "#171b1f", text: "#f4eee2", muted: "#9aa3ab", accent: "#f0a43a", sectionTitleColor: "#f0a43a", itemColor: "#f4eee2", sectionTitleSize: 30, itemFont: "oswald", priceSuffix: "", logoFont: "condensed", headingFont: "oswald" },
+  { id: "cocktailbar", name: "Kokteyl Bar", category: "Mekan Türü", logo: "Cocktails", tagline: "BAR & LOUNGE", emoji: "🍸", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e9fa19e0-5d6f-4549-93cd-617610f79f09-1765995876694.png", logoHeight: 184, menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: true, sectionTitles: ["COCKTAILS"], style: { bg: "#f4a4c0", text: "#ffffff", muted: "#f6f3f3", accent: "#fe1e0b", sectionTitleColor: "#fe1e0b", itemColor: "#ffffff", logoFont: "condensed", headingFont: "bbh" },
+    items: [
+      { name: "Spritz (Aperol / Campari)", desc: "Aperitif, prosecco, soda\nLight bubbles, bitter smile.\nEasy drinking, hard to stop.", price: 12, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9fa19e0-5d6f-4549-93cd-617610f79f09/1765997146292.png" },
+      { name: "Paloma", desc: "Tequila, grapefruit, soda\nFresh, bitter, and dangerously drinkable.\nSunshine with an edge.", price: 12, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9fa19e0-5d6f-4549-93cd-617610f79f09/1765997905612.png" },
+      { name: "Frozen Daiquiri", desc: "Rum, lime, sugar\nCold, sharp, and straight to the point.\nSummer in a fist.", price: 12, image: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/product-images/e9fa19e0-5d6f-4549-93cd-617610f79f09/1765997786925.png" },
+    ] },
+  { id: "birahane", name: "Bira & Taproom", category: "Mekan Türü", logo: "Cocktails", tagline: "CRAFT BEER BAR", emoji: "🍺", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/b0487b8c-dd78-4cad-8f2e-7a7839d82b49-1791013161675.png", logoHeight: 130, menuTheme: "mor", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["On tap", "Seasonal", "Bottles & cans", "Tasting flight", "Alcohol-free", "Snacks"], sectionCounts: [5, 1, 3, 1, 2, 2], style: { bg: "#171b1f", text: "#f4eee2", muted: "#9aa3ab", accent: "#f0a43a", sectionTitleColor: "#f0a43a", itemColor: "#f4eee2", sectionTitleSize: 30, itemFont: "oswald", priceSuffix: "", logoFont: "condensed", headingFont: "oswald" },
     items: [
       { name: "Halvard Pilsner", desc: "Czech-style pilsner · 4.8% ABV. Crisp, floral Saaz hops, clean finish. 0.3l / 0.5l.", price: 4.5, priceLabel: "4.5 / 6.5" },
       { name: "Cloudline IPA", desc: "New England IPA · 6.5% ABV. Juicy mango, citrus, soft bitterness. 0.3l / 0.5l.", price: 5.5, priceLabel: "5.5 / 7.5" },
@@ -298,15 +304,6 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Cabernet Sauvignon", desc: "Napa Valley, USA. Blackcurrant, cedar and firm structure.", price: 15, priceLabel: "15 / 72" },
       { name: "Moscato d'Asti", desc: "Piedmont, Italy. Lightly sparkling, peach and orange blossom.", price: 8, priceLabel: "8 / 36" },
       { name: "Tawny Port 10 Year", desc: "Douro, Portugal. Caramel, dried fig and roasted nuts.", price: 9, priceLabel: "9" },
-    ] },
-  { id: "birahane", name: "Bira & Taproom", category: "Mekan Türü", logo: "Halvard", tagline: "TAPROOM", emoji: "🍺", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["On Tap", "Konserve"], style: { bg: "#14100d", text: "#f0e8dc", muted: "#b0a290", accent: "#e0a458", logoFont: "badge", headingFont: "sans", logoUpper: true },
-    items: [
-      { name: "Craft IPA", desc: "Yerel üretim, acımsı", price: 95 },
-      { name: "Pilsner", desc: "Buz gibi kadeh", price: 75 },
-      { name: "Jumbo Sosis", desc: "Karamelize soğanlı, hardallı", price: 110 },
-      { name: "Halvard Pilsner", desc: "Çek usulü pilsner · %4.8 — çiçekten şerbetçiotu", price: 65 },
-      { name: "Cloudie IPA", desc: "New England IPA · %6.5 — mango, narenciye", price: 75 },
-      { name: "Copper Ale", desc: "Amber ale · %5.2 — karamel malt", price: 70 },
     ] },
   { id: "pub", name: "Pub Mutfağı", category: "Mekan Türü", logo: "The King's Pint", tagline: "PUB GRUB", emoji: "🍗", logoImage: "https://zxhnxmpqpqthesbaxtfh.supabase.co/storage/v1/object/public/menu-logos/e6656f1d-eec5-4586-923c-128e4b807135-1766157997489.png", logoHeight: 132, menuTheme: "turuncu", menuTemplate: "liste", menuRadius: 6, showProductImages: false, sectionTitles: ["SNACKS"], style: { bg: "#71432a", text: "#feeac0", muted: "#bb927c", accent: "#feeac0", sectionTitleColor: "#feeac0", itemColor: "#feeac0", sectionTitleSize: 28, itemFont: "inter", priceSuffix: "", logoFont: "serif", headingFont: "oswald" },
     items: [
