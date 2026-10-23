@@ -331,12 +331,12 @@ export default function PublicMenuPage() {
       {gridMode && showImages && p.imageUrl && (
         <img src={p.imageUrl} alt={name} className="w-full h-28 object-cover" style={{ borderRadius: Math.max(2, radius - 4) }} loading="lazy" />
       )}
-      <div className="flex items-start justify-between gap-4 w-full">
-        <div className="flex items-start gap-2 min-w-0">
+      <div className={`flex items-start justify-between gap-4 w-full ${gridMode ? "flex-col" : ""}`}>
+        <div className="flex items-start gap-2 min-w-0 flex-1">
           {!gridMode && showImages && p.imageUrl && (
             <img src={p.imageUrl} alt={name} className="w-12 h-12 object-cover shrink-0" style={{ borderRadius: Math.max(2, radius - 4) }} loading="lazy" />
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="font-medium">
               {name}
               {p.model3dUrl && (
@@ -349,7 +349,7 @@ export default function PublicMenuPage() {
             {description && <p className="text-sm" style={ps ? { color: ps.muted } : undefined}>{description}</p>}
           </div>
         </div>
-        <span className="whitespace-nowrap font-semibold" style={{ color: accent }}>{formatPrice(p.price, currency)}</span>
+        <span className="whitespace-nowrap font-semibold shrink-0" style={{ color: accent }}>{formatPrice(p.price, currency)}</span>
       </div>
     </button>
   );
@@ -442,7 +442,7 @@ export default function PublicMenuPage() {
 
       {/* Product sheet: bottom panel on mobile, centered dialog on desktop */}
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-6" onClick={() => setSelected(null)}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-6" onClick={() => setSelected(null)} onKeyDown={(e) => e.key === 'Escape' && setSelected(null)}>
           <div
             className="w-full sm:max-w-md bg-background text-foreground rounded-t-2xl sm:rounded-2xl p-5 max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
@@ -478,7 +478,7 @@ export default function PublicMenuPage() {
 
       {/* Cart drawer */}
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onClick={() => setCartOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onClick={() => setCartOpen(false)} onKeyDown={(e) => e.key === 'Escape' && setCartOpen(false)}>
           <div
             className="w-full sm:max-w-md bg-background text-foreground rounded-t-2xl sm:rounded-2xl p-5 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
