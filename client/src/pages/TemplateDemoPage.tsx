@@ -125,7 +125,7 @@ export default function TemplateDemoPage() {
             Bu bir tasarım örneğidir. MakeTheMenu ile kendi menünüzü 2 dakikada oluşturun, QR koduyla masalara koyun.
           </p>
           <Link href="/kayit" className="mt-4 inline-block">
-            <Button size="lg" className="h-12 text-base" style={{ backgroundColor: accent, color: "#fff" }} data-testid="demo-cta">
+            <Button size="lg" className="h-12 text-base" style={{ backgroundColor: accent, color: "#000" }} data-testid="demo-cta">
               Kendi Menünü Oluştur
             </Button>
           </Link>
