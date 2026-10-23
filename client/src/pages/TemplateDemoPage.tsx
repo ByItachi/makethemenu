@@ -11,6 +11,12 @@ import { SHOWCASE_BY_SLUG } from "@/lib/template-showcase";
  * Gerçek işletme menüsü /p/:restoran adresinde yayınlanır.
  */
 
+/** Saf sayısal bir fiyat etiketine ($/₺/¥ gibi bir birim yoksa) $ işareti ekler. */
+function withDollarIfBare(label: string): string {
+  if (/[^\d.\s/]/.test(label)) return label;
+  return label.replace(/\d+(\.\d+)?/g, (m) => `$${m}`);
+}
+
 /** Hex rengin brightness'ına göre beyaz ya da siyah yazı rengi döndür (WCAG contrast). */
 function getContrastColor(hexColor: string): string {
   const hex = hexColor.replace("#", "");
@@ -100,17 +106,22 @@ export default function TemplateDemoPage() {
               {title}
             </h2>
             {preset.sectionDescriptions?.[i] && (
-              <p className="mb-4 text-neutral-600">{preset.sectionDescriptions[i]}</p>
+              <p className="mb-4" style={{ color: ps.muted }}>{preset.sectionDescriptions[i]}</p>
             )}
             <div>
               {section.map((item) => {
                 const hasImage = Boolean(item.image);
                 const priceNum = ps.priceDecimals ? item.price.toFixed(2) : item.price;
+                const suffix = item.priceSuffix !== undefined ? item.priceSuffix : (ps.priceSuffix ?? "₺");
                 const priceLabel = item.priceLabel !== undefined
-                  ? item.priceLabel
+                  ? withDollarIfBare(item.priceLabel)
+                  : item.price === 0
+                  ? ""
                   : preset.currency
                   ? `${preset.currency}${item.price.toFixed(2)}`
-                  : `${priceNum}${item.priceSuffix !== undefined ? item.priceSuffix : (ps.priceSuffix ?? "₺")}`;
+                  : suffix === ""
+                  ? `$${priceNum}`
+                  : `${priceNum}${suffix}`;
                 return (
                 <div key={item.name} className="-mx-4 px-4 py-3.5 transition-colors hover:bg-black/[0.02] cursor-pointer" onClick={() => setSelected(item)}>
                   <div className="flex items-start justify-between gap-3">
@@ -124,7 +135,7 @@ export default function TemplateDemoPage() {
                           {item.desc}
                         </p>
                       )}
-                      {hasImage && (
+                      {hasImage && priceLabel && (
                         <div className="font-medium" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
                           {priceLabel}
                         </div>
@@ -135,9 +146,11 @@ export default function TemplateDemoPage() {
                         <img src={item.image} alt={item.name} loading="lazy" className="h-full w-full object-cover" />
                       </div>
                     ) : (
-                      <div className="ml-4 font-medium" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
-                        {priceLabel}
-                      </div>
+                      priceLabel && (
+                        <div className="ml-4 font-medium" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
+                          {priceLabel}
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
@@ -175,10 +188,14 @@ export default function TemplateDemoPage() {
             role="button"
             tabIndex={0}
           />
-          <div className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-lg border-t bg-background p-6 shadow-lg">
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-lg border-t p-6 shadow-lg"
+            style={{ backgroundColor: ps.bg, borderColor: `${ps.muted}44` }}
+          >
             <button
               onClick={() => setSelected(null)}
-              className="absolute right-4 top-4 p-2 hover:bg-accent rounded-md transition-colors"
+              className="absolute right-4 top-4 p-2 rounded-md transition-colors hover:opacity-70"
+              style={{ color: ps.muted }}
               aria-label="Kapat"
             >
               <X className="h-5 w-5" />
@@ -193,13 +210,24 @@ export default function TemplateDemoPage() {
                   {selected.desc}
                 </p>
               )}
-              <div className="text-lg font-semibold" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
-                {selected.priceLabel !== undefined
-                  ? selected.priceLabel
+              {(() => {
+                const dPriceNum = ps.priceDecimals ? selected.price.toFixed(2) : selected.price;
+                const dSuffix = selected.priceSuffix !== undefined ? selected.priceSuffix : (ps.priceSuffix ?? "₺");
+                const dPriceLabel = selected.priceLabel !== undefined
+                  ? withDollarIfBare(selected.priceLabel)
+                  : selected.price === 0
+                  ? ""
                   : preset.currency
                   ? `${preset.currency}${selected.price.toFixed(2)}`
-                  : `${ps.priceDecimals ? selected.price.toFixed(2) : selected.price}${selected.priceSuffix !== undefined ? selected.priceSuffix : (ps.priceSuffix ?? "₺")}`}
-              </div>
+                  : dSuffix === ""
+                  ? `$${dPriceNum}`
+                  : `${dPriceNum}${dSuffix}`;
+                return dPriceLabel ? (
+                  <div className="text-lg font-semibold" style={{ color: ps.itemColor || ps.text, fontFamily: itemFont }}>
+                    {dPriceLabel}
+                  </div>
+                ) : null;
+              })()}
             </div>
           </div>
         </>

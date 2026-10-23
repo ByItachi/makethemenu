@@ -762,7 +762,7 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Fresh Orange Juice", desc: "", price: 4 },
       { name: "Flat White", desc: "", price: 3.5 },
     ] },
-  { id: "yilbasi-gecesi", name: "Yılbaşı Gecesi Menüsü", category: "Özel Gün", logo: "Midnight Supper", tagline: "NEW YEAR'S EVE GALA", emoji: "🎆", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["New Year's Eve tasting menu", "To start", "Fish", "Main course", "Dessert"], sectionCounts: [1, 2, 1, 2, 2], style: { bg: "#0c1022", text: "#f4efe3", muted: "#9a9db3", accent: "#d9b867", sectionTitleColor: "#d9b867", itemColor: "#f4efe3", sectionTitleSize: 26, itemFont: "lora", priceSuffix: "", logoFont: "playfair", headingFont: "playfair" },
+  { id: "yilbasi-gecesi", name: "Yılbaşı Gecesi Menüsü", category: "Özel Gün", logo: "Midnight Supper", tagline: "NEW YEAR'S EVE GALA", emoji: "🎆", menuTheme: "grafit", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["New Year's Eve tasting menu", "To start", "Fish", "Main course", "Dessert"], sectionCounts: [1, 2, 1, 2, 2], sectionDescriptions: ["Five courses · $95 per person · wine pairing $55"], style: { bg: "#0c1022", text: "#f4efe3", muted: "#9a9db3", accent: "#d9b867", sectionTitleColor: "#d9b867", itemColor: "#f4efe3", sectionTitleSize: 26, itemFont: "lora", priceSuffix: "", logoFont: "playfair", headingFont: "playfair" },
     items: [
       { name: "Arrival", desc: "Glass of Champagne, oyster with shallot mignonette.", price: 0 },
       { name: "Scallop Crudo", desc: "Blood orange, fennel, chili oil.", price: 0 },
