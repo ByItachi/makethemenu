@@ -676,6 +676,22 @@ export const MENU_PRESETS: MenuPreset[] = [
       { name: "Crème Brûlée", desc: "Vanilla bean, caramelized sugar.", price: 10 },
       { name: "Cheesecake", desc: "New York style, berry compote.", price: 9 },
     ] },
+  { id: "deniz-urunu", name: "Seafood Restaurant", category: "Restoran", logo: "The Salt House", tagline: "FRESH SEAFOOD", emoji: "🦞", menuTheme: "mavi", menuTemplate: "liste", menuRadius: 4, showProductImages: false, sectionTitles: ["Raw bar", "Starters", "Mains", "Sides"], sectionCounts: [3, 3, 4, 2], style: { bg: "#edf4f5", text: "#12303a", muted: "#5a7a8a", accent: "#0f4c5c", sectionTitleColor: "#0f4c5c", itemColor: "#12303a", sectionTitleSize: 26, itemFont: "lora", priceSuffix: "", logoFont: "serif", headingFont: "playfair" },
+    items: [
+      { name: "Oysters", desc: "Three oysters, mignonette, lemon.", price: 21 },
+      { name: "Tuna Crudo", desc: "Sashimi-grade, citrus, olive oil.", price: 17 },
+      { name: "Shrimp Cocktail", desc: "Chilled, cocktail sauce.", price: 18 },
+      { name: "New England Clam Chowder", desc: "Creamy, clams, potatoes.", price: 12 },
+      { name: "Fried Calamari", desc: "Crispy, marinara sauce.", price: 15 },
+      { name: "Crab Cakes", desc: "Lump crab, remoulade.", price: 19 },
+      { name: "Lobster Roll", desc: "Maine lobster, butter, brioche.", price: 34 },
+      { name: "Fish & Chips", desc: "Battered cod, tartar sauce, fries.", price: 24 },
+      { name: "Grilled Salmon", desc: "Lemon butter, seasonal vegetables.", price: 29 },
+      { name: "Mussels Marinière", desc: "White wine, garlic, parsley.", price: 25 },
+      { name: "Seafood Platter", desc: "For two, lobster, shrimp, scallops.", price: 95 },
+      { name: "Hand-Cut Fries", desc: "Sea salt.", price: 6 },
+      { name: "Seasonal Vegetables", desc: "Grilled or steamed.", price: 6 },
+    ] },
 ];
 
 export const MENU_PRESET_BY_ID: Record<string, MenuPreset> = Object.fromEntries(
