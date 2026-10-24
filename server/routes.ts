@@ -21,6 +21,7 @@ import { registerHealthRoutes, registerSeoRoutes } from "./seo";
 import { registerCsvExportRoutes } from "./csv-export";
 import { registerDomainRoutes, registerCustomDomainHostRewrite } from "./domains";
 import { registerAiMenuRoutes } from "./ai/routes";
+import { registerAdminTemplateRoutes, registerPublicTemplateRoutes } from "./admin-templates";
 import { registerPluginRoutes } from "./plugins";
 import { assertWithin3dLimit, Model3dLimitError, isValid3dUrl } from "./plans";
 import { enforcePlanLimit } from "./plans";
@@ -80,6 +81,27 @@ export async function registerRoutes(
   registerDomainRoutes(app);
   registerAiMenuRoutes(app);
   registerPluginRoutes(app);
+  registerPublicTemplateRoutes(app);
+
+  // === PUBLIC: CONTACT / APPLICATION FORMS ===
+  app.post(api.contact.submit.path, async (req, res) => {
+    try {
+      const input = api.contact.submit.input.parse(req.body);
+      const message = await storage.createContactMessage(input);
+      // Yönetim paneline de bildirim düşür; cevapsız talep kalmasın.
+      await storage.createAdminNotification({
+        type: "contact",
+        title: `Yeni mesaj: ${input.subject}`,
+        message: `${input.name} (${input.email}): ${input.message}`.slice(0, 2000),
+        contact: input.email,
+        status: "unread",
+      });
+      res.status(201).json({ ok: true, id: message.id });
+    } catch (err) {
+      if (sendValidationError(err, res)) return;
+      throw err;
+    }
+  });
 
   // Business (tenant) data: must be logged in and belong to a business
   app.use(["/api/tables", "/api/categories", "/api/products", "/api/orders"], requireRestaurant);
@@ -137,6 +159,14 @@ export async function registerRoutes(
     const ok = await storage.deleteCategory(tenantId(req), Number(req.params.id));
     if (!ok) return res.status(404).json({ message: "Kategori bulunamadı." });
     res.status(204).end();
+  });
+
+  // Şablon oluşturucu: sürükle-bırak ile kategori sıralaması.
+  app.post("/api/categories/reorder", async (req, res) => {
+    const parsed = z.object({ ids: z.array(z.number().int().positive()).min(1).max(200) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz sıralama listesi." });
+    await storage.reorderCategories(tenantId(req), parsed.data.ids);
+    res.json({ ok: true });
   });
 
   // === PRODUCTS ===
@@ -206,6 +236,14 @@ export async function registerRoutes(
     res.status(204).end();
   });
 
+  // Şablon oluşturucu: sürükle-bırak ile ürün sıralaması (kategori içi).
+  app.post("/api/products/reorder", async (req, res) => {
+    const parsed = z.object({ ids: z.array(z.number().int().positive()).min(1).max(500) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz sıralama listesi." });
+    await storage.reorderProducts(tenantId(req), parsed.data.ids);
+    res.json({ ok: true });
+  });
+
   // === ORDERS ===
   app.get(api.orders.list.path, async (req, res) => {
     const status = req.query.status as string | undefined;
@@ -264,6 +302,7 @@ export async function registerRoutes(
   app.use(["/api/admin", "/api/integrations"], requirePlatformAdmin);
   registerAdminPlanRoutes(app);
   registerAdminBillingRoutes(app);
+  registerAdminTemplateRoutes(app);
 
   // === ADMIN: IMPERSONATION (login as a business user) ===
   app.post("/api/admin/impersonate", async (req: import("express").Request, res: import("express").Response) => {

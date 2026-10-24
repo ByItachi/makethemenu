@@ -1,80 +1,43 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { Link } from "wouter";
+import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { blogPosts } from "@/lib/blog-posts";
 
-function BlogCard({ title, description, date, readTime, image }: any) {
+function BlogCard({ slug, title, description, date, readTime, image }: {
+  slug: string; title: string; description: string; date: string; readTime: string; image: string;
+}) {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="aspect-video overflow-hidden">
-        <img 
-          src={image} 
-          alt={title}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-        />
-      </div>
-      <div className="p-6">
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-          <span>{date}</span>
-          <span>•</span>
-          <span>{readTime}</span>
+    <Link href={`/kaynaklar/blog/${slug}`}>
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full group">
+        <div className="aspect-video overflow-hidden">
+          <img
+            src={image}
+            alt={title}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          />
         </div>
-        <h3 className="text-xl font-bold mb-3 line-clamp-2">{title}</h3>
-        <p className="text-muted-foreground mb-4 line-clamp-3">{description}</p>
-        <Button variant="outline" className="w-full">
-          Devamını Oku
-        </Button>
-      </div>
-    </Card>
+        <div className="p-6">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+            <span>{date}</span>
+            <span>•</span>
+            <span>{readTime}</span>
+          </div>
+          <h3 className="text-xl font-bold mb-3 line-clamp-2">{title}</h3>
+          <p className="text-muted-foreground mb-4 line-clamp-3">{description}</p>
+          <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
+            Devamını Oku
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      </Card>
+    </Link>
   );
 }
 
 export default function Blog() {
-  const blogPosts = [
-    {
-      title: "Restoran Yönetiminde Dijital Dönüşüm",
-      description: "Geleneksel restoran yönetiminden modern dijital çözümlere geçiş süreci ve avantajları.",
-      date: "15 Şubat 2024",
-      readTime: "5 dk okuma",
-      image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80"
-    },
-    {
-      title: "Müşteri Memnuniyetini Artırmanın 5 Yolu",
-      description: "Restoranınızda müşteri deneyimini iyileştirmek için uygulayabileceğiniz pratik ipuçları.",
-      date: "10 Şubat 2024",
-      readTime: "4 dk okuma",
-      image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&q=80"
-    },
-    {
-      title: "POS Sistemleri ile Stok Takibi",
-      description: "Modern POS sistemlerinin stok yönetimindeki rolü ve işletme verimliliğine katkıları.",
-      date: "5 Şubat 2024",
-      readTime: "6 dk okuma",
-      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80"
-    },
-    {
-      title: "Restoranda Verimlilik ve Maliyet Kontrolü",
-      description: "İşletme maliyetlerini düşürürken verimliliği artırmak için stratejiler ve çözümler.",
-      date: "1 Şubat 2024",
-      readTime: "7 dk okuma",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80"
-    },
-    {
-      title: "Masa Rezervasyon Sistemlerinin Önemi",
-      description: "Modern rezervasyon sistemleriyle müşteri memnuniyetini nasıl artırabilirsiniz?",
-      date: "25 Ocak 2024",
-      readTime: "5 dk okuma",
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80"
-    },
-    {
-      title: "Restoran Analitiği ve Raporlama",
-      description: "Veri analizi ile restoran performansınızı nasıl optimize edebilirsiniz?",
-      date: "20 Ocak 2024",
-      readTime: "8 dk okuma",
-      image: "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=600&q=80"
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
@@ -95,9 +58,10 @@ export default function Blog() {
       <section className="py-24">
         <div className="site-container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogPosts.map((post, index) => (
+            {blogPosts.map((post) => (
               <BlogCard
-                key={index}
+                key={post.slug}
+                slug={post.slug}
                 title={post.title}
                 description={post.description}
                 date={post.date}

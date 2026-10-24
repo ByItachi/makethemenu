@@ -36,6 +36,7 @@ import DownloadPage from "@/pages/DownloadPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import Blog from "@/pages/Blog";
+import BlogDetailPage from "@/pages/BlogDetailPage";
 import SolutionsPage from "@/pages/SolutionsPage";
 import FeatureDetailPage from "@/pages/FeatureDetailPage";
 import AboutSubPage from "@/pages/AboutSubPage";
@@ -65,6 +66,10 @@ import AdminInvoices from "@/pages/admin/AdminInvoices";
 import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminNotifications from "@/pages/admin/AdminNotifications";
+import AdminTemplates from "@/pages/admin/AdminTemplates";
+import AdminTemplateBuilder from "@/pages/admin/AdminTemplateBuilder";
+import AdminAIBuilder from "@/pages/admin/AdminAIBuilder";
+import AdminDemos from "@/pages/admin/AdminDemos";
 import { Loader2 } from "lucide-react";
 import DesktopDashboard from "@/pages/DesktopDashboard";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -146,6 +151,7 @@ function Router() {
       
       <Route path="/is-ortakligi/:slug" component={PartnersPage} />
       <Route path="/kaynaklar/blog" component={Blog} />
+      <Route path="/kaynaklar/blog/:slug" component={BlogDetailPage} />
       <Route path="/kaynaklar/bilgi-merkezi" component={KnowledgeBasePage} />
       <Route path="/kaynaklar/api" component={ApiDocsPage} />
       <Route path="/basari-hikayeleri" component={SuccessStoriesPage} />
@@ -187,6 +193,21 @@ function Router() {
       <Route path="/admin/notifications">
         {() => <AdminRoute component={AdminNotifications} />}
       </Route>
+      <Route path="/admin/templates">
+        {() => <AdminRoute component={AdminTemplates} />}
+      </Route>
+      <Route path="/admin/templates/new">
+        {() => <AdminRoute component={AdminTemplateBuilder} />}
+      </Route>
+      <Route path="/admin/templates/:id/edit">
+        {() => <AdminRoute component={AdminTemplateBuilder} />}
+      </Route>
+      <Route path="/admin/ai-builder">
+        {() => <AdminRoute component={AdminAIBuilder} />}
+      </Route>
+      <Route path="/admin/demos">
+        {() => <AdminRoute component={AdminDemos} />}
+      </Route>
       <Route path="/admin/settings">
         {() => <AdminRoute component={AdminSettings} />}
       </Route>
@@ -217,8 +238,11 @@ function Router() {
       <Route path="/patron/*">
         {() => <ProtectedRoute component={PatronLayout} />}
       </Route>
-      <Route path="/panel">
+      <Route path="/dashboard">
         {() => <ProtectedRoute component={Dashboard} />}
+      </Route>
+      <Route path="/panel">
+        {() => <Redirect to="/dashboard" />}
       </Route>
       <Route path="/pos">
         {() => <ProtectedRoute component={POS} />}
