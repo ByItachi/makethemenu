@@ -13,7 +13,7 @@ export function Footer() {
           <div className="space-y-6">
             <img
                 src="/makethemenu-footer.png"
-                alt="MakeTheMenu"
+                alt="Makethemenu"
                 draggable={false}
                 className="h-11 md:h-14 w-auto max-w-[190px] md:max-w-[220px] object-contain drop-shadow-lg select-none"
               />

@@ -38,7 +38,7 @@ export default function DownloadPage() {
           <div className="text-center pt-32 mb-12">
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4"><span>Masaüstü </span><span className="text-primary">Uygulamayı İndir</span></h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              MakeTheMenu POS'u Windows'a kurun; internet kesilse bile kasa, masa ve adisyon
+              Makethemenu POS'u Windows'a kurun; internet kesilse bile kasa, masa ve adisyon
               işlemleriniz kesintisiz devam etsin.
             </p>
             <Button size="lg" className="h-14 px-8 text-base mt-4" asChild>

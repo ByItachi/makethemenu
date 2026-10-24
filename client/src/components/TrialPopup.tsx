@@ -36,7 +36,7 @@ export function TrialPopup() {
             </button>
 
             <h2 className="text-2xl md:text-3xl font-display font-semibold mb-8 leading-snug text-slate-900">
-              Hiçbir risk almadan <span className="text-primary">MakeTheMenu</span>'nün avantajlarını test edin.
+              Hiçbir risk almadan <span className="text-primary">Makethemenu</span>'nün avantajlarını test edin.
             </h2>
 
             <ul className="text-left max-w-sm mx-auto space-y-4 mb-8 text-slate-600">

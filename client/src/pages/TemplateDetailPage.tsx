@@ -24,8 +24,8 @@ export default function TemplateDetailPage() {
   const frameBg = `color-mix(in oklab, ${accent} 86%, black)`;
 
   useEffect(() => {
-    if (t) document.title = `${t.name} | MakeTheMenu`;
-    return () => { document.title = "MakeTheMenu"; };
+    if (t) document.title = `${t.name} | Makethemenu`;
+    return () => { document.title = "Makethemenu"; };
   }, [t]);
 
   if (!t) {

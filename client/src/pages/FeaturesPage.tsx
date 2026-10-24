@@ -14,7 +14,7 @@ export default function FeaturesPage() {
             <h1 className="text-4xl md:text-6xl font-display font-bold mb-6"><span>Gelişmiş </span><span className="text-primary">Özellikler</span></h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               İşletmenizi dijitalleştirin, operasyonlarınızı hızlandırın ve verimliliğinizi artırın.
-              MakeTheMenu size ihtiyacınız olan tüm araçları sunar.
+              Makethemenu size ihtiyacınız olan tüm araçları sunar.
             </p>
           </div>
 

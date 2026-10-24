@@ -350,7 +350,7 @@ const OnlineAccount = () => {
                           <p className="text-xs text-slate-400 mt-2">IBAN</p>
                           <p className="font-mono text-sm dark:text-slate-200">TR12 0006 2000 0000 0000 1234 56</p>
                           <p className="text-xs text-slate-400 mt-2">Alıcı</p>
-                          <p className="font-medium dark:text-slate-200">MakeTheMenu Teknoloji A.Ş.</p>
+                          <p className="font-medium dark:text-slate-200">Makethemenu Teknoloji A.Ş.</p>
                         </div>
                         <div className="bg-blue-50 p-3 rounded border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
                           <p className="text-xs text-blue-700 dark:text-blue-300">

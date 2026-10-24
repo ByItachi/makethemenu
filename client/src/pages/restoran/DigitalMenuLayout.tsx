@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Home, QrCode, Settings, Copy, Check, Download, Globe, ExternalLink, UtensilsCrossed, Rocket, Info, Palette, Monitor, LayoutTemplate } from "lucide-react";
+import { Home, QrCode, Settings, Copy, Check, Download, Globe, ExternalLink, UtensilsCrossed, Rocket, Info, Palette, Monitor, LayoutTemplate, Paintbrush } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { MenuDesignWizard } from "@/pages/restoran/online/PaymentTypesPage";
 import { KioskDesignWizard } from "@/pages/restoran/online/KioskDesignWizard";
 import { ReadyTemplatesGallery } from "@/pages/restoran/online/ReadyTemplatesGallery";
+import MenuBuilder from "@/pages/restoran/online/MenuBuilder";
 
 type RestaurantSettings = {
   id: number;
@@ -91,7 +92,7 @@ function DigitalMenuHome({ goTables }: { goTables: () => void }) {
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div>
             <CardTitle>Dijital menü durumu</CardTitle>
-            <CardDescription>MakeTheMenu işletmenizin menüsünü çevrimiçi yayınlamanızı sağlar.</CardDescription>
+            <CardDescription>Makethemenu işletmenizin menüsünü çevrimiçi yayınlamanızı sağlar.</CardDescription>
           </div>
           <div className="sm:ml-auto flex items-center gap-2">
             {r.isPublished ? <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20">Yayında</Badge> : <Badge variant="secondary">Yayında değil</Badge>}
@@ -288,6 +289,7 @@ export default function DigitalMenuLayout() {
   const tabs = [
     { key: "home", label: "Giriş", icon: Home },
     { key: "templates", label: "Hazır Şablonlar", icon: LayoutTemplate },
+    { key: "builder", label: "Menü Builder", icon: Paintbrush },
     { key: "design", label: "Tasarım Sihirbazı", icon: Palette },
     { key: "kiosk", label: "Kiosk Tasarımı", icon: Monitor },
     { key: "tables", label: "Masa Karekod İşlemleri", icon: QrCode },
@@ -300,6 +302,8 @@ export default function DigitalMenuLayout() {
         return <TableQrCodes />;
       case "templates":
         return <ReadyTemplatesGallery />;
+      case "builder":
+        return <MenuBuilder />;
       case "design":
         return <MenuDesignWizard />;
       case "kiosk":

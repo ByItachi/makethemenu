@@ -47,7 +47,7 @@ export default function FeatureDetailPage() {
               <span className="text-primary">Entegrasyon</span> Mağazamız
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              MakeTheMenu, işinizi kolaylaştırmak için onlarca popüler platformla sorunsuz bir şekilde entegre çalışır.
+              Makethemenu, işinizi kolaylaştırmak için onlarca popüler platformla sorunsuz bir şekilde entegre çalışır.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, X, Vegan } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MENU_PRESET_BY_ID, MENU_PRESET_FONTS } from "@/lib/menu-presets";
+import { MENU_PRESET_BY_ID, MENU_PRESET_FONTS, type MenuPreset, type MenuPresetFontKey } from "@/lib/menu-presets";
 import { SHOWCASE_BY_SLUG } from "@/lib/template-showcase";
 
 /**
@@ -10,12 +11,6 @@ import { SHOWCASE_BY_SLUG } from "@/lib/template-showcase";
  * Veritabanına yazmadan, şablonun marka stilleriyle örnek bir menü çizer.
  * Gerçek işletme menüsü /p/:restoran adresinde yayınlanır.
  */
-
-/** Saf sayısal bir fiyat etiketine ($/₺/¥ gibi bir birim yoksa) $ işareti ekler. */
-function withDollarIfBare(label: string): string {
-  if (/[^\d.\s/]/.test(label)) return label;
-  return label.replace(/\d+(\.\d+)?/g, (m) => `$${m}`);
-}
 
 /** Hex rengin brightness'ına göre beyaz ya da siyah yazı rengi döndür (WCAG contrast). */
 function getContrastColor(hexColor: string): string {
@@ -29,15 +24,32 @@ function getContrastColor(hexColor: string): string {
 
 export default function TemplateDemoPage() {
   const [, params] = useRoute("/sablon-demo/:slug");
-  const t = params?.slug ? SHOWCASE_BY_SLUG[params.slug] : undefined;
-  const preset = t ? MENU_PRESET_BY_ID[t.presetId] : undefined;
+  const slug = params?.slug;
+  const t = slug ? SHOWCASE_BY_SLUG[slug] : undefined;
+  const staticPreset = t ? MENU_PRESET_BY_ID[t.presetId] : undefined;
+
+  const { data: dbTemplate } = useQuery({
+    queryKey: ["/api/public/demos", slug],
+    queryFn: async () => {
+      const res = await fetch(`/api/public/demos/${slug}`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!slug && !staticPreset,
+    retry: false,
+  });
+
+  const preset: MenuPreset | null = staticPreset || (dbTemplate?.template?.data as MenuPreset) || null;
   const ps = preset?.style;
   const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => {
-    if (t && preset) document.title = `${preset.logo} • ${t.name.replace(/ Menü Şablonu$/, "")} • MakeTheMenu`;
-    return () => { document.title = "MakeTheMenu"; };
-  }, [t, preset]);
+    if (preset) {
+      const title = t?.name?.replace(/ Menü Şablonu$/, "") || dbTemplate?.title || preset.name || "";
+      document.title = `${preset.logo} • ${title} • Makethemenu`;
+    }
+    return () => { document.title = "Makethemenu"; };
+  }, [t, preset, dbTemplate]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -47,7 +59,7 @@ export default function TemplateDemoPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  if (!t || !preset || !ps) {
+  if (!preset || !ps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
         <div className="text-center">
@@ -62,8 +74,8 @@ export default function TemplateDemoPage() {
 
   const accent = ps.accent;
 
-  const itemFont = ps.itemFont ? MENU_PRESET_FONTS[ps.itemFont] : undefined;
-  const descFont = ps.descFont ? MENU_PRESET_FONTS[ps.descFont] : itemFont;
+  const itemFont = ps.itemFont ? MENU_PRESET_FONTS[ps.itemFont as MenuPresetFontKey] : undefined;
+  const descFont = ps.descFont ? MENU_PRESET_FONTS[ps.descFont as MenuPresetFontKey] : itemFont;
   return (
     <main className="min-h-screen p-4" style={{ backgroundColor: ps.bg, color: ps.text }} data-testid="template-demo">
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
@@ -74,7 +86,7 @@ export default function TemplateDemoPage() {
             <h1
               className="break-words text-center font-bold tracking-wide"
               style={{
-                fontFamily: MENU_PRESET_FONTS[ps.logoFont],
+                fontFamily: MENU_PRESET_FONTS[ps.logoFont as MenuPresetFontKey],
                 textTransform: ps.logoUpper ? "uppercase" : undefined,
                 fontStyle: ps.logoItalic ? "italic" : undefined,
                 color: accent,
@@ -99,7 +111,7 @@ export default function TemplateDemoPage() {
               className="pb-2 font-semibold"
               style={{
                 color: ps.sectionTitleColor || accent,
-                fontFamily: MENU_PRESET_FONTS[ps.headingFont],
+                fontFamily: MENU_PRESET_FONTS[ps.headingFont as MenuPresetFontKey],
                 fontSize: ps.sectionTitleSize ?? 24,
               }}
             >
@@ -114,7 +126,7 @@ export default function TemplateDemoPage() {
                 const priceNum = ps.priceDecimals ? item.price.toFixed(2) : item.price;
                 const suffix = item.priceSuffix !== undefined ? item.priceSuffix : (ps.priceSuffix ?? "₺");
                 const priceLabel = item.priceLabel !== undefined
-                  ? withDollarIfBare(item.priceLabel)
+                  ? item.priceLabel
                   : item.price === 0
                   ? ""
                   : preset.currency
@@ -163,7 +175,7 @@ export default function TemplateDemoPage() {
 
         <div className="mt-10 rounded-2xl border p-6 text-center" style={{ borderColor: `${ps.muted}44` }}>
           <p className="text-sm" style={{ color: ps.muted }}>
-            Bu bir tasarım örneğidir. MakeTheMenu ile kendi menünüzü 2 dakikada oluşturun, QR koduyla masalara koyun.
+            Bu bir tasarım örneğidir. Makethemenu ile kendi menünüzü 2 dakikada oluşturun, QR koduyla masalara koyun.
           </p>
           <Link href="/kayit" className="mt-4 inline-block">
             <Button size="lg" className="h-12 text-base" style={{ backgroundColor: accent, color: getContrastColor(accent) }} data-testid="demo-cta">
@@ -171,7 +183,7 @@ export default function TemplateDemoPage() {
             </Button>
           </Link>
           <div className="mt-4">
-            <Link href={`/sablonlar/${t.slug}`} className="text-xs underline" style={{ color: ps.muted }}>
+            <Link href={`/sablonlar/${t?.slug || slug || ""}`} className="text-xs underline" style={{ color: ps.muted }}>
               Bu şablonun detayına dön
             </Link>
           </div>
@@ -214,7 +226,7 @@ export default function TemplateDemoPage() {
                 const dPriceNum = ps.priceDecimals ? selected.price.toFixed(2) : selected.price;
                 const dSuffix = selected.priceSuffix !== undefined ? selected.priceSuffix : (ps.priceSuffix ?? "₺");
                 const dPriceLabel = selected.priceLabel !== undefined
-                  ? withDollarIfBare(selected.priceLabel)
+                  ? selected.priceLabel
                   : selected.price === 0
                   ? ""
                   : preset.currency

@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { TrialPopup } from "@/components/TrialPopup";
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
-import { PRESETS, TemplatePreview } from "@/pages/restoran/online/ReadyTemplatesGallery";
+import { SHOWCASE_TEMPLATES } from "@/lib/template-showcase";
 import {
   UtensilsCrossed,
   BarChart3,
@@ -217,25 +217,34 @@ export default function LandingPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-display font-bold mb-4"><span>Ücretsiz Dijital </span><span className="text-primary">Menü Şablonları</span></h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Mutfak ve mekan türünüze uygun {PRESETS.length} hazır şablondan birini seçin, tamamı ücretsiz ve tek tıkla uygulanır.
+              Mutfak ve mekan türünüze uygun {SHOWCASE_TEMPLATES.length} hazır şablondan birini seçin, tamamı ücretsiz ve tek tıkla uygulanır.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-            {PRESETS.slice(0, 4).map((p) => (
-              <Card key={p.id}>
-                <CardContent className="p-4 space-y-3">
-                  <TemplatePreview preset={p} />
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium text-sm">{p.name}</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:grid-cols-4">
+            {SHOWCASE_TEMPLATES.slice(0, 4).map((t) => (
+              <Link key={t.slug} href={`/sablonlar/${t.slug}`} className="group block">
+                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg">
+                  <div className="aspect-[4/5] overflow-hidden">
+                    <img
+                      src={t.image}
+                      alt={`${t.name} — dijital menü tasarım örneği`}
+                      loading="lazy"
+                      className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-2 p-4">
+                    <p className="truncate text-sm font-medium">{t.name}</p>
                     <Badge variant="secondary" className="shrink-0">Ücretsiz</Badge>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </Link>
             ))}
           </div>
-          <div className="text-center">
+          <div className="mt-10 text-center">
             <Link href="/sablonlar">
-              <Button size="lg" className="rounded-full h-14 px-8 text-lg font-medium">Tüm Şablonları Gör</Button>
+              <Button size="lg" className="h-14 rounded-full bg-primary px-8 text-lg font-medium text-primary-foreground hover:bg-primary/90">
+                Tüm Şablonları Gör
+              </Button>
             </Link>
           </div>
         </div>
