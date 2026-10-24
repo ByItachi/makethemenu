@@ -200,7 +200,7 @@ export default function LandingPage() {
       <section id="templates" className="py-24 bg-secondary/10">
         <div className="site-container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">Ücretsiz Dijital Menü Şablonları</h2>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4"><span>Ücretsiz Dijital </span><span className="text-primary">Menü Şablonları</span></h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Mutfak ve mekan türünüze uygun {PRESETS.length} hazır şablondan birini seçin, tamamı ücretsiz ve tek tıkla uygulanır.
             </p>

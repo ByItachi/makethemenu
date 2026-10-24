@@ -13,7 +13,7 @@ export default function TemplatesPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-white/0 dark:to-transparent pointer-events-none" />
         <div className="site-container relative z-10">
           <div className="text-center pt-32 mb-12">
-            <h1 className="text-4xl md:text-6xl font-display font-bold mb-6">Ücretsiz Dijital Menü Şablonları</h1>
+            <h1 className="text-4xl md:text-6xl font-display font-bold mb-6"><span>Ücretsiz Dijital </span><span className="text-primary">Menü Şablonları</span></h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Mekanınıza uygun {SHOWCASE_TEMPLATES.length} hazır şablondan birini seçin. Tamamı ücretsizdir,
               tek tıkla menünüze uygulanır ve istediğiniz zaman değiştirebilirsiniz.
