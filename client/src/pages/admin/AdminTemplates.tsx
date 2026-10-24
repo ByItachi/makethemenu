@@ -10,6 +10,17 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Search, Copy, Archive, Pencil, Eye, Sparkles } from "lucide-react";
 import { CATEGORIES } from "@/lib/menu-presets";
+import { SHOWCASE_TEMPLATES } from "@/lib/template-showcase";
+
+// templates.slug veritabanda iç şablon kimliğiyle (menu-presets.ts "id") aynıdır,
+// ama herkese açık demo sayfaları (/sablon-demo/:slug) vitrindeki İngilizce slug'ı kullanır.
+// Önizleme linkini her zaman doğru genel slug'a yönlendir.
+const PRESET_ID_TO_SHOWCASE_SLUG: Record<string, string> = Object.fromEntries(
+  SHOWCASE_TEMPLATES.map((t) => [t.presetId, t.slug]),
+);
+function publicDemoSlug(templateSlug: string): string {
+  return PRESET_ID_TO_SHOWCASE_SLUG[templateSlug] ?? templateSlug;
+}
 
 type Template = {
   id: number;
@@ -150,7 +161,7 @@ export default function AdminTemplates() {
                       <Button size="sm" variant="secondary" onClick={() => navigate(`/admin/templates/${t.id}/edit`)} className="gap-1">
                         <Pencil className="h-3.5 w-3.5" /> Düzenle
                       </Button>
-                      <Button size="sm" variant="secondary" onClick={() => window.open(`/sablon-demo/${t.slug}`, "_blank")} className="gap-1">
+                      <Button size="sm" variant="secondary" onClick={() => window.open(`/sablon-demo/${publicDemoSlug(t.slug)}`, "_blank")} className="gap-1">
                         <Eye className="h-3.5 w-3.5" /> Önizle
                       </Button>
                     </div>
