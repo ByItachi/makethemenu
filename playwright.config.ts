@@ -23,23 +23,23 @@ export default defineConfig({
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
-  webServer: {
-    command:
-      `npx tsx server/index.ts`,
-    port: PORT,
-    reuseExistingServer: true,
-    timeout: 120_000,
-    env: {
-      PORT: String(PORT),
-      NODE_ENV: "development",
-      PUBLIC_BASE_URL: BASE_URL,
-      AUTH_REGISTER_MAX: "1000",
-      AUTH_FORGOT_MAX: "1000",
-      AUTH_VERIFY_MAX: "1000",
-      AUTH_LOGIN_MAX: "1000",
-      PAYMENT_PROVIDER: process.env.PAYMENT_PROVIDER ?? "mock",
-      PAYMENT_MODE: process.env.PAYMENT_MODE ?? "test",
-      PAYMENT_WEBHOOK_SECRET: process.env.PAYMENT_WEBHOOK_SECRET ?? randomBytes(32).toString("hex"),
-    },
-  },
+  // webServer disabled - run dev server manually with: npm run dev
+  // webServer: {
+  //   command: `tsx server/index.ts`,
+  //   port: PORT,
+  //   reuseExistingServer: true,
+  //   timeout: 120_000,
+  //   env: {
+  //     PORT: String(PORT),
+  //     NODE_ENV: "development",
+  //     PUBLIC_BASE_URL: BASE_URL,
+  //     AUTH_REGISTER_MAX: "1000",
+  //     AUTH_FORGOT_MAX: "1000",
+  //     AUTH_VERIFY_MAX: "1000",
+  //     AUTH_LOGIN_MAX: "1000",
+  //     PAYMENT_PROVIDER: process.env.PAYMENT_PROVIDER ?? "mock",
+  //     PAYMENT_MODE: process.env.PAYMENT_MODE ?? "test",
+  //     PAYMENT_WEBHOOK_SECRET: process.env.PAYMENT_WEBHOOK_SECRET ?? randomBytes(32).toString("hex"),
+  //   },
+  // },
 });
