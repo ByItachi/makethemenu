@@ -24,10 +24,18 @@
     "db:migrate-v7": "tsx server/migrations/v7.ts",
     "db:migrate-v8": "tsx server/migrations/v8.ts",
     "db:migrate-v9": "tsx server/migrations/v9.ts",
+    "db:migrate-v10": "tsx server/migrations/v10.ts",
+    "db:migrate-v11": "tsx server/migrations/v11.ts",
+    "db:seed-templates": "tsx server/migrations/seed-templates.ts",
+    "db:seed-demos": "tsx server/migrations/seed-demos.ts",
+    "db:clean-demo": "tsx server/migrations/clean-demo-data.ts",
     "test:e2e": "playwright test",
     "test:all": "playwright test && tsx --test tests/unit.test.ts tests/email.test.ts tests/billing.test.ts tests/billing-http.test.ts tests/orders-analytics.test.ts tests/integration.test.ts"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@radix-ui/react-accordion": "^1.2.4",
