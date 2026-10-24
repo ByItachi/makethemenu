@@ -161,7 +161,7 @@ export default function AdminTemplates() {
                       <Button size="sm" variant="secondary" onClick={() => navigate(`/admin/templates/${t.id}/edit`)} className="gap-1">
                         <Pencil className="h-3.5 w-3.5" /> Düzenle
                       </Button>
-                      <Button size="sm" variant="secondary" onClick={() => window.open(`/sablon-demo/${publicDemoSlug(t.slug)}`, "_blank")} className="gap-1">
+                      <Button size="sm" variant="secondary" onClick={() => navigate(`/sablon-demo/${publicDemoSlug(t.slug)}`)} className="gap-1">
                         <Eye className="h-3.5 w-3.5" /> Önizle
                       </Button>
                     </div>
