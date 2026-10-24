@@ -11,10 +11,10 @@ export default function FeaturesPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-white/0 dark:to-transparent pointer-events-none" />
         <div className="site-container relative z-10">
           <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-6xl font-display font-bold mb-6">Gelişmiş Özellikler</h1>
+            <h1 className="text-4xl md:text-6xl font-display font-bold mb-6"><span>Gelişmiş </span><span className="text-primary">Özellikler</span></h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               İşletmenizi dijitalleştirin, operasyonlarınızı hızlandırın ve verimliliğinizi artırın.
-              makethemenu size ihtiyacınız olan tüm araçları sunar.
+              MakeTheMenu size ihtiyacınız olan tüm araçları sunar.
             </p>
           </div>
 

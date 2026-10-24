@@ -231,7 +231,7 @@ const IntegrationPurchase = () => {
       <div className="flex-1 ml-64 p-6 max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Entegrasyon Satın Al</h1>
-          <p className="text-slate-500 dark:text-slate-400">Seçtiğiniz entegrasyon uygulamalarını satın alın ve makethemenu'nüzü güçlendirin.</p>
+          <p className="text-slate-500 dark:text-slate-400">Seçtiğiniz entegrasyon uygulamalarını satın alın ve MakeTheMenu deneyiminizi güçlendirin.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -504,7 +504,7 @@ const IntegrationPurchase = () => {
                             <p className="text-xs text-slate-400 mt-2">IBAN</p>
                             <p className="font-mono text-sm dark:text-slate-200">TR12 0006 2000 0000 0000 1234 56</p>
                             <p className="text-xs text-slate-400 mt-2">Alıcı</p>
-                            <p className="font-medium dark:text-slate-200">makethemenu Teknoloji A.Ş.</p>
+                            <p className="font-medium dark:text-slate-200">MakeTheMenu Teknoloji A.Ş.</p>
                           </div>
                           <div className="bg-blue-50 p-3 rounded border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
                             <p className="text-xs text-blue-700 dark:text-blue-300">

@@ -51,7 +51,7 @@ export const translations = {
       mobileMenu: "Menü",
     },
     topbar: {
-      brand: "makethemenu",
+      brand: "MakeTheMenu",
       tagline: "ile dakikalar içinde pos sisteminizi açın!",
       or: "ya da",
       callUs: "Sizi Arayalım",
@@ -261,7 +261,7 @@ export const translations = {
       mobileMenu: "Menu",
     },
     topbar: {
-      brand: "makethemenu",
+      brand: "MakeTheMenu",
       tagline: "get your POS system running in minutes!",
       or: "or",
       callUs: "Call Us",
