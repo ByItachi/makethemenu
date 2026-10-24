@@ -36,7 +36,7 @@ export default function DownloadPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-white/0 dark:to-transparent pointer-events-none" />
         <div className="site-container relative z-10">
           <div className="text-center pt-32 mb-12">
-            <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">Masaüstü Uygulamayı İndir</h1>
+            <h1 className="text-4xl md:text-5xl font-display font-bold mb-4"><span>Masaüstü </span><span className="text-primary">Uygulamayı İndir</span></h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               MakeTheMenu POS'u Windows'a kurun; internet kesilse bile kasa, masa ve adisyon
               işlemleriniz kesintisiz devam etsin.
