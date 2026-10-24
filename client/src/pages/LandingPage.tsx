@@ -48,6 +48,21 @@ const contactSchema = z.object({
 
 type ContactForm = z.infer<typeof contactSchema>;
 
+// Bölüm başlıklarını iki renkli yapar: ilk kelime(ler) normal, son kelime primary.
+// Tek kelimelik başlıklarda tamamı primary olur.
+function TwoToneTitle({ text }: { text: string }) {
+  const words = text.trim().split(/\s+/);
+  if (words.length < 2) {
+    return <span className="text-primary">{text}</span>;
+  }
+  return (
+    <>
+      <span>{words.slice(0, -1).join(" ")} </span>
+      <span className="text-primary">{words[words.length - 1]}</span>
+    </>
+  );
+}
+
 export default function LandingPage() {
   const { toast } = useToast();
   const { t, language } = useLanguage();
@@ -165,7 +180,7 @@ export default function LandingPage() {
       <section id="features" className="py-24 bg-card/50">
         <div className="site-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">{t("landing.features.title")}</h2>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4"><TwoToneTitle text={t("landing.features.title")} /></h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
               {t("landing.features.subtitle")}
             </p>
@@ -220,7 +235,7 @@ export default function LandingPage() {
           </div>
           <div className="text-center">
             <Link href="/sablonlar">
-              <Button size="lg" variant="outline">Tüm Şablonları Gör</Button>
+              <Button size="lg" className="rounded-full h-14 px-8 text-lg font-medium">Tüm Şablonları Gör</Button>
             </Link>
           </div>
         </div>
@@ -288,7 +303,7 @@ export default function LandingPage() {
       <section id="pricing" className="py-24">
         <div className="site-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">{t("landing.pricing.title")}</h2>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4"><TwoToneTitle text={t("landing.pricing.title")} /></h2>
             <p className="text-muted-foreground">{t("landing.pricing.subtitle")}</p>
           </div>
 
@@ -319,7 +334,7 @@ export default function LandingPage() {
       {/* Integrations Section */}
       <section id="integrations" className="py-24 bg-secondary/30">
         <div className="site-container text-center">
-          <h2 className="text-3xl font-display font-bold mb-12">{t("landing.integrations.title")}</h2>
+          <h2 className="text-3xl font-display font-bold mb-12"><TwoToneTitle text={t("landing.integrations.title")} /></h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center opacity-70">
             <IntegrationItem icon={Globe} name={t("landing.integrations.eInvoice")} />
             <IntegrationItem icon={Zap} name={t("landing.integrations.yemeksepeti")} />
@@ -344,7 +359,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="flex-1 order-1 md:order-2">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-6">{t("landing.about.title")}</h2>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mb-6"><TwoToneTitle text={t("landing.about.title")} /></h2>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
               {language === "tr" ? (
                 <>makethemenu {t("landing.about.description")}</>
@@ -366,7 +381,7 @@ export default function LandingPage() {
       <section id="blog" className="py-24 bg-card/30">
         <div className="site-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">{t("landing.blog.title")}</h2>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4"><TwoToneTitle text={t("landing.blog.title")} /></h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
               {t("landing.blog.subtitle")}
             </p>
@@ -406,7 +421,7 @@ export default function LandingPage() {
         <div className="site-container">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-display font-bold mb-4">{t("landing.contact.title")}</h2>
+              <h2 className="text-3xl font-display font-bold mb-4"><TwoToneTitle text={t("landing.contact.title")} /></h2>
               <p className="text-muted-foreground">{t("landing.contact.subtitle")}</p>
             </div>
 
