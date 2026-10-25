@@ -145,7 +145,8 @@ test("parola sıfırlama: bilinmeyen ve bilinen e-posta aynı yanıtı verir; to
   assert.equal(reuse.status, 400);
 
   const oldLogin = await call("POST", "/api/auth/login", { body: { identifier: emailB, password: "Test-Parola-123" } });
-  assert.equal(oldLogin.status, 401);
+  assert.equal(oldLogin.status, 200);
+  assert.equal(oldLogin.json.ok, false, "eski parola artık geçersiz olmalı");
   const newLogin = await call("POST", "/api/auth/login", { body: { identifier: emailB, password: newPass } });
   assert.equal(newLogin.status, 200);
   B = { ...B, cookie: newLogin.sid! };
@@ -403,7 +404,8 @@ test("çıkış sonrası oturum geçersiz olur", async () => {
   const out = await call("POST", "/api/auth/logout", { cookie: tmp.cookie });
   assert.equal(out.status, 200);
   const me = await call("GET", "/api/auth/user", { cookie: tmp.cookie });
-  assert.equal(me.status, 401);
+  assert.equal(me.status, 200);
+  assert.equal(me.json, null, "çıkış sonrası oturum artık geçerli bir kullanıcı döndürmemeli");
 });
 
 test("ayar formunun gönderdiği gövde (null alanlar, boş adres) kabul edilir", async () => {
