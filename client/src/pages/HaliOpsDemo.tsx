@@ -418,8 +418,15 @@ export default function HaliOpsDemo() {
             <ChevronRight className={"w-4 h-4 text-slate-300 transition-transform " + (open ? "rotate-90" : "")} />
           </div>
         </button>
-        {open && showItems && (
+        {open && (
           <div className="border-t border-orange-50 px-4 py-3 space-y-2 bg-orange-50/40">
+            {!showItems && (
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pb-1">
+                <span>Tel: <b className="text-slate-700">{o.phone || "—"}</b></span>
+                <span>Alım: <b className="text-slate-700">{o.pickupDate}</b></span>
+                {driverNameFor(o) && <span>Sürücü: <b className="text-slate-700">{driverNameFor(o)}</b></span>}
+              </div>
+            )}
             {o.items.map((i) => (
               <div key={i.id} className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex-1 min-w-0">
@@ -430,12 +437,16 @@ export default function HaliOpsDemo() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <select className="h-8 rounded-lg border border-orange-100 bg-white px-2 text-xs"
-                    value={i.status} onChange={(e) => setStatus(i, e.target.value)}>
-                    {Object.entries(STAGE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                  </select>
+                  {showItems ? (
+                    <select className="h-8 rounded-lg border border-orange-100 bg-white px-2 text-xs"
+                      value={i.status} onChange={(e) => setStatus(i, e.target.value)}>
+                      {Object.entries(STAGE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    </select>
+                  ) : (
+                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100">{STAGE_LABEL[i.status] ?? i.status}</Badge>
+                  )}
                   <a href={`/api/qr.svg?text=${encodeURIComponent(window.location.origin + "/teslimat/" + i.labelCode)}`}
-                    target="_blank" rel="noreferrer" title="QR etiketi (yazdır — okutulunca teslim işaretlenir)"
+                    target="_blank" rel="noreferrer" title="QR etiketi"
                     className="p-1.5 rounded-lg border border-orange-100 text-primary hover:bg-orange-50">
                     <QrCode className="w-4 h-4" />
                   </a>
