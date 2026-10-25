@@ -674,6 +674,7 @@ export const carpetOrders = mysqlTable("carpet_orders", {
   phone: varchar("phone", { length: 32 }).notNull(),
   addressText: varchar("address_text", { length: 512 }).notNull(),
   serviceType: varchar("service_type", { length: 32 }).notNull().default("pickup_delivery"), // pickup_delivery | factory_only
+  category: varchar("category", { length: 16 }).notNull().default("hali"), // hali | koltuk — halı yıkama / koltuk yıkama
   estimatedPrice: decimal("estimated_price", { precision: 10, scale: 2 }).notNull().default("0"),
   approvedPrice: decimal("approved_price", { precision: 10, scale: 2 }),
   paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }).notNull().default("0"),
@@ -745,6 +746,20 @@ export const deliverySessions = mysqlTable("delivery_sessions", {
   startedAt: timestamp("started_at").defaultNow(),
   endedAt: timestamp("ended_at"),
 });
+
+/** Fason firmaları: "Fason Yıkayan" = halılarınızı sizin adınıza yıkayan dış firma (siz onlara iş veriyorsunuz),
+ *  "Fason Yıkatan" = halılarını size gönderip sizin yıkamanızı isteyen dış firma (onlar size iş veriyor). B2B cari hesap. */
+export const fasonFirms = mysqlTable("fason_firms", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  kind: varchar("kind", { length: 16 }).notNull(), // yikayan | yikatan
+  name: varchar("name", { length: 128 }).notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  address: varchar("address", { length: 512 }),
+  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).notNull().default("0"),
+  debt: decimal("debt", { precision: 10, scale: 2 }).notNull().default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_fason_firms_restaurant").on(t.restaurantId)]);
 
 export const vehicles = mysqlTable("vehicles", {
   id: int("id").autoincrement().primaryKey(),

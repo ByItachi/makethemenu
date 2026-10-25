@@ -26,6 +26,7 @@ import { registerAdminTemplateRoutes, registerPublicTemplateRoutes } from "./adm
 import { registerPluginRoutes } from "./plugins";
 import { registerSectorOpsRoutes } from "./sector-ops";
 import { registerSectorDrivers } from "./sector-drivers";
+import { registerFasonRoutes } from "./fason";
 import { registerDeliveryService } from "./delivery-service";
 import { registerIntegrationCenterRoutes } from "./integration-center";
 import { registerSubscriptionCheckoutRoutes } from "./subscription";
@@ -94,6 +95,7 @@ export async function registerRoutes(
   registerPluginRoutes(app);
   registerSectorOpsRoutes(app);
   registerSectorDrivers(app);
+  registerFasonRoutes(app);
   registerDeliveryService(app);
   registerIntegrationCenterRoutes(app);
   registerSubscriptionCheckoutRoutes(app);

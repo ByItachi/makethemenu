@@ -2,7 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, Clock, PackageCheck, ShieldCheck, Tag } from "lucide-react";
+import { Check, Sparkles, Clock, PackageCheck, ShieldCheck, Tag, Sofa, Droplets } from "lucide-react";
 import { useMemo, useState } from "react";
 
 /** Varsayılan tahmini fiyat cetveli — işletme panelinden değiştirilebilir (kademeli mimari). */
@@ -13,11 +13,36 @@ const PRICE_LIST: Record<string, number> = {
   shaggy: 70,
   kilim: 40,
   yolluk: 35,
+  tekli_koltuk: 80,
+  ikili_koltuk: 140,
+  uclu_koltuk: 190,
+  kose_takimi: 350,
+  sandalye: 40,
+  yatak_bazasi: 160,
 };
+
+const CARPET_TYPE_OPTIONS = [
+  { value: "yonasilmis", label: "Yün Halı (Yönlü Dokuma)" },
+  { value: "makine", label: "Makine Halısı" },
+  { value: "el_dokuma", label: "El Dokuması" },
+  { value: "shaggy", label: "Shaggy" },
+  { value: "kilim", label: "Kilim" },
+  { value: "yolluk", label: "Yolluk / Koşucu" },
+];
+
+const KOLTUK_TYPE_OPTIONS = [
+  { value: "tekli_koltuk", label: "Tekli Koltuk" },
+  { value: "ikili_koltuk", label: "İkili Koltuk" },
+  { value: "uclu_koltuk", label: "Üçlü Koltuk" },
+  { value: "kose_takimi", label: "Köşe Takımı" },
+  { value: "sandalye", label: "Sandalye" },
+  { value: "yatak_bazasi", label: "Yatak Bazası" },
+];
 
 export default function HaliYikamaPage() {
   const [form, setForm] = useState({
     customerName: "", phone: "", addressText: "", serviceType: "pickup_delivery",
+    category: "hali" as "hali" | "koltuk",
     pieces: 1, carpetType: "yonasilmis", sizeW: 200, sizeH: 300,
     colorDesc: "", conditionNote: "", pickupDate: "", timeSlot: "10:00-13:00", note: "",
   });
@@ -25,12 +50,20 @@ export default function HaliYikamaPage() {
   const [result, setResult] = useState<{ orderNo: string; labelCodes: string[] } | null>(null);
   const [error, setError] = useState("");
 
+  const typeOptions = form.category === "koltuk" ? KOLTUK_TYPE_OPTIONS : CARPET_TYPE_OPTIONS;
+
+  const setCategory = (category: "hali" | "koltuk") => {
+    const defaultType = category === "koltuk" ? KOLTUK_TYPE_OPTIONS[0].value : CARPET_TYPE_OPTIONS[0].value;
+    setForm({ ...form, category, carpetType: defaultType });
+  };
+
   const estimate = useMemo(() => {
     const unit = PRICE_LIST[form.carpetType] ?? 60;
+    if (form.category === "koltuk") return unit * form.pieces;
     const sqm = form.sizeW && form.sizeH ? (form.sizeW * form.sizeH) / 10_000 : 1;
     const perPiece = Math.max(unit * (sqm || 1), unit * 0.6);
     return perPiece * form.pieces;
-  }, [form.carpetType, form.sizeW, form.sizeH, form.pieces]);
+  }, [form.category, form.carpetType, form.sizeW, form.sizeH, form.pieces]);
 
   const submit = async () => {
     setError("");
@@ -130,31 +163,40 @@ export default function HaliYikamaPage() {
             </Card>
           ) : (
             <Card className="p-6 sm:p-8">
+              <div className="flex rounded-xl bg-muted p-1 text-sm font-medium mb-5 max-w-xs">
+                <button type="button" onClick={() => setCategory("hali")}
+                  className={"flex-1 h-10 rounded-lg flex items-center justify-center gap-1.5 transition-colors " + (form.category === "hali" ? "bg-background shadow-sm" : "text-muted-foreground")}>
+                  <Droplets className="w-4 h-4 text-primary" /> Halı Yıkama
+                </button>
+                <button type="button" onClick={() => setCategory("koltuk")}
+                  className={"flex-1 h-10 rounded-lg flex items-center justify-center gap-1.5 transition-colors " + (form.category === "koltuk" ? "bg-background shadow-sm" : "text-muted-foreground")}>
+                  <Sofa className="w-4 h-4 text-primary" /> Koltuk Yıkama
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input className="h-10 rounded-md border border-input bg-background px-3" placeholder="Ad Soyad" value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} />
-                <input className="h-10 rounded-md border border-input bg-background px-3" placeholder="Telefon (05xx…)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                <input className="h-10 rounded-md border border-input bg-background px-3" placeholder="Telefon (05xx...)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 <textarea className="min-h-[80px] rounded-md border border-input bg-background px-3 py-2 md:col-span-2" placeholder="Adres (mahalle, sokak, no, kat)" value={form.addressText} onChange={(e) => setForm({ ...form, addressText: e.target.value })} />
                 <select className="h-10 rounded-md border border-input bg-background px-3" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })}>
                   <option value="pickup_delivery">Yerinden Al / Teslim Et</option>
                   <option value="factory_only">Fabrikaya Ben Getireceğim</option>
                 </select>
                 <select className="h-10 rounded-md border border-input bg-background px-3" value={form.carpetType} onChange={(e) => setForm({ ...form, carpetType: e.target.value })}>
-                  <option value="yonasilmis">Yün Halı (Yönlü Dokuma)</option>
-                  <option value="makine">Makine Halısı</option>
-                  <option value="el_dokuma">El Dokuması</option>
-                  <option value="shaggy">Shaggy</option>
-                  <option value="kilim">Kilim</option>
-                  <option value="yolluk">Yolluk / Koşucu</option>
+                  {typeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
                 <label className="text-sm text-muted-foreground">Adet
                   <input type="number" min={1} max={100} className="w-full h-10 rounded-md border border-input bg-background px-3 mt-1" value={form.pieces} onChange={(e) => setForm({ ...form, pieces: Math.max(1, Number(e.target.value)) })} />
                 </label>
-                <label className="text-sm text-muted-foreground">En (cm)
-                  <input type="number" min={0} max={600} className="w-full h-10 rounded-md border border-input bg-background px-3 mt-1" value={form.sizeW} onChange={(e) => setForm({ ...form, sizeW: Math.max(0, Number(e.target.value)) })} />
-                </label>
-                <label className="text-sm text-muted-foreground">Boy (cm)
-                  <input type="number" min={0} max={1000} className="w-full h-10 rounded-md border border-input bg-background px-3 mt-1" value={form.sizeH} onChange={(e) => setForm({ ...form, sizeH: Math.max(0, Number(e.target.value)) })} />
-                </label>
+                {form.category === "hali" && (
+                  <>
+                    <label className="text-sm text-muted-foreground">En (cm)
+                      <input type="number" min={0} max={600} className="w-full h-10 rounded-md border border-input bg-background px-3 mt-1" value={form.sizeW} onChange={(e) => setForm({ ...form, sizeW: Math.max(0, Number(e.target.value)) })} />
+                    </label>
+                    <label className="text-sm text-muted-foreground">Boy (cm)
+                      <input type="number" min={0} max={1000} className="w-full h-10 rounded-md border border-input bg-background px-3 mt-1" value={form.sizeH} onChange={(e) => setForm({ ...form, sizeH: Math.max(0, Number(e.target.value)) })} />
+                    </label>
+                  </>
+                )}
                 <input className="h-10 rounded-md border border-input bg-background px-3" placeholder="Renk tanımı (örn. bordo — krem)" value={form.colorDesc} onChange={(e) => setForm({ ...form, colorDesc: e.target.value })} />
                 <input id="hl-date" type="date" className="h-10 rounded-md border border-input bg-background px-3" value={form.pickupDate} onChange={(e) => setForm({ ...form, pickupDate: e.target.value })} />
                 <select className="h-10 rounded-md border border-input bg-background px-3" value={form.timeSlot} onChange={(e) => setForm({ ...form, timeSlot: e.target.value })}>

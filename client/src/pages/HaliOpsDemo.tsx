@@ -1,6 +1,6 @@
 // Halı yıkama demo paneli (/hali) — site marka renkleriyle tam panelli dashboard.
 // Gerçek API: /api/ops/carpet/orders + /api/ops/carpet/items/:id/status (sahte veri yok).
-// Kasa/Toplu SMS/Fason oturum-içi demo verilerle çalışır (gerçek kayıt gibi gösterilmez).
+// Kasa/Toplu SMS oturum-içi demo verilerle çalışır (gerçek kayıt gibi gösterilmez). Fason firmaları gerçek API ile kalıcı kaydedilir.
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
   CalendarDays, Wallet, BookUser, BarChart3, MessageSquare, Sparkles,
   Car, Settings, X, Menu, Plus, Building2, Image as ImageIcon,
   Landmark, Star, CreditCard, UserRound, TrendingUp, Download,
-  ChevronLeft, ChevronRight as ChevR, QrCode,
+  ChevronLeft, ChevronRight as ChevR, QrCode, Sofa,
 } from "lucide-react";
 
 interface CarpetItem {
@@ -20,7 +20,7 @@ interface CarpetItem {
 }
 interface CarpetOrder {
   id: number; orderNo: string; customerName: string; phone: string; addressText: string;
-  serviceType: string; estimatedPrice: string; approvedPrice: string | null; paidAmount: string;
+  serviceType: string; category: "hali" | "koltuk"; estimatedPrice: string; approvedPrice: string | null; paidAmount: string;
   status: string; pickupDate: string; timeSlot: string; items: CarpetItem[]; createdAt?: string | null;
   driverId?: number | null;
 }
@@ -30,7 +30,10 @@ interface CustomerRow {
   paid: number; due: number; lastDate: string | null;
 }
 interface KasaEntry { id: number; type: "gelir" | "gider"; amount: number; note: string; method: string; date: string }
-interface FasonFirm { id: number; name: string; kind: "yikayan" | "yikatan"; debt: number }
+interface FasonFirm {
+  id: number; kind: "yikayan" | "yikatan"; name: string; phone: string;
+  address: string | null; discountPercent: string; debt: string;
+}
 
 /** 14 aşamalı üretim akışı, panel tarzı 4 gruba kümelenir (renkler işlevsel durum kodlarıdır). */
 const GROUPS = [
@@ -108,7 +111,9 @@ export default function HaliOpsDemo() {
   const [smsSeg, setSmsSeg] = useState("tumu");
   const [smsTpl, setSmsTpl] = useState("geri");
   const [smsText, setSmsText] = useState(SMS_TEMPLATES[0].text);
-  const [fasonForm, setFasonForm] = useState({ name: "", kind: "yikayan" as "yikayan" | "yikatan" });
+  const [fasonModalOpen, setFasonModalOpen] = useState(false);
+  const [fasonForm, setFasonForm] = useState({ kind: "yikayan" as "yikayan" | "yikatan", name: "", phone: "", address: "", discountPercent: "" });
+  const [fasonError, setFasonError] = useState("");
 
   const [, navigate] = useLocation();
 
@@ -120,6 +125,8 @@ export default function HaliOpsDemo() {
     setAuthed(true);
     const dr = await fetch("/api/ops/drivers?sector=carpet");
     if (dr.ok) setDrivers((await dr.json()).drivers ?? []);
+    const fs = await fetch("/api/ops/fason");
+    if (fs.ok) setFasonFirms((await fs.json()).firms ?? []);
   };
   useEffect(() => { load(); }, []);
 
@@ -225,7 +232,7 @@ export default function HaliOpsDemo() {
     const ciro = orders.reduce((s, o) => s + Number(o.estimatedPrice), 0);
     const tahsil = orders.reduce((s, o) => s + Number(o.paidAmount), 0);
     const m2 = orders.reduce((s, o) => s + o.items.reduce((x, i) => x + Number(i.sqm), 0), 0);
-    const haliler = orders.filter((o) => o.serviceType !== "koltuk").length;
+    const haliler = orders.filter((o) => o.category !== "koltuk").length;
     const koltuklar = orders.length - haliler;
     const veresiye = customers.reduce((s, c) => s + c.due, 0);
     return { ciro, tahsil, m2, haliler, koltuklar, veresiye };
@@ -235,6 +242,7 @@ export default function HaliOpsDemo() {
     const stages = GROUP_STAGES[groupKey];
     return orders
       .filter((o) => stages.includes(o.status))
+      .filter((o) => o.category === mode)
       .filter((o) =>
         !search ||
         o.customerName.toLowerCase().includes(search.toLowerCase()) ||
@@ -498,10 +506,22 @@ export default function HaliOpsDemo() {
     o.orderNo.toLowerCase().includes(search.toLowerCase()) ||
     o.phone.includes(search);
 
+  /** Halı Yıkama / Koltuk Yıkama servis türü seçimi — orders.category alanını gerçekten filtreler. */
+  const modeToggle = (
+    <div className="flex rounded-xl bg-white/80 border border-orange-100 p-1 shadow-sm self-start w-fit">
+      <button className={"px-3 sm:px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 " + (mode === "hali" ? "bg-white text-slate-900 shadow border border-orange-100" : "text-slate-500")} onClick={() => setMode("hali")}>
+        <Droplets className="w-4 h-4 text-primary" /> Halı Yıkama
+      </button>
+      <button className={"px-3 sm:px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 " + (mode === "koltuk" ? "bg-white text-slate-900 shadow border border-orange-100" : "text-slate-500")} onClick={() => setMode("koltuk")}>
+        <Sofa className="w-4 h-4 text-primary" /> Koltuk Yıkama
+      </button>
+    </div>
+  );
+
   // ================= GÖRÜNÜMLER =================
   const viewAna = (
     <>
-      {pageHeader(`${greeting.text}`, dateLabel)}
+      {pageHeader(`${greeting.text}`, dateLabel, modeToggle)}
       {/* Durum şeridi */}
       <div className="bg-white/90 backdrop-blur rounded-2xl border border-orange-100 shadow-sm p-2 sm:p-3 grid grid-cols-2 lg:grid-cols-4 gap-2">
         {GROUPS.map((g, gi) => {
@@ -552,10 +572,10 @@ export default function HaliOpsDemo() {
             </span>
           </header>
           <div className="p-4 sm:p-5">
-            {mode === "koltuk" ? (
-              emptyState(<Sparkles className="w-7 h-7" />, "Koltuk yıkama siparişi yok", "Koltuk siparişleri de bu panelin aynı akışında yönetilir.")
-            ) : !list.length ? (
-              emptyState(<Package className="w-7 h-7" />, "Bu listede sipariş yok", "Yeni sipariş eklediğinizde burada görünecek.")
+            {!list.length ? (
+              mode === "koltuk"
+                ? emptyState(<Sofa className="w-7 h-7" />, "Koltuk yıkama siparişi yok", "Koltuk siparişleri de bu panelin aynı akışında yönetilir.")
+                : emptyState(<Package className="w-7 h-7" />, "Bu listede sipariş yok", "Yeni sipariş eklediğinizde burada görünecek.")
             ) : (
               <div className="space-y-3">{list.map((o) => orderCard(o))}</div>
             )}
@@ -607,10 +627,10 @@ export default function HaliOpsDemo() {
 
   const viewSiparisler = (
     <>
-      {pageHeader("Siparişler", "Tüm aşamalardaki siparişlerinizi tek ekrandan yönetin")}
+      {pageHeader("Siparişler", "Tüm aşamalardaki siparişlerinizi tek ekrandan yönetin", modeToggle)}
       <div className="bg-white/90 rounded-2xl border border-orange-100 shadow-sm p-2 sm:p-3 grid grid-cols-2 lg:grid-cols-5 gap-2">
         {GROUPS.map((g) => {
-          const n = orders.filter((o) => GROUP_STAGES[g.key].includes(o.status)).length;
+          const n = orders.filter((o) => GROUP_STAGES[g.key].includes(o.status) && o.category === mode).length;
           const selected = selectedGroup === g.key;
           return (
             <button key={g.key}
@@ -639,21 +659,13 @@ export default function HaliOpsDemo() {
             <input className="w-full h-9 rounded-lg border border-orange-100 bg-white pl-9 pr-3 text-xs outline-none focus:ring-2 focus:ring-primary/40"
               placeholder="Sipariş no veya isim" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <div className="flex rounded-lg border border-orange-100 overflow-hidden text-xs">
-            {["hali", "koltuk"].map((m) => (
-              <button key={m} className={"px-3 py-1.5 font-medium " + (mode === m ? "bg-primary text-primary-foreground" : "text-slate-500 hover:bg-orange-50")}
-                onClick={() => setMode(m as "hali" | "koltuk")}>
-                {m === "hali" ? "Halı Yıkama" : "Koltuk Yıkama"}
-              </button>
-            ))}
-          </div>
           <span className="ml-auto text-[11px] text-slate-400 hidden md:inline">↑↓ gez · Enter aç</span>
         </div>
         <div className="p-4 sm:p-5 flex-1">
-          {mode === "koltuk" ? (
-            emptyState(<Sparkles className="w-7 h-7" />, "Koltuk siparişi yok", "Halı siparişleri ana listede yönetilir.")
-          ) : !list.length ? (
-            emptyState(<Package className="w-7 h-7" />, "Sipariş Yok", "Yeni sipariş için kenar çubuğundaki 'Yeni Sipariş' düğmesini kullanın.")
+          {!list.length ? (
+            mode === "koltuk"
+              ? emptyState(<Sofa className="w-7 h-7" />, "Koltuk siparişi yok", "Koltuk siparişleri de bu panelin aynı akışında yönetilir.")
+              : emptyState(<Package className="w-7 h-7" />, "Sipariş Yok", "Yeni sipariş için kenar çubuğundaki 'Yeni Sipariş' düğmesini kullanın.")
           ) : (
             <div className="space-y-3">{list.filter(match).map((o) => orderCard(o))}</div>
           )}
@@ -756,19 +768,24 @@ export default function HaliOpsDemo() {
     </>
   );
 
-  const rotaPool = orders.filter((o) => ["delivery_queue", "on_route"].includes(o.status));
+  const rotaPool = orders.filter((o) => ["delivery_queue", "on_route"].includes(o.status) && o.category === mode);
   const viewRota = (
     <>
       {pageHeader("Teslimat Rotası", "Rotaya eklemek istediğini seç",
-        <Button className="bg-primary text-primary-foreground hover:brightness-105" onClick={() => {
-          if (!rotaSel.size) return showToast("Önce listeden sipariş seçin");
-          setRotaDone(Array.from(rotaSel)); setRotaSel(new Set()); showToast("Rota oluşturuldu (demo)");
-        }}>
-          <Plus className="w-4 h-4" /> Rota Oluştur
-        </Button>)}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:ml-auto">
+          {modeToggle}
+          <Button className="bg-primary text-primary-foreground hover:brightness-105" onClick={() => {
+            if (!rotaSel.size) return showToast("Önce listeden sipariş seçin");
+            setRotaDone(Array.from(rotaSel)); setRotaSel(new Set()); showToast("Rota oluşturuldu (demo)");
+          }}>
+            <Plus className="w-4 h-4" /> Rota Oluştur
+          </Button>
+        </div>)}
       <section className="bg-white/95 rounded-2xl border border-orange-100 shadow-sm p-4 sm:p-5 min-h-[300px]">
         {!rotaPool.length ? (
-          emptyState(<RouteIcon className="w-7 h-7" />, "Teslimat Yok", "Teslim kuyruğuna alınmış sipariş olmadan rota oluşturulamaz.")
+          mode === "koltuk"
+            ? emptyState(<Sofa className="w-7 h-7" />, "Koltuk Teslimatı Yok", "Teslim kuyruğuna alınmış koltuk siparişi olmadan rota oluşturulamaz.")
+            : emptyState(<RouteIcon className="w-7 h-7" />, "Teslimat Yok", "Teslim kuyruğuna alınmış sipariş olmadan rota oluşturulamaz.")
         ) : (
           <div className="space-y-2">
             {rotaDone && <p className="text-xs text-green-600 font-medium mb-2">Rota: {rotaDone.length} teslimat sıraya alındı (demo)</p>}
@@ -1126,13 +1143,35 @@ export default function HaliOpsDemo() {
     </>
   );
 
+  const fasonSubmit = async () => {
+    setFasonError("");
+    if (fasonForm.name.trim().length < 2) return setFasonError("Firma adı en az 2 karakter olmalı");
+    if (fasonForm.phone.trim().length < 7) return setFasonError("Telefon gerekli");
+    const r = await fetch("/api/ops/fason", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: fasonForm.kind,
+        name: fasonForm.name.trim(),
+        phone: fasonForm.phone.trim(),
+        address: fasonForm.address.trim(),
+        discountPercent: Number(fasonForm.discountPercent || 0),
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) return setFasonError(data.message ?? "Firma eklenemedi");
+    setFasonModalOpen(false);
+    setFasonForm({ kind: "yikayan", name: "", phone: "", address: "", discountPercent: "" });
+    showToast("Fason firması eklendi");
+    load();
+  };
+
   const viewFason = (
     <>
-      {pageHeader("Fason Yönetimi", `Toplam borcum: ${fmtTL(fasonFirms.reduce((s, f) => s + f.debt, 0))} ₺`,
-        <Button className="bg-primary text-primary-foreground hover:brightness-105" onClick={() => {
-          const name = window.prompt("Firma adı");
-          if (name) setFasonFirms([...fasonFirms, { id: Date.now(), name, kind: "yikayan", debt: 0 }]);
-        }}><Plus className="w-4 h-4" /> Firma Ekle</Button>)}
+      {pageHeader("Fason Yönetimi", `Toplam borcum: ${fmtTL(fasonFirms.reduce((s, f) => s + Number(f.debt), 0))} ₺`,
+        <Button className="bg-primary text-primary-foreground hover:brightness-105" onClick={() => { setFasonError(""); setFasonModalOpen(true); }}>
+          <Plus className="w-4 h-4" /> Firma Ekle
+        </Button>)}
       <section className="bg-white/95 rounded-2xl border border-orange-100 shadow-sm p-4 sm:p-5 min-h-[300px]">
         {!fasonFirms.length ? (
           emptyState(<Sparkles className="w-7 h-7" />, "Henüz firma eklenmemiş", "Yukarıdaki Firma Ekle ile başlayın")
@@ -1143,14 +1182,66 @@ export default function HaliOpsDemo() {
                 <span className="w-9 h-9 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-bold">{f.name.slice(0, 1)}</span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-slate-800">{f.name}</p>
-                  <p className="text-xs text-slate-400">{f.kind === "yikayan" ? "Fason yıkayan" : "Fason yıkatan"} · demo kayıt (oturum)</p>
+                  <p className="text-xs text-slate-400 truncate">
+                    {f.kind === "yikayan" ? "Fason yıkayan" : "Fason yıkatan"} · {f.phone}
+                    {f.address ? ` · ${f.address}` : ""}
+                    {Number(f.discountPercent) > 0 ? ` · %${Number(f.discountPercent).toFixed(0)} indirim` : ""}
+                  </p>
                 </div>
-                <span className="text-sm font-semibold text-slate-600">{fmtTL(f.debt)} ₺</span>
+                <span className="text-sm font-semibold text-slate-600 shrink-0">{fmtTL(Number(f.debt))} ₺</span>
               </div>
             ))}
           </div>
         )}
       </section>
+
+      {fasonModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setFasonModalOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <h3 className="text-lg font-bold text-slate-800">Yeni Firma</h3>
+              <button className="p-1 rounded-lg hover:bg-slate-100" onClick={() => setFasonModalOpen(false)}><X className="w-5 h-5 text-slate-400" /></button>
+            </div>
+            <div className="px-5 space-y-4 pb-5">
+              <div className="flex rounded-xl bg-orange-50 p-1 text-sm font-medium">
+                {(["yikayan", "yikatan"] as const).map((k) => (
+                  <button key={k}
+                    className={"flex-1 h-9 rounded-lg transition-colors " + (fasonForm.kind === k ? "bg-white shadow-sm text-slate-800" : "text-slate-500")}
+                    onClick={() => setFasonForm({ ...fasonForm, kind: k })}>
+                    {k === "yikayan" ? "Fason Yıkayan" : "Fason Yıkatan"}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Firma Adı *</label>
+                <input className="mt-1 w-full h-10 rounded-lg border border-orange-100 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+                  value={fasonForm.name} onChange={(e) => setFasonForm({ ...fasonForm, name: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Telefon *</label>
+                <input className="mt-1 w-full h-10 rounded-lg border border-orange-100 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+                  value={fasonForm.phone} onChange={(e) => setFasonForm({ ...fasonForm, phone: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Adres</label>
+                <textarea className="mt-1 w-full rounded-lg border border-orange-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40" rows={2}
+                  value={fasonForm.address} onChange={(e) => setFasonForm({ ...fasonForm, address: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Genel İndirim (%)</label>
+                <input type="number" min={0} max={100} placeholder="0" className="mt-1 w-full h-10 rounded-lg border border-orange-100 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+                  value={fasonForm.discountPercent} onChange={(e) => setFasonForm({ ...fasonForm, discountPercent: e.target.value })} />
+                <p className="text-[11px] text-slate-400 mt-1">Özel fiyatı girilmemiş ürünler normal fiyattan bu oranda indirimli hesaplanır. Boş bırakılabilir.</p>
+              </div>
+              {fasonError && <p className="text-xs text-rose-600">{fasonError}</p>}
+            </div>
+            <div className="flex justify-end gap-2 px-5 py-4 border-t border-orange-50">
+              <Button variant="outline" onClick={() => setFasonModalOpen(false)}>Vazgeç</Button>
+              <Button className="bg-primary text-primary-foreground hover:brightness-105" onClick={fasonSubmit}>Kaydet</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 
@@ -1328,17 +1419,6 @@ export default function HaliOpsDemo() {
             </span>
           </div>
         </div>
-
-        {view === "ana" && (
-          <div className="sm:ml-auto flex rounded-xl bg-white/80 border border-orange-100 p-1 shadow-sm self-start w-fit">
-            <button className={"px-3 sm:px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 " + (mode === "hali" ? "bg-white text-slate-900 shadow border border-orange-100" : "text-slate-500")} onClick={() => setMode("hali")}>
-              <Droplets className="w-4 h-4 text-primary" /> Halı Yıkama
-            </button>
-            <button className={"px-3 sm:px-4 py-2 rounded-lg text-sm font-medium " + (mode === "koltuk" ? "bg-white text-slate-900 shadow border border-orange-100" : "text-slate-500")} onClick={() => setMode("koltuk")}>
-              Koltuk Yıkama
-            </button>
-          </div>
-        )}
 
         {views[view]}
       </main>

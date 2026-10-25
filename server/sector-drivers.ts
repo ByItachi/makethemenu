@@ -111,7 +111,48 @@ export async function assignDriverToOrder(rid: number, input: z.infer<typeof ass
   return { driver: { id: driver.id, name: driver.name }, auto: !input.driverId };
 }
 
+const SECTOR_LABEL: Record<DriverSector, string> = { carpet: "Halı", water: "Su", tube: "Tüp" };
+
 export function registerSectorDrivers(app: Express) {
+  // Araç Takip / canlı sürücü konumu: TÜM sektörlerin sürücüleri + varsa aktif teslimat oturumunun son GPS'i.
+  // Konum yalnızca gerçek şoför paneli GPS'inden (delivery_sessions) gelir; sahte konum üretilmez.
+  app.get("/api/ops/drivers/live", requireRestaurant, async (req, res) => {
+    const rid = tenantId(req);
+    const allDrivers = await db.select().from(sectorDrivers).where(eq(sectorDrivers.restaurantId, rid)).orderBy(sectorDrivers.id);
+    const activeSessions = await db
+      .select()
+      .from(deliverySessions)
+      .where(and(eq(deliverySessions.restaurantId, rid), eq(deliverySessions.status, "active")));
+    const sessionByDriver = new Map(activeSessions.filter((s) => s.driverId != null).map((s) => [s.driverId as number, s]));
+    const drivers = allDrivers.map((d) => {
+      const session = sessionByDriver.get(d.id);
+      const lastPingAt = session?.lastPingAt ?? null;
+      const online = !!lastPingAt && Date.now() - new Date(lastPingAt).getTime() < 60_000;
+      return {
+        id: d.id,
+        sector: d.sector,
+        sectorLabel: SECTOR_LABEL[d.sector as DriverSector] ?? d.sector,
+        name: d.name,
+        phone: d.phone,
+        isActive: d.isActive,
+        tracking: !!session,
+        online,
+        orderNo: session?.orderNo ?? null,
+        lastLat: session?.lastLat ?? null,
+        lastLng: session?.lastLng ?? null,
+        lastPingAt,
+      };
+    });
+    res.json({
+      drivers,
+      counts: {
+        online: drivers.filter((d) => d.online).length,
+        tracking: drivers.filter((d) => d.tracking).length,
+        total: drivers.length,
+      },
+    });
+  });
+
   // Sürücü listesi (sektor bazında ayrı havuz)
   app.get("/api/ops/drivers", requireRestaurant, async (req, res) => {
     const parsed = z.object({ sector: z.enum(DRIVER_SECTORS) }).safeParse(req.query);

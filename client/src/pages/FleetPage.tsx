@@ -1,164 +1,135 @@
-// Filo / GPS aracı takibi (/dashboard/fleet): araç listesi, GPS yöntemi, son bilinen konum.
-// Dürüstlük kuralı: GPS sağlayıcı yoksa canlı harita YOKTUR — sistem boş durumu gösterir.
+// Araç Takip (/dashboard/fleet): sektör sürücü havuzundaki GERÇEK şoförlerin canlı konumu.
+// Konum yalnızca /surucu/* panelinden gelen gerçek GPS'ten (delivery_sessions) okunur — sahte konum üretilmez.
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Truck, MapPin, ShieldAlert } from "lucide-react";
+import { MapPin, Radio, Truck, Users } from "lucide-react";
 
-interface Vehicle {
-  id: number; internalCode: string; plate: string; name: string | null; brand: string | null;
-  capacity: number; driverName: string | null; status: string; gpsMethod: string;
-  gpsDeviceId: string | null; lastLat: string | null; lastLng: string | null; lastSeenAt: string | null; isActive: boolean;
+interface LiveDriver {
+  id: number; sector: string; sectorLabel: string; name: string; phone: string | null;
+  isActive: boolean; tracking: boolean; online: boolean; orderNo: string | null;
+  lastLat: number | string | null; lastLng: number | string | null; lastPingAt: string | null;
 }
 
-const GPS_LABEL: Record<string, string> = {
-  none: "GPS Yok",
-  driver_app: "Şoför Uygulaması",
-  gps_device: "GPS Cihazı",
-};
-
 export default function FleetPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ plate: "", name: "", driverName: "", capacity: 40, gpsMethod: "none", gpsDeviceId: "" });
-  const [error, setError] = useState("");
-  const [track, setTrack] = useState<Record<string, unknown> | null>(null);
+  const [drivers, setDrivers] = useState<LiveDriver[]>([]);
+  const [counts, setCounts] = useState({ online: 0, tracking: 0, total: 0 });
+  const [selected, setSelected] = useState<number | null>(null);
 
   const load = async () => {
-    const r = await fetch("/api/ops/vehicles");
-    if (r.ok) setVehicles((await r.json()).vehicles ?? []);
+    const r = await fetch("/api/ops/drivers/live");
+    if (!r.ok) return;
+    const data = await r.json();
+    setDrivers(data.drivers ?? []);
+    setCounts(data.counts ?? { online: 0, tracking: 0, total: 0 });
   };
-  useEffect(() => { load(); }, []);
 
-  const create = async () => {
-    setError("");
-    const res = await fetch("/api/ops/vehicles", {
-      method: "POST",
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 10_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const toggleActive = async (d: LiveDriver) => {
+    await fetch(`/api/ops/drivers/${d.id}`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, capacity: Number(form.capacity) }),
+      body: JSON.stringify({ isActive: !d.isActive }),
     });
-    const data = await res.json();
-    if (!res.ok) return setError(data.message || "Araç eklenemedi");
-    setShowForm(false);
-    setForm({ plate: "", name: "", driverName: "", capacity: 40, gpsMethod: "none", gpsDeviceId: "" });
     load();
   };
 
-  const openTrack = async (v: Vehicle) => {
-    const r = await fetch(`/api/ops/vehicles/${v.id}/track`);
-    if (r.ok) setTrack(await r.json());
-  };
-
-  const freshness = (v: Vehicle): { label: string; cls: string } => {
-    if (v.gpsMethod === "none") return { label: "GPS yok", cls: "bg-muted text-muted-foreground" };
-    if (!v.lastSeenAt) return { label: "Bilinmiyor", cls: "bg-muted text-muted-foreground" };
-    const age = (Date.now() - new Date(v.lastSeenAt).getTime()) / 1000;
-    return age < 300
-      ? { label: "Canlı (yakın zamanda)", cls: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" }
-      : { label: "Eski veri", cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" };
-  };
+  const current = drivers.find((d) => d.id === selected) ?? drivers.find((d) => d.tracking) ?? null;
+  const notTracking = drivers.filter((d) => !d.tracking);
+  const tracking = drivers.filter((d) => d.tracking);
 
   return (
-    <div className="min-h-screen bg-background p-6 site-container">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-display font-bold">Filo ve <span className="text-primary">Araç Takibi</span></h1>
-        <Button onClick={() => setShowForm((s) => !s)}>{showForm ? "Vazgeç" : "Araç Ekle"}</Button>
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b lg:hidden">
+        <h1 className="text-xl font-display font-bold">Araç Takip</h1>
       </div>
 
-      {showForm && (
-        <Card className="p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <input className="h-10 rounded-md border border-input bg-background px-3" placeholder="Plaka (34 ABC 123)" value={form.plate} onChange={(e) => setForm({ ...form, plate: e.target.value.toUpperCase() })} />
-            <input className="h-10 rounded-md border border-input bg-background px-3" placeholder="Araç adı" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <input className="h-10 rounded-md border border-input bg-background px-3" placeholder="Şoför adı" value={form.driverName} onChange={(e) => setForm({ ...form, driverName: e.target.value })} />
-            <input type="number" className="h-10 rounded-md border border-input bg-background px-3" placeholder="Kapasite" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} />
-            <select className="h-10 rounded-md border border-input bg-background px-3" value={form.gpsMethod} onChange={(e) => setForm({ ...form, gpsMethod: e.target.value })}>
-              <option value="none">GPS Yok</option>
-              <option value="driver_app">Şoför Uygulaması</option>
-              <option value="gps_device">GPS Cihazı</option>
-            </select>
-            {form.gpsMethod === "gps_device" && (
-              <input className="h-10 rounded-md border border-input bg-background px-3" placeholder="Cihaz kimliği" value={form.gpsDeviceId} onChange={(e) => setForm({ ...form, gpsDeviceId: e.target.value })} />
-            )}
+      <aside className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r shrink-0 bg-card">
+        <div className="hidden lg:block px-5 pt-5">
+          <h1 className="text-2xl font-display font-bold">Araç Takip</h1>
+          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+            <Radio className="w-3 h-3 text-green-500" /> 10 sn'de bir güncellenir
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 px-5 py-3">
+          <Badge variant="outline" className="gap-1"><Radio className="w-3 h-3 text-green-500" /> Çevrimiçi {counts.online}</Badge>
+          <Badge variant="outline" className="gap-1"><MapPin className="w-3 h-3" /> Takipte {counts.tracking}</Badge>
+          <Badge variant="outline" className="gap-1"><Users className="w-3 h-3" /> Toplam {counts.total}</Badge>
+        </div>
+
+        {!drivers.length && (
+          <p className="px-5 py-6 text-sm text-muted-foreground">
+            Henüz sürücü kaydı yok. Halı/Su/Tüp panellerindeki "Sürücüler" bölümünden ekleyin.
+          </p>
+        )}
+
+        {!!tracking.length && (
+          <div className="px-3">
+            <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Takipte · {tracking.length}</p>
+            {tracking.map((d) => (
+              <button key={d.id} onClick={() => setSelected(d.id)}
+                className={`w-full text-left flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-muted transition-colors ${selected === d.id ? "bg-muted" : ""}`}>
+                <span className="relative w-9 h-9 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-bold shrink-0">
+                  {d.name.slice(0, 1)}
+                  {d.online && <span className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-card" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{d.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{d.sectorLabel} · {d.orderNo ?? "Yolda"}</p>
+                </span>
+              </button>
+            ))}
           </div>
-          {error && <p className="text-destructive text-sm mt-2">{error}</p>}
-          <div className="flex justify-end mt-3">
-            <Button onClick={create}>Kaydet</Button>
+        )}
+
+        {!!notTracking.length && (
+          <div className="px-3 mt-2">
+            <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Boşta · {notTracking.length}</p>
+            {notTracking.map((d) => (
+              <div key={d.id} className="w-full flex items-center gap-3 px-2 py-2 rounded-lg">
+                <span className="w-9 h-9 rounded-full bg-muted text-muted-foreground grid place-items-center text-sm font-bold shrink-0">{d.name.slice(0, 1)}</span>
+                <span className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{d.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{d.sectorLabel} · {d.isActive ? "Teslimatta değil" : "Pasif (havuzdan çıkarıldı)"}</p>
+                </span>
+                <button type="button" role="switch" aria-checked={d.isActive} title="Sürücüyü aktif/pasif yap (pasif sürücüye yeni sipariş atanmaz)" onClick={() => toggleActive(d)}
+                  className={`appearance-none border-0 p-0 w-9 h-5 rounded-full relative transition-colors shrink-0 ${d.isActive ? "bg-primary" : "bg-muted-foreground/30"}`}>
+                  <span className={`absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${d.isActive ? "translate-x-4" : "translate-x-0"}`} />
+                </button>
+              </div>
+            ))}
           </div>
-        </Card>
-      )}
+        )}
+      </aside>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {vehicles.map((v) => {
-          const f = freshness(v);
-          return (
-            <Card key={v.id} className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-primary" />
-                  <p className="font-bold">{v.plate}</p>
-                  <Badge variant="outline" className="text-[10px]">{v.internalCode}</Badge>
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${f.cls}`}>{f.label}</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {v.name ?? "—"} · Şoför: {v.driverName ?? "atanmadı"} · Kapasite: {v.capacity} · {GPS_LABEL[v.gpsMethod]}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {v.gpsMethod !== "none" && v.lastSeenAt
-                  ? <>Son konum: {Number(v.lastLat).toFixed(5)}, {Number(v.lastLng).toFixed(5)} · {new Date(v.lastSeenAt).toLocaleString("tr-TR")}</>
-                  : v.gpsMethod === "none"
-                    ? "Bu araç için konum paylaşımı etkin değil."
-                    : "Henüz konum verisi gelmedi."}
-              </p>
-              <div className="flex gap-2 mt-3">
-                <Button size="sm" variant="outline" onClick={() => openTrack(v)}><MapPin className="w-4 h-4 mr-1" />Konum Geçmişi</Button>
-              </div>
-            </Card>
-          );
-        })}
-        {!vehicles.length && <p className="text-muted-foreground">Araç kaydı yok. "Araç Ekle" ile başlayın.</p>}
-      </div>
-
-      {track && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Truck className="w-5 h-5 text-primary" />
-              {(track.vehicle as { plate?: string })?.plate} — Konum Geçmişi
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {Array.isArray(track.trail) && track.trail.length ? (
-              <div className="max-h-60 overflow-y-auto space-y-1 text-sm font-mono">
-                {(track.trail as { lat: string; lng: string; speed: string | null; recordedAt: string; source: string }[]).map((p, i) => (
-                  <p key={i} className="text-muted-foreground">{p.recordedAt.slice(0, 19).replace("T", " ")} · {Number(p.lat).toFixed(5)}, {Number(p.lng).toFixed(5)} · {p.speed ? `${Number(p.speed).toFixed(0)} km/s` : "—"} · {p.source}</p>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">Bu araç için kayıtlı konum yok.</p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Dürüst canlı harita durumu */}
-      <Card className="border-amber-300 dark:border-amber-700">
-        <CardContent className="p-4 flex items-start gap-3">
-          <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <p className="font-medium">Canlı harita hakkında</p>
-            <p className="text-muted-foreground">
-              Canlı konum yalnızca gerçek bir kaynaktan gelir: şoförün konum paylaşımı (aşağıdaki şoför paneli) veya harici GPS cihazı entegrasyonu.
-              Kaynak yapılandırılmadıysa yukarıda sahte konum gösterilmez; yalnızca son bilinen veri ve yaşı listelenir.
+      <main className="flex-1 min-h-[420px] flex items-center justify-center p-6">
+        {current && current.lastLat != null && current.lastLng != null ? (
+          <div className="text-center max-w-sm">
+            <Truck className="w-10 h-10 text-primary mx-auto mb-3" />
+            <p className="font-semibold">{current.name} — {current.sectorLabel}</p>
+            <p className="text-sm text-muted-foreground mt-1 font-mono">{Number(current.lastLat).toFixed(5)}, {Number(current.lastLng).toFixed(5)}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {current.lastPingAt ? `Son konum: ${new Date(current.lastPingAt).toLocaleTimeString("tr-TR")}` : ""}
             </p>
-            <div className="mt-2">
-              <Button size="sm" variant="outline" onClick={() => (window.location.href = "/driver/location")}>Şoför Konum Panelini Aç</Button>
-            </div>
+            <a className="inline-block mt-3 text-sm text-primary font-medium hover:underline"
+              href={`https://www.google.com/maps?q=${current.lastLat},${current.lastLng}`} target="_blank" rel="noreferrer">
+              Haritada Aç ↗
+            </a>
           </div>
-        </CardContent>
-      </Card>
+        ) : (
+          <div className="text-center text-muted-foreground">
+            <MapPin className="w-10 h-10 mx-auto mb-3 text-primary/60" />
+            <p>Haritada gösterilecek konum yok</p>
+            <p className="text-xs mt-1">
+              Bir sürücü teslimata çıktığında ve şoför panelinden (/surucu) konum paylaşımı başladığında burada görünür.
+            </p>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
