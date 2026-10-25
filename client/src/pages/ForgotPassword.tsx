@@ -37,7 +37,7 @@ export default function ForgotPassword() {
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
       <div className="max-w-md w-full space-y-8 text-center">
         <div>
-          <Link href="/">
+          <Link asChild href="/">
             <a className="flex items-center justify-center gap-2 group cursor-pointer mb-6">
               <img
                 src="/makethemenu-header.png"

@@ -109,9 +109,9 @@ export default function Features() {
               alt="Integrations" 
               className="rounded-2xl shadow-2xl border border-slate-700/50"
             />
-            <div className="absolute -bottom-10 -left-10 bg-white p-6 rounded-xl shadow-xl text-slate-900 hidden md:block">
+            <div className="absolute -bottom-10 -left-10 bg-card p-6 rounded-xl shadow-xl text-foreground border border-border hidden md:block">
               <div className="font-bold text-lg mb-1">Entegrasyonlar</div>
-              <div className="text-sm text-slate-500">Tek tıkla bağlantı</div>
+              <div className="text-sm text-muted-foreground">Tek tıkla bağlantı</div>
             </div>
           </div>
         </div>

@@ -16,6 +16,8 @@ const FEATURE_TITLES: Record<string, string> = {
   "musteri-yonetimi": "Cari Müşteri Yönetimi",
   "raporlama": "Raporlama ve Analiz",
   "donanim": "Donanım",
+  "su-dagitim": "Su Dağıtım ve Damacana Sistemi",
+  "hali-yikama": "Halı Yıkama Sistemi",
 };
 
 export default function FeatureDetailPage() {

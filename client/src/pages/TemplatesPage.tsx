@@ -4,8 +4,19 @@ import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SHOWCASE_TEMPLATES } from "@/lib/template-showcase";
+import { useSeo } from "@/lib/seo";
 
 export default function TemplatesPage() {
+  useSeo({
+    title: "Ücretsiz Dijital Menü Şablonları",
+    description: `Mekanınıza uygun ${SHOWCASE_TEMPLATES.length} hazır dijital menü şablonu. Tamamı ücretsiz; tek tıkla menünüze uygulanır, dilediğiniz an değiştirebilirsiniz.`,
+    path: "/sablonlar",
+    breadcrumbs: [
+      { name: "Ana Sayfa", path: "/" },
+      { name: "Menü Şablonları", path: "/sablonlar" },
+    ],
+  });
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />

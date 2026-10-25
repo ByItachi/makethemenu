@@ -13,7 +13,7 @@ import {
   type OrderWithItems
 } from "@shared/schema";
 import { db } from "./db";
-import { and, eq, desc } from "drizzle-orm";
+import { and, eq, desc, asc } from "drizzle-orm";
 
 // Every tenant-owned query takes restaurantId as its first argument.
 // Rows belonging to another business are treated as "not found".
@@ -28,12 +28,14 @@ export interface IStorage {
   getCategories(restaurantId: number): Promise<Category[]>;
   createCategory(restaurantId: number, category: InsertCategory): Promise<Category>;
   deleteCategory(restaurantId: number, id: number): Promise<boolean>;
+  reorderCategories(restaurantId: number, orderedIds: number[]): Promise<boolean>;
 
   // Products
   getProducts(restaurantId: number, categoryId?: number): Promise<Product[]>;
   createProduct(restaurantId: number, product: InsertProduct): Promise<Product>;
   updateProduct(restaurantId: number, id: number, product: Partial<InsertProduct>): Promise<Product | undefined>;
   deleteProduct(restaurantId: number, id: number): Promise<boolean>;
+  reorderProducts(restaurantId: number, orderedIds: number[]): Promise<boolean>;
 
   // Orders
   getOrders(restaurantId: number, status?: string): Promise<OrderWithItems[]>;
@@ -71,7 +73,7 @@ export class DatabaseStorage implements IStorage {
 
   // Categories
   async getCategories(restaurantId: number): Promise<Category[]> {
-    return await db.select().from(categories).where(eq(categories.restaurantId, restaurantId));
+    return await db.select().from(categories).where(eq(categories.restaurantId, restaurantId)).orderBy(asc(categories.sortOrder), asc(categories.id));
   }
 
   async createCategory(restaurantId: number, insertCategory: InsertCategory): Promise<Category> {
@@ -85,12 +87,30 @@ export class DatabaseStorage implements IStorage {
     return result.affectedRows > 0;
   }
 
+  async reorderCategories(restaurantId: number, orderedIds: number[]): Promise<boolean> {
+    await Promise.all(
+      orderedIds.map((id, index) =>
+        db.update(categories).set({ sortOrder: index }).where(and(eq(categories.id, id), eq(categories.restaurantId, restaurantId))),
+      ),
+    );
+    return true;
+  }
+
   // Products
   async getProducts(restaurantId: number, categoryId?: number): Promise<Product[]> {
     const scope = categoryId
       ? and(eq(products.restaurantId, restaurantId), eq(products.categoryId, categoryId))
       : eq(products.restaurantId, restaurantId);
-    return await db.select().from(products).where(scope);
+    return await db.select().from(products).where(scope).orderBy(asc(products.sortOrder), asc(products.id));
+  }
+
+  async reorderProducts(restaurantId: number, orderedIds: number[]): Promise<boolean> {
+    await Promise.all(
+      orderedIds.map((id, index) =>
+        db.update(products).set({ sortOrder: index }).where(and(eq(products.id, id), eq(products.restaurantId, restaurantId))),
+      ),
+    );
+    return true;
   }
 
   async createProduct(restaurantId: number, insertProduct: InsertProduct): Promise<Product> {

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SHOWCASE_BY_SLUG, SHOWCASE_TEMPLATES } from "@/lib/template-showcase";
 import { MENU_PRESET_BY_ID } from "@/lib/menu-presets";
+import { useSeo } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 /**
  * mmmmenu.app/templates/:slug tarzı şablon detay sayfası:
@@ -23,9 +25,22 @@ export default function TemplateDetailPage() {
   const accent = preset?.style.bg || "#171717";
   const frameBg = `color-mix(in oklab, ${accent} 86%, black)`;
 
+  useSeo({
+    title: t ? t.name : "Şablon Bulunamadı",
+    description: t
+      ? `${t.name} dijital menü şablonu: kolayca özelleştirilir, link/QR ile paylaşılır, kendi markanıza uyarlanır. Ücretsiz deneyin.`
+      : "Makethemenu dijital menü şablonları.",
+    path: t ? `/sablonlar/${t.slug}` : "/sablonlar",
+    noindex: !t,
+    breadcrumbs: [
+      { name: "Ana Sayfa", path: "/" },
+      { name: "Menü Şablonları", path: "/sablonlar" },
+      ...(t ? [{ name: t.name, path: `/sablonlar/${t.slug}` }] : []),
+    ],
+  });
+
   useEffect(() => {
-    if (t) document.title = `${t.name} | Makethemenu`;
-    return () => { document.title = "Makethemenu"; };
+    if (t) trackEvent("view_item", { item_id: t.slug, item_name: t.name, item_category: "menu_template" });
   }, [t]);
 
   if (!t) {

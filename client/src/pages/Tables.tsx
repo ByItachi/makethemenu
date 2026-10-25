@@ -73,49 +73,49 @@ function TableCard({ table }: { table: any }) {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.2 }}
-      className={cn(
-        "aspect-square rounded-2xl border-2 p-4 flex flex-col justify-between relative group cursor-pointer shadow-sm hover:shadow-md transition-all",
-        getStatusColor(table.status)
-      )}
-    >
-      <div className="flex justify-between items-start">
-        <span className="font-bold text-xl">{table.name}</span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-             <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'available' })}>Müsait Olarak İşaretle</DropdownMenuItem>
-             <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'occupied' })}>Dolu Olarak İşaretle</DropdownMenuItem>
-             <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'reserved' })}>Rezerve Olarak İşaretle</DropdownMenuItem>
-             <DropdownMenuItem className="text-destructive" onClick={() => deleteTable.mutate(table.id)}>Masayı Sil</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ y: -5 }}
+          transition={{ duration: 0.2 }}
+          className={cn(
+            "aspect-square rounded-2xl border-2 p-4 flex flex-col justify-between relative group cursor-pointer shadow-sm hover:shadow-md transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none",
+            getStatusColor(table.status)
+          )}
+          aria-label={`${table.name} masası seçenekleri`}
+        >
+          {/* Kartın tamamı menü tetikleyicisidir: üç noktaya ayrıca tıklamaya gerek yok. */}
+          <div className="flex justify-between items-start">
+            <span className="font-bold text-xl">{table.name}</span>
+            <MoreVertical className="h-4 w-4 opacity-40 group-hover:opacity-70 transition-opacity" aria-hidden="true" />
+          </div>
 
-      <div className="flex flex-col items-center justify-center flex-1 opacity-20">
-        <Users className="h-12 w-12" />
-      </div>
+          <div className="flex flex-col items-center justify-center flex-1 opacity-20">
+            <Users className="h-12 w-12" />
+          </div>
 
-      <div className="flex justify-between items-end">
-        <div className="text-xs font-medium uppercase tracking-wider">
-          {table.status === 'available' ? 'Müsait' : 
-           table.status === 'occupied' ? 'Dolu' : 
-           table.status === 'reserved' ? 'Rezerve' : table.status}
-        </div>
-        <div className="flex items-center gap-1 text-sm font-medium">
-          <Users className="h-3 w-3" />
-          {table.capacity}
-        </div>
-      </div>
-    </motion.div>
+          <div className="flex justify-between items-end">
+            <div className="text-xs font-medium uppercase tracking-wider">
+              {table.status === 'available' ? 'Müsait' : 
+               table.status === 'occupied' ? 'Dolu' : 
+               table.status === 'reserved' ? 'Rezerve' : table.status}
+            </div>
+            <div className="flex items-center gap-1 text-sm font-medium">
+              <Users className="h-3 w-3" />
+              {table.capacity}
+            </div>
+          </div>
+        </motion.div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[13rem]">
+        <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'available' })}>Müsait Olarak İşaretle</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'occupied' })}>Dolu Olarak İşaretle</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateTable.mutate({ id: table.id, status: 'reserved' })}>Rezerve Olarak İşaretle</DropdownMenuItem>
+        <DropdownMenuItem className="text-destructive" onClick={() => deleteTable.mutate(table.id)}>Masayı Sil</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

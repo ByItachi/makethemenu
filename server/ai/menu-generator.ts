@@ -139,6 +139,91 @@ async function aiDraft(input: z.infer<typeof generateInputSchema>, cfg: { baseUr
   return parsed.data;
 }
 
+// ─── Theme / color-palette suggestion (şablon oluşturucu) ─────────────────────
+export const themeSchema = z.object({
+  bg: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  text: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  muted: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  accent: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+});
+export type ThemeSuggestion = z.infer<typeof themeSchema>;
+
+const suggestThemeInputSchema = z.object({
+  description: z.string().trim().max(400).optional().default(""),
+  logoUrl: z.string().trim().url().max(2000).optional(),
+});
+
+// Mantıklı, erişilebilir kontrastlı 8 hazır palet: anahtarsız durumda bile
+// kullanıcıya rastgele değil, tutarlı ve kullanılabilir bir öneri döner.
+const CURATED_PALETTES: ThemeSuggestion[] = [
+  { bg: "#1b1410", text: "#f5ead9", muted: "#c9b8a4", accent: "#d98e3a" },
+  { bg: "#0e1f1a", text: "#eafaf1", muted: "#9fc7b4", accent: "#2fae76" },
+  { bg: "#111827", text: "#f3f4f6", muted: "#9aa4b7", accent: "#60a5fa" },
+  { bg: "#fdf6ec", text: "#2b1d12", muted: "#8a7256", accent: "#c0392b" },
+  { bg: "#1a1022", text: "#f3e8ff", muted: "#b9a3d6", accent: "#a855f7" },
+  { bg: "#fff8f0", text: "#3a2a1a", muted: "#9c8468", accent: "#e07a1f" },
+  { bg: "#0c1b24", text: "#eaf4f8", muted: "#9bb6c2", accent: "#2bb0c7" },
+  { bg: "#231515", text: "#fbe9e4", muted: "#c7a39b", accent: "#e23d3d" },
+];
+
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function curatedTheme(seed: string): ThemeSuggestion {
+  const palette = CURATED_PALETTES[hashString(seed || "varsayilan") % CURATED_PALETTES.length];
+  return { ...palette };
+}
+
+async function aiTheme(input: z.infer<typeof suggestThemeInputSchema>, cfg: { baseUrl: string; key: string; model: string }): Promise<ThemeSuggestion> {
+  const system =
+    "Sen bir marka/menü tasarımcısısın. Verilen açıklamaya (ve varsa logo görseline) uygun, " +
+    "kontrastı yüksek ve okunabilir bir renk paleti önerirsin. Sadece geçerli JSON döndürürsün.";
+  const userText =
+    `İşletme/menü açıklaması: ${input.description || "(belirtilmedi)"}.` +
+    ` Yanıt biçimi: {"bg":"#RRGGBB","text":"#RRGGBB","muted":"#RRGGBB","accent":"#RRGGBB"}. ` +
+    `bg arka plan, text ana metin, muted ikincil/açıklama metni, accent vurgu (başlık/fiyat) rengidir.`;
+
+  const content: unknown[] = [{ type: "text", text: userText }];
+  if (input.logoUrl) content.push({ type: "image_url", image_url: { url: input.logoUrl } });
+
+  const res = await fetch(`${cfg.baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${cfg.key}` },
+    body: JSON.stringify({
+      model: cfg.model,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: input.logoUrl ? content : userText },
+      ],
+      temperature: 0.6,
+      response_format: { type: "json_object" },
+    }),
+    signal: AbortSignal.timeout(60000),
+  });
+  if (!res.ok) throw new Error(`AI sağlayıcısı hata döndürdü (HTTP ${res.status}).`);
+  const data: any = await res.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (typeof text !== "string") throw new Error("AI yanıtı anlaşılamadı.");
+  const parsed = themeSchema.safeParse(JSON.parse(text));
+  if (!parsed.success) throw new Error("AI yanıtı beklenen biçimde değil.");
+  return parsed.data;
+}
+
+/** Açıklama ve/veya logo bağlantısından renk paleti önerir: anahtar varsa AI, yoksa hazır paletlerden tutarlı bir seçim. */
+export async function suggestTheme(body: unknown): Promise<{ source: "ai" | "template"; theme: ThemeSuggestion }> {
+  const input = suggestThemeInputSchema.parse(body);
+  const cfg = aiConfig();
+  if (!cfg) return { source: "template", theme: curatedTheme(input.description + (input.logoUrl ?? "")) };
+  try {
+    return { source: "ai", theme: await aiTheme(input, cfg) };
+  } catch {
+    return { source: "template", theme: curatedTheme(input.description + (input.logoUrl ?? "")) };
+  }
+}
+
 /** Generates a menu draft: real AI when a key is configured, deterministic templates otherwise. */
 export async function generateMenuDraft(body: unknown): Promise<GenerateResult> {
   const input = generateInputSchema.parse(body);

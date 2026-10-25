@@ -7,6 +7,7 @@ import { Headset, Eye, EyeOff, Wifi } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
+import { trackEvent } from "@/lib/analytics";
 
 const testimonials = [
   {
@@ -57,13 +58,14 @@ export default function Login() {
         credentials: "include",
         body: JSON.stringify({ identifier, password }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || data?.ok === false) {
         setError(data?.message ?? "Giriş yapılamadı. Lütfen tekrar deneyin.");
         return;
       }
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      window.location.href = "/panel";
+      trackEvent("login", { method: "password" });
+      window.location.href = "/dashboard";
     } catch {
       setError("Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.");
     } finally {

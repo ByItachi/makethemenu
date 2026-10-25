@@ -64,3 +64,64 @@ export const PLUGIN_CATALOG: PluginDef[] = [
 export function findPlugin(key: string): PluginDef | undefined {
   return PLUGIN_CATALOG.find((p) => p.key === key);
 }
+
+/**
+ * Aylık fiyatlar (TRY). 0 = ücretsiz modül (satın alma gerekmez).
+ * Mağazadaki (Integrations.tsx) fiyatlarla eşleşir.
+ */
+export const PLUGIN_PRICES: Record<string, number> = {
+  "menu-3d": 499,
+  yemeksepeti: 299,
+  getiryemek: 249,
+  "trendyol-yemek": 199,
+  "migros-yemek": 179,
+  fuudy: 149,
+  "paket-servisi": 99,
+  hemenyolda: 129,
+  restajet: 399,
+  "e-fatura": 599,
+  "e-adisyon": 249,
+  "bizim-hesap": 199,
+  "hotel-runner": 349,
+  "hms-hotel": 379,
+  "hotelier-101": 329,
+  "caller-id": 149,
+  "android-callerid": 99,
+  "yazar-kasa": 199,
+  boostfeel: 179,
+  butiksoft: 159,
+  "adisyo-harita": 89,
+  "veri-aktarimi": 299,
+  iyzico: 149,
+  paytr: 149,
+  stripe: 0,
+  "e-arsiv": 0,
+  "kurye-takip": 0,
+  "getir-buyuk": 0,
+  "qr-menu": 0,
+  "ai-menu": 0,
+  "stok-maliyet": 0,
+  "personel-vardiya": 0,
+  "musteri-cari": 0,
+  "logo-erp": 0,
+  parasut: 0,
+  "mikro-erp": 0,
+  kiosk: 0,
+};
+
+export function pluginPrice(key: string): number {
+  return PLUGIN_PRICES[key] ?? 0;
+}
+
+/**
+ * Uygulama Mağazası entegrasyon kimliği → Eklenti Merkezi katalog anahtarı.
+ * İstemcideki INTEGRATION_PLUGIN_KEYS ile aynıdır; sunucu tarafı doğrulama için burada.
+ */
+const STORE_ID_TO_PLUGIN_KEY: Record<string, string> = {
+  "urun-3d-gosterim": "menu-3d",
+  getir: "getiryemek",
+};
+
+export function toPluginKey(storeId: string): string {
+  return STORE_ID_TO_PLUGIN_KEY[storeId] ?? storeId;
+}

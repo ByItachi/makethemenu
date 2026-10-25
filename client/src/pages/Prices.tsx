@@ -1,61 +1,28 @@
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { PLANS } from "@shared/plans";
 
 export default function Prices() {
-  const plans = [
-    {
-      name: "Başlangıç",
-      price: "199",
-      desc: "Küçük kafeler ve büfeler için ideal.",
-      features: [
-        "Tek Cihaz",
-        "Sınırsız Ürün & Kategori",
-        "Basit Raporlama",
-        "E-posta Desteği"
-      ],
-      cta: "Hemen Başla",
-      highlight: false
-    },
-    {
-      name: "Profesyonel",
-      price: "349",
-      desc: "Büyüyen restoranlar için tam çözüm.",
-      features: [
-        "3 Cihaza Kadar",
-        "Stok & Reçete Takibi",
-        "Masa Yönetimi",
-        "Gelişmiş Raporlar",
-        "7/24 Telefon Desteği",
-        "Mutfak Ekranı (KDS)"
-      ],
-      cta: "En Popüler Seçim",
-      highlight: true
-    },
-    {
-      name: "Kurumsal",
-      price: "Özel",
-      desc: "Zincir işletmeler ve büyük restoranlar.",
-      features: [
-        "Sınırsız Cihaz",
-        "Şube Yönetimi",
-        "API Erişimi",
-        "Özel Entegrasyonlar",
-        "Özel Müşteri Temsilcisi",
-        "ERP Entegrasyonu"
-      ],
-      cta: "İletişime Geç",
-      highlight: false
-    }
-  ];
+  const plans = PLANS.map((p) => ({
+    name: p.name,
+    price: p.monthlyPrice == null ? "Özel" : String(p.monthlyPrice),
+    desc: p.desc,
+    features: p.features,
+    cta: p.cta,
+    highlight: p.highlight,
+    id: p.id,
+    purchasable: p.purchasable,
+  }));
+
 
   return (
-    <div className="pt-56 pb-24 bg-slate-50 min-h-screen">
+    <div className="pt-56 pb-24 bg-background min-h-screen">
       <div className="site-container text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-slate-900">
+        <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-foreground">
           Şeffaf ve Uygun <span className="text-primary">Fiyatlar</span>
         </h1>
-        <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Gizli ücret yok. Taahhüt yok. İster aylık, ister yıllık ödeyin.
         </p>
       </div>
@@ -65,33 +32,33 @@ export default function Prices() {
           {plans.map((plan, i) => (
             <div 
               key={i} 
-              className={`relative bg-white rounded-3xl p-8 border ${plan.highlight ? 'border-primary shadow-2xl shadow-primary/10 scale-105 z-10' : 'border-border shadow-lg'} flex flex-col`}
+              className={`relative bg-card rounded-3xl p-8 border ${plan.highlight ? 'border-primary shadow-2xl shadow-primary/10 scale-105 z-10' : 'border-border shadow-lg'} flex flex-col`}
             >
               {plan.highlight && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-1 rounded-full text-sm font-bold shadow-lg">
                   En Çok Tercih Edilen
                 </div>
               )}
               
               <div className="mb-8">
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">{plan.name}</h3>
-                <p className="text-slate-500 text-sm h-10">{plan.desc}</p>
+                <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
+                <p className="text-muted-foreground text-sm h-10">{plan.desc}</p>
               </div>
 
               <div className="mb-8">
                 <div className="flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">
+                  <span className="text-4xl font-bold text-foreground">
                     {plan.price === "Özel" ? "Teklif" : `₺${plan.price}`}
                   </span>
-                  {plan.price !== "Özel" && <span className="text-slate-500 mb-1">/ay</span>}
+                  {plan.price !== "Özel" && <span className="text-muted-foreground mb-1">/ay</span>}
                 </div>
                 {plan.price !== "Özel" && <p className="text-xs text-green-600 font-medium mt-2">Yıllık ödemede %20 indirim</p>}
               </div>
 
               <ul className="space-y-4 mb-8 flex-1">
                 {plan.features.map((feature, fIdx) => (
-                  <li key={fIdx} className="flex items-center gap-3 text-sm text-slate-700">
-                    <div className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  <li key={fIdx} className="flex items-center gap-3 text-sm text-foreground/90">
+                    <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                       <Check className="w-3 h-3" />
                     </div>
                     {feature}
@@ -99,9 +66,9 @@ export default function Prices() {
                 ))}
               </ul>
 
-              <Link href={plan.name === 'Kurumsal' ? '/iletisim' : `/purchase?plan=${plan.name.toLowerCase()}`}>
-                <Button 
-                  className={`w-full py-6 rounded-xl font-bold text-base ${plan.highlight ? 'bg-primary hover:bg-primary/90' : 'bg-slate-900 hover:bg-slate-800'}`}
+              <Link href={plan.purchasable ? `/checkout?plan=${plan.id}&cycle=monthly` : '/iletisim'}>
+                <Button
+                  className={`w-full py-6 rounded-xl font-bold text-base ${plan.highlight ? 'bg-primary hover:bg-primary/90' : 'bg-foreground text-background hover:bg-foreground/90'}`}
                 >
                   {plan.cta}
                 </Button>
@@ -111,7 +78,7 @@ export default function Prices() {
         </div>
         
         <div className="mt-16 text-center">
-          <p className="text-slate-500">
+          <p className="text-muted-foreground">
             Fiyatlara KDV dahil değildir. 14 gün ücretsiz deneme süresi sonunda kartınızdan çekim yapılmaz.
           </p>
         </div>

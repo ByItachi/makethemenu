@@ -52,7 +52,7 @@ export function registerPublicRoutes(app: Express) {
       .select({ id: categories.id, name: categories.name, slug: categories.slug, imageUrl: categories.imageUrl })
       .from(categories)
       .where(eq(categories.restaurantId, r.id))
-      .orderBy(asc(categories.id));
+      .orderBy(asc(categories.sortOrder), asc(categories.id));
 
     const items = await db
       .select({
@@ -68,7 +68,7 @@ export function registerPublicRoutes(app: Express) {
       })
       .from(products)
       .where(eq(products.restaurantId, r.id))
-      .orderBy(asc(products.id));
+      .orderBy(asc(products.sortOrder), asc(products.id));
 
     res.json({
       restaurant: {
@@ -85,6 +85,7 @@ export function registerPublicRoutes(app: Express) {
         menuRadius: r.menuRadius,
         menuTemplate: r.menuTemplate,
         menuPreset: r.menuPreset ?? null,
+        customPreset: r.customPreset ?? null,
         showProductImages: r.showProductImages,
         menuLanguage: r.menuLanguage,
         lat: r.lat,

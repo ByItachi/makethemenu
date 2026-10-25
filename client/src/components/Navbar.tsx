@@ -12,6 +12,8 @@ import {
   Utensils,
   Hotel,
   Sun,
+  Droplets,
+  Brush,
   Smartphone,
   ChefHat,
   FileText,
@@ -31,7 +33,6 @@ import {
   BookOpen,
   HelpCircle,
   Code,
-  Moon,
   Languages,
   Pencil as PencilIcon,
   Download as DownloadIcon
@@ -39,7 +40,7 @@ import {
 import { useState, useEffect } from "react";
 import React from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useDarkMode } from "@/contexts/DarkModeContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,6 +72,8 @@ const businessTypes = [
   { titleKey: "nav.biz.burger", icon: Utensils, href: "/burger-cafe-restoran-adisyon-sistemi" },
   { titleKey: "nav.biz.hotel", icon: Hotel, href: "/otel-restoran-yazilimi-otel-yazilim-programi" },
   { titleKey: "nav.biz.seasonal", icon: Sun, href: "/sezonluk-isletmeler" },
+  { titleKey: "nav.biz.waterDelivery", icon: Droplets, href: "/su-siparisi" },
+  { titleKey: "nav.biz.carpetCleaning", icon: Brush, href: "/hali-yikama" },
 ];
 
 const features = [
@@ -109,7 +112,6 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [location] = useLocation();
   const { language, setLanguage, t } = useLanguage();
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -243,15 +245,7 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9"
-                onClick={toggleDarkMode}
-                aria-label={isDarkMode ? t("theme.toggleToLight") : t("theme.toggleToDark")}
-              >
-                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
+              <ThemeToggle className="h-9 w-9" />
 
               <Link href="/giris">
                 <Button variant="ghost" className="font-semibold text-sm px-3">{t("nav.login")}</Button>
@@ -265,14 +259,7 @@ export function Navbar() {
 
             {/* Mobile Toggle */}
             <div className="lg:hidden ml-auto flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleDarkMode}
-                aria-label={isDarkMode ? t("theme.toggleToLight") : t("theme.toggleToDark")}
-              >
-                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
+              <ThemeToggle className="h-9 w-9" />
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative">

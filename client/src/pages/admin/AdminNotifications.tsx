@@ -92,24 +92,24 @@ export default function AdminNotifications() {
               <Card key={notification.id} className={`transition-all ${notification.status === 'unread' ? 'border-l-4 border-l-primary bg-blue-50/20' : ''}`}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex gap-4">
-                      <div className={`mt-1 p-2 rounded-full ${
+                    <div className="flex items-start gap-4 min-w-0">
+                      <div className={`mt-1 p-2 rounded-full shrink-0 flex items-center justify-center ${
                         notification.type === 'support' ? 'bg-orange-100 text-orange-600' :
                         notification.type === 'payment' ? 'bg-green-100 text-green-600' :
                         'bg-blue-100 text-blue-600'
                       }`}>
-                        {notification.type === 'support' ? <AlertCircle className="w-5 h-5" /> :
-                         notification.type === 'payment' ? <CheckCircle2 className="w-5 h-5" /> :
-                         <Bell className="w-5 h-5" />}
+                        {notification.type === 'support' ? <AlertCircle className="w-5 h-5 shrink-0" /> :
+                         notification.type === 'payment' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> :
+                         <Bell className="w-5 h-5 shrink-0" />}
                       </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-foreground">{notification.title}</h3>
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-foreground break-words">{notification.title}</h3>
                           {notification.status === 'unread' && (
                             <Badge variant="default" className="text-[10px] h-5">Yeni</Badge>
                           )}
                         </div>
-                        <p className="text-foreground/80">{notification.message}</p>
+                        <p className="text-foreground/80 break-words">{notification.message}</p>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground/70 mt-2">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />

@@ -18,7 +18,11 @@ interface PluginItem {
   isEnabled: boolean;
   planLocked: boolean;
   settings: Record<string, unknown> | null;
+  price?: number;
+  owned?: boolean;
 }
+
+type StatusFilter = "owned-free" | "all";
 
 const CATEGORY_LABELS: Record<PluginCategory, string> = {
   pazaryeri: "Pazaryerleri",
@@ -46,6 +50,7 @@ export default function PluginCenter() {
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [settingsDraft, setSettingsDraft] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("owned-free");
 
   const load = async () => {
     try {
@@ -114,11 +119,15 @@ export default function PluginCenter() {
     return Array.from(set);
   }, [plugins]);
 
+  const isFree = (p: PluginItem) => (p.price ?? 0) === 0;
+  const isUsable = (p: PluginItem) => isFree(p) || p.owned === true || p.isEnabled;
+
   const filtered = (plugins ?? []).filter((p) => {
+    const matchesStatus = statusFilter === "all" || isUsable(p);
     const matchesCategory = category === "all" || p.category === category;
     const q = query.trim().toLocaleLowerCase("tr");
     const matchesQuery = !q || p.name.toLocaleLowerCase("tr").includes(q) || p.description.toLocaleLowerCase("tr").includes(q);
-    return matchesCategory && matchesQuery;
+    return matchesStatus && matchesCategory && matchesQuery;
   });
 
   if (!plugins && !error) {
@@ -170,6 +179,16 @@ export default function PluginCenter() {
         ))}
       </div>
 
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Durum filtresi">
+        <span className="text-xs text-slate-400 uppercase tracking-wider">Durum:</span>
+        <Button variant={statusFilter === "owned-free" ? "default" : "outline"} size="sm" onClick={() => setStatusFilter("owned-free")}>
+          Sahip Olunanlar & Ücretsiz
+        </Button>
+        <Button variant={statusFilter === "all" ? "default" : "outline"} size="sm" onClick={() => setStatusFilter("all")}>
+          Tüm Entegrasyonlar
+        </Button>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {filtered.map((p) => {
           const Icon = CATEGORY_ICONS[p.category] ?? Wrench;
@@ -194,7 +213,8 @@ export default function PluginCenter() {
                   <Switch
                     checked={p.isEnabled}
                     onCheckedChange={() => toggle(p)}
-                    disabled={busyKey === p.key}
+                    disabled={busyKey === p.key || (!isFree(p) && !p.owned) || (p.planLocked && !p.isEnabled)}
+                    title={!isFree(p) && !p.owned ? "Satın alınmadan açılamaz" : p.planLocked && !p.isEnabled ? "Üst plan gerekli" : undefined}
                     aria-label={`${p.name} eklentisini ${p.isEnabled ? "kapat" : "aç"}`}
                   />
                 </div>
@@ -202,12 +222,33 @@ export default function PluginCenter() {
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 min-h-[40px]">{p.description}</p>
 
                 <div className="flex items-center justify-between mt-3">
-                  <Badge variant={p.isEnabled ? "default" : "outline"} className="text-[11px]">
-                    {p.isEnabled ? "Eklendi" : "Kapalı"}
-                  </Badge>
-                  <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => openSettings(p)} aria-expanded={editingKey === p.key}>
-                    <Wrench className="h-3.5 w-3.5 mr-1" /> Ayarlar
-                  </Button>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {isFree(p) ? (
+                      <Badge variant="secondary" className="text-[11px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                        Ücretsiz
+                      </Badge>
+                    ) : p.owned ? (
+                      <Badge variant="secondary" className="text-[11px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                        Sahipsiniz
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[11px]">
+                        {p.price}₺/ay
+                      </Badge>
+                    )}
+                    <Badge variant={p.isEnabled ? "default" : "outline"} className="text-[11px]">
+                      {p.isEnabled ? "Aktif" : "Kapalı"}
+                    </Badge>
+                  </div>
+                  {!isFree(p) && !p.owned ? (
+                    <a href="/restoran/integrations/app-store" className="text-xs font-medium text-primary hover:underline">
+                      Mağazadan Satın Al
+                    </a>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => openSettings(p)} aria-expanded={editingKey === p.key}>
+                      <Wrench className="h-3.5 w-3.5 mr-1" /> Ayarlar
+                    </Button>
+                  )}
                 </div>
 
                 {editingKey === p.key && (

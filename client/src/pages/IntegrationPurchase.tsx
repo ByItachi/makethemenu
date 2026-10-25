@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { 
-  CreditCard, 
-  Calendar, 
-  CheckCircle2, 
-  Package, 
-  FileText, 
-  ShieldCheck, 
-  ArrowRight,
+import {
+  CreditCard,
+  CheckCircle2,
   Landmark,
   Trash2,
-  Smartphone
+  Loader2,
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useLocation, Link } from "wouter";
- 
+import { integrations as catalog } from "@/pages/restoran/integrations/Integrations";
 
 interface Integration {
   id: string;
@@ -27,6 +23,27 @@ interface Integration {
   price?: number;
   description?: string;
 }
+
+const resolveCart = (): Integration[] => {
+  try {
+    const raw = localStorage.getItem('integrationCart');
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((x) => {
+        if (typeof x === 'string') return catalog.find((i) => i.id === x);
+        if (x && typeof x === 'object' && typeof (x as Integration).id === 'string') {
+          const item = x as Integration;
+          return catalog.find((i) => i.id === item.id) ?? item;
+        }
+        return undefined;
+      })
+      .filter((x): x is Integration => Boolean(x));
+  } catch {
+    return [];
+  }
+};
 
 const IntegrationPurchase = () => {
   const [, navigate] = useLocation();
@@ -37,9 +54,13 @@ const IntegrationPurchase = () => {
     companyName: '',
     taxNo: '',
     taxOffice: '',
-    address: ''
+    address: '',
+    email: ''
   });
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [purchaseError, setPurchaseError] = useState('');
+  const [orderResult, setOrderResult] = useState<{ orderNo: string; invoiceNo: string; total: number } | null>(null);
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv] = useState('');
@@ -97,15 +118,7 @@ const IntegrationPurchase = () => {
   };
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('integrationCart');
-      if (raw) {
-        const parsed = JSON.parse(raw) as Integration[];
-        setCartItems(parsed);
-      }
-    } catch {
-      setCartItems([]);
-    }
+    setCartItems(resolveCart());
   }, []);
 
   const nextStep = () => setStep(step + 1);
@@ -115,27 +128,74 @@ const IntegrationPurchase = () => {
     setCustomerInfo(prev => ({ ...prev, [field]: value }));
   };
 
-  const handlePaymentSuccess = (transactionId: string) => {
-    setPaymentProcessing(false);
-    clearCart();
-    alert(`Ödeme başarılı! İşlem numarası: ${transactionId}`);
-    navigate('/restoran/integrations');
+  // Adım ilerleme doğrulaması
+  const validateBilling = (): string => {
+    if (!customerInfo.companyName.trim()) return 'Firma ünvanı zorunludur.';
+    if (!/^\d{10,11}$/.test(customerInfo.taxNo.trim())) return 'Vergi numarası 10-11 haneli olmalıdır.';
+    if (!customerInfo.address.trim()) return 'Fatura adresi zorunludur.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerInfo.email.trim())) return 'Geçerli bir e-posta girin.';
+    if (!termsAccepted) return 'Mesafeli satış sözleşmesini onaylamalısınız.';
+    return '';
   };
 
-  const handlePaymentError = (error: string) => {
-    setPaymentProcessing(false);
-    alert(`Ödeme hatası: ${error}`);
+  const validateCard = (): string => {
+    const digits = cardNumber.replace(/\s/g, '');
+    if (digits.length < 16) return 'Kart numarası eksik.';
+    const [mm, yy] = cardExpiry.split('/');
+    if (!mm || !yy || Number(mm) < 1 || Number(mm) > 12 || yy.length < 2) return 'Son kullanma tarihi geçersiz (AA/YY).';
+    const now = new Date();
+    const expYear = 2000 + Number(yy);
+    if (expYear < now.getFullYear() || (expYear === now.getFullYear() && Number(mm) < now.getMonth() + 1)) return 'Kartın son kullanma tarihi geçmiş.';
+    if (cardCvv.length < 3) return 'CVV en az 3 haneli olmalıdır.';
+    if (!cardHolder.trim()) return 'Kart sahibi adı zorunludur.';
+    return '';
   };
 
-  const handlePaymentCancel = () => {
-    setPaymentProcessing(false);
-    // Stay on the same page but reset payment state
+  const completePurchase = async () => {
+    setPurchaseError('');
+    const isFree = total === 0;
+    if (!isFree) {
+      const err = validateCard();
+      if (err) { setPurchaseError(err); return; }
+    }
+    const billingErr = validateBilling();
+    if (billingErr) { setPurchaseError(billingErr); setStep(2); return; }
+
+    setPaymentProcessing(true);
+    try {
+      const res = await fetch('/api/plugins/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          items: cartItems.map((i) => ({ storeId: i.id })),
+          billingCycle,
+          billing: {
+            companyName: customerInfo.companyName,
+            taxNo: customerInfo.taxNo,
+            taxOffice: customerInfo.taxOffice,
+            address: customerInfo.address,
+            email: customerInfo.email,
+          },
+          card: isFree ? undefined : { brand: cardBrand || 'Kart', last4: cardNumber.replace(/\s/g, '').slice(-4) },
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message || 'Ödeme tamamlanamadı.');
+      setOrderResult({ orderNo: data.orderNo, invoiceNo: data.invoiceNo, total: data.total });
+      clearCart();
+      setPaymentProcessing(false);
+      setStep(4);
+    } catch (e) {
+      setPaymentProcessing(false);
+      setPurchaseError(e instanceof Error ? e.message : 'Ödeme tamamlanamadı.');
+    }
   };
 
   const removeFromCart = (index: number) => {
     const updated = cartItems.filter((_, i) => i !== index);
     setCartItems(updated);
-    localStorage.setItem('integrationCart', JSON.stringify(updated));
+    localStorage.setItem('integrationCart', JSON.stringify(updated.map((i) => i.id)));
   };
 
   const clearCart = () => {
@@ -308,11 +368,15 @@ const IntegrationPurchase = () => {
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-700'}`}>2</div>
                     <span className="text-sm font-medium">Fatura</span>
                   </div>
-                  <div className="w-8 h-px bg-slate-200 dark:bg-slate-700"></div>
-                  <div className={`flex items-center gap-2 ${step >= 3 ? 'text-primary' : 'text-slate-400'}`}>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step >= 3 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-700'}`}>3</div>
-                    <span className="text-sm font-medium">Ödeme</span>
-                  </div>
+                  {total > 0 && (
+                    <>
+                      <div className="w-8 h-px bg-slate-200 dark:bg-slate-700"></div>
+                      <div className={`flex items-center gap-2 ${step >= 3 ? 'text-primary' : 'text-slate-400'}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step >= 3 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-700'}`}>3</div>
+                        <span className="text-sm font-medium">Ödeme</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
@@ -400,15 +464,32 @@ const IntegrationPurchase = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="address">Fatura Adresi</Label>
-                      <Input 
-                        id="address" 
-                        placeholder="Açık adresiniz" 
+                      <Input
+                        id="address"
+                        placeholder="Açık adresiniz"
                         value={customerInfo.address}
                         onChange={(e) => handleCustomerInfoChange('address', e.target.value)}
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="billing-email">Fatura E-postası</Label>
+                      <Input
+                        id="billing-email"
+                        type="email"
+                        placeholder="faturanın gönderileceği e-posta"
+                        value={customerInfo.email}
+                        onChange={(e) => handleCustomerInfoChange('email', e.target.value)}
+                        autoComplete="email"
+                      />
+                    </div>
                     <div className="flex items-center space-x-2 mt-4">
-                      <input type="checkbox" id="terms" className="rounded border-gray-300 text-primary focus:ring-primary" />
+                      <input
+                        type="checkbox"
+                        id="terms"
+                        className="rounded border-gray-300 text-primary focus:ring-primary"
+                        checked={termsAccepted}
+                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                      />
                       <Label htmlFor="terms" className="text-sm font-normal text-slate-600 dark:text-slate-400">
                         <a href="#" className="text-primary hover:underline">Mesafeli Satış Sözleşmesi</a>'ni okudum ve kabul ediyorum.
                       </Label>
@@ -516,23 +597,75 @@ const IntegrationPurchase = () => {
                     </TabsContent>
                   </Tabs>
                 )}
-              </CardContent>
-              <CardFooter className="flex justify-between pt-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/restoran/integrations')} 
-                >
-                  Geri
-                </Button>
-                {step < 3 ? (
-                  <Button onClick={nextStep} className="gap-2" disabled={cartItems.length === 0}>
-                    Devam Et <ArrowRight className="w-4 h-4" />
-                  </Button>
-                ) : (
-                  <Button className="bg-green-600 hover:bg-green-700 gap-2" disabled={cartItems.length === 0}>
-                    <CheckCircle2 className="w-4 h-4" /> Ödemeyi Tamamla
-                  </Button>
+
+                {/* Step 4: Satın alma tamamlandı */}
+                {step === 4 && orderResult && (
+                  <div className="text-center py-8 space-y-3">
+                    <CheckCircle2 className="w-14 h-14 text-green-600 mx-auto" />
+                    <h3 className="text-xl font-bold dark:text-white">Ödemeniz Tamamlandı</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Entegrasyonlarınız anında etkinleştirildi. Faturanız <strong>{customerInfo.email || 'e-posta adresinize'}</strong> gönderildi.
+                    </p>
+                    <div className="mx-auto max-w-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4 text-sm space-y-1 text-left">
+                      <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Sipariş No</span><span className="font-mono font-medium dark:text-slate-200">{orderResult.orderNo}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Fatura No</span><span className="font-mono font-medium dark:text-slate-200">{orderResult.invoiceNo}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Tutar</span><span className="font-bold dark:text-slate-200">₺{orderResult.total}</span></div>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 pt-2">
+                      <Button variant="outline" onClick={() => navigate('/restoran/integrations/app-store')}>
+                        Mağazaya Dön
+                      </Button>
+                      <Button onClick={() => navigate('/restoran/integrations/plugins')} data-testid="goto-plugins">
+                        Eklenti Merkezine Git <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                 )}
+              </CardContent>
+              <CardFooter className="flex flex-col gap-2 pt-2">
+                {purchaseError && step < 4 && (
+                  <div className="w-full rounded-lg border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40 px-3 py-2 text-sm text-red-700 dark:text-red-300" role="alert">
+                    {purchaseError}
+                  </div>
+                )}
+                <div className="flex justify-between w-full">
+                  <Button
+                    variant="outline"
+                    onClick={() => (step === 1 ? navigate('/restoran/integrations/app-store') : prevStep())}
+                    disabled={paymentProcessing}
+                  >
+                    {step === 1 ? 'Mağazaya Dön' : 'Geri'}
+                  </Button>
+                  {step < 3 ? (
+                    <Button
+                      onClick={() => {
+                        setPurchaseError('');
+                        if (step === 2) {
+                          const err = validateBilling();
+                          if (err) { setPurchaseError(err); return; }
+                          if (total === 0) { completePurchase(); return; }
+                        }
+                        nextStep();
+                      }}
+                      className="gap-2"
+                      disabled={cartItems.length === 0}
+                    >
+                      {step === 2 && total === 0 ? 'Ücretsiz Etkinleştir' : 'Devam Et'} <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 gap-2"
+                      onClick={completePurchase}
+                      disabled={paymentProcessing || cartItems.length === 0}
+                    >
+                      {paymentProcessing ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> İşleniyor...</>
+                      ) : (
+                        <><CheckCircle2 className="w-4 h-4" /> Ödemeyi Tamamla</>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </CardFooter>
             </Card>
           </div>

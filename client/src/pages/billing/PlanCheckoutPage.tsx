@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
+import { trackEvent } from "@/lib/analytics";
 
 type PlanRow = { code: string; name: string; priceMonthly: number; priceYearly: number; maxProducts: number; maxTables: number; customDomain: boolean };
 type Overview = { planCode: string } | null;
@@ -60,6 +61,15 @@ export default function PlanCheckoutPage() {
       setLocation("/kayit");
       return;
     }
+    const plan = (plans.data ?? []).find((p) => p.code === planCode);
+    const value = interval === "yearly" ? plan?.priceYearly : plan?.priceMonthly;
+    trackEvent("begin_checkout", {
+      plan: planCode,
+      interval,
+      value: value ?? 0,
+      currency: "TRY",
+      coupon: coupon.trim() || undefined,
+    });
     startCheckout.mutate(planCode);
   };
 

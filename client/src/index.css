@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Outfit', sans-serif;
 
@@ -19,7 +20,7 @@
   --popover-foreground: 240 10% 3.9%;
 
   --primary: 32 95% 44%; /* Deep Amber/Orange - Appetizing */
-  --primary-foreground: 0 0% 98%;
+  --primary-foreground: 0 0% 98%; /* Light: beyaz yazı; dark tematda koyu */
 
   --secondary: 240 4.8% 95.9%;
   --secondary-foreground: 240 5.9% 10%;
@@ -28,7 +29,7 @@
   --muted-foreground: 240 3.8% 46.1%;
 
   --accent: 32 95% 44%;
-  --accent-foreground: 0 0% 98%;
+  --accent-foreground: 0 0% 98%; /* Light: turuncu üstünde beyaz */
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
@@ -50,6 +51,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   /* Dark Theme (Premium, Night Mode) */
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
@@ -61,7 +63,7 @@
   --popover-foreground: 0 0% 98%;
 
   --primary: 32 95% 50%; /* Brighter Amber for dark mode */
-  --primary-foreground: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%; /* Parlak turuncu üstünde koyu yazı */
 
   --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
@@ -82,7 +84,7 @@
   --sidebar: 240 10% 3.9%;
   --sidebar-foreground: 240 4.8% 95.9%;
   --sidebar-primary: 32 95% 50%;
-  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-primary-foreground: 240 5.9% 10%;
   --sidebar-accent: 240 3.7% 15.9%;
   --sidebar-accent-foreground: 240 4.8% 95.9%;
   --sidebar-border: 240 3.7% 15.9%;

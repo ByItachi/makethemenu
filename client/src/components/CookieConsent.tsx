@@ -11,6 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { writeConsent, applyTagsForConsent, readConsent } from "@/lib/analytics";
 
 type CookiePrefs = {
   necessary: true;
@@ -43,11 +44,18 @@ export function CookieConsent() {
     const stored = readStoredConsent();
     if (!stored) {
       setVisible(true);
+    } else {
+      // Önceki karar varsa etiket davranışını hemen uygula (erken sayfa yüklemelerinde de geçerli).
+      applyTagsForConsent(readConsent());
     }
+    // Footer'daki "Çerez Tercihleri" bağlantısı banner'ı yeniden açar.
+    const open = () => setVisible(true);
+    window.addEventListener("mtm:open-consent", open);
+    return () => window.removeEventListener("mtm:open-consent", open);
   }, []);
 
   const persist = (next: CookiePrefs) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...next, decidedAt: new Date().toISOString() }));
+    writeConsent(next); // localStorage'a yazar + etiket davranışını anında uygular
     setVisible(false);
     setCustomizeOpen(false);
   };

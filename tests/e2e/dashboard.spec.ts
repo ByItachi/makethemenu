@@ -9,7 +9,7 @@ async function login(page: import("@playwright/test").Page) {
   await page.getByPlaceholder("E-Posta Adresi veya Telefon Numarası").fill(DEMO_EMAIL);
   await page.getByPlaceholder("Şifre").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: /Giriş Yap/i }).click();
-  await expect(page).toHaveURL(/\/panel/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 20_000 });
 }
 
 test.describe("İşletme paneli", () => {

@@ -44,9 +44,9 @@ export default function About() {
                   { title: "Sürekli İnovasyon", desc: "Teknolojiyi yakından takip ediyor, sistemimizi her gün geliştiriyoruz." },
                   { title: "Şeffaflık", desc: "Gizli maliyetler yok, açık ve dürüst iletişim var." }
                 ].map((val, i) => (
-                  <li key={i} className="bg-white p-4 rounded-xl border border-border shadow-sm">
-                    <h4 className="font-bold text-slate-900">{val.title}</h4>
-                    <p className="text-sm text-slate-500">{val.desc}</p>
+                  <li key={i} className="bg-card p-4 rounded-xl border border-border shadow-sm">
+                    <h4 className="font-bold text-foreground">{val.title}</h4>
+                    <p className="text-sm text-muted-foreground">{val.desc}</p>
                   </li>
                 ))}
               </ul>
@@ -56,7 +56,7 @@ export default function About() {
       </section>
       
       {/* Stats */}
-      <section className="py-20 bg-primary text-white">
+      <section className="py-20 bg-primary text-primary-foreground">
         <div className="site-container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[

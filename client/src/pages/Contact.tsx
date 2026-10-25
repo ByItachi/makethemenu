@@ -54,7 +54,7 @@ export default function Contact() {
               { icon: <Phone className="w-6 h-6" />, title: "Telefon", text: "+90 (212) 555 00 00" },
               { icon: <Mail className="w-6 h-6" />, title: "E-posta", text: "info@possistem.com" }
             ].map((item, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl shadow-lg border border-border hover:shadow-xl transition-shadow duration-300">
+              <div key={i} className="bg-card p-6 rounded-2xl shadow-lg border border-border hover:shadow-xl transition-shadow duration-300">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 mx-auto">
                   {item.icon}
                 </div>

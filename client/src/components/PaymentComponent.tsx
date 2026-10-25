@@ -164,11 +164,11 @@ const PaymentComponent: React.FC<PaymentComponentProps> = ({
         <CardContent className="space-y-4">
           <RadioGroup value={selectedProvider} onValueChange={setSelectedProvider}>
             {providers.map((provider) => (
-              <div key={provider.id} className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50">
+              <div key={provider.id} className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50">
                 <RadioGroupItem value={provider.id} id={provider.id} />
                 <Label htmlFor={provider.id} className="flex items-center gap-3 cursor-pointer flex-1">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <CreditCard className="h-6 w-6 text-gray-600" />
+                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                    <CreditCard className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <div>
                     <div className="font-medium">{provider.name}</div>

@@ -128,7 +128,7 @@ export default function AdminBusinesses() {
     },
     onSuccess: () => {
       queryClient.clear();
-      window.location.href = "/panel";
+      window.location.href = "/dashboard";
     },
     onError: (e: Error) => toast({ title: "Hata", description: e.message, variant: "destructive" }),
   });
@@ -218,7 +218,7 @@ export default function AdminBusinesses() {
             <p className="text-muted-foreground mt-1">Sistemdeki restoran ve kafelerin yönetimi</p>
           </div>
           <div className="flex gap-4 w-full md:w-auto flex-wrap">
-             <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm flex-1 md:flex-none">
+             <div className="flex items-center gap-2 bg-card p-2 rounded-lg border shadow-sm flex-1 md:flex-none">
                 <Search className="h-5 w-5 text-muted-foreground/70" />
                 <Input
                   placeholder="Restoran ara..."
@@ -229,7 +229,7 @@ export default function AdminBusinesses() {
               </div>
               
               <Select value={selectedCity} onValueChange={setSelectedCity}>
-                <SelectTrigger className="w-full sm:w-[180px] bg-white">
+                <SelectTrigger className="w-full sm:w-[180px] bg-card">
                   <SelectValue placeholder="Şehir Seçin" />
                 </SelectTrigger>
                 <SelectContent>

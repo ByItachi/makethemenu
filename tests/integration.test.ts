@@ -170,10 +170,12 @@ test("duplicate e-posta kaydı 409 döner", async () => {
   assert.equal(r.status, 409);
 });
 
-test("yanlış parola 401 ve genel mesaj döner", async () => {
+test("yanlış parola hata zarfı (200 ok:false) ve genel mesaj döner, oturum açılmaz", async () => {
   const r = await call("POST", "/api/auth/login", { body: { identifier: emailA, password: "yanlis-parola" } });
-  assert.equal(r.status, 401);
+  assert.equal(r.status, 200);
+  assert.equal(r.json.ok, false);
   assert.match(r.json.message, /hatalı/);
+  assert.ok(!r.sid, "başarısız girişte oturum çerezi verilmemeli");
 });
 
 test("doğru parola ile giriş yeni oturum açar", async () => {

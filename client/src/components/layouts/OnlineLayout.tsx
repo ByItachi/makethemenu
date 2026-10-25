@@ -75,6 +75,7 @@ import { NotificationsPopover, HelpSheet, SupportDialog } from "@/components/res
 import Integrations from "@/pages/restoran/integrations/Integrations";
 import PluginCenter from "@/pages/restoran/integrations/PluginCenter";
 import AppStore from "@/pages/restoran/integrations/AppStore";
+import IntegrationCenter from "@/pages/restoran/integrations/Center";
 import Urun3DGosterimIntegration from "@/pages/restoran/integrations/Urun3DGosterimIntegration";
 import YemekSepetiIntegration from "@/pages/restoran/integrations/YemekSepetiIntegration";
 import GetirIntegration from "@/pages/restoran/integrations/GetirIntegration";
@@ -790,6 +791,7 @@ function OnlineLayoutContent() {
           >
             <SidebarItem icon={Store} label="Uygulama Mağazası" href="/restoran/integrations/app-store" active={isActive("/restoran/integrations/app-store")} />
             <SidebarItem icon={Puzzle} label="Eklenti Merkezi" href="/restoran/integrations/plugins" active={isActive("/restoran/integrations/plugins")} />
+            <SidebarItem icon={Puzzle} label="Entegrasyon Merkezi" href="/restoran/integrations/center" active={isActive("/restoran/integrations/center")} />
           </SidebarItem>
 
           <SidebarSectionHeader label="Hesabım" />
@@ -831,6 +833,7 @@ function OnlineLayoutContent() {
             <Route path="/restoran/integrations" component={Integrations} />
             <Route path="/restoran/integrations/app-store" component={AppStore} />
             <Route path="/restoran/integrations/plugins" component={PluginCenter} />
+            <Route path="/restoran/integrations/center" component={IntegrationCenter} />
             <Route path="/restoran/integrations/urun-3d-gosterim" component={Urun3DGosterimIntegration} />
             <Route path="/restoran/integrations/yemeksepeti" component={YemekSepetiIntegration} />
             <Route path="/restoran/integrations/getir" component={GetirIntegration} />

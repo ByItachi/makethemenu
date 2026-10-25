@@ -204,7 +204,12 @@ export function registerAuthRoutes(app: Express) {
     }
 
     if (!user || !ok || user.isActive === false) {
-      return res.status(401).json({ message: GENERIC_LOGIN_ERROR });
+      // Hatalı deneme beklenen bir iş sonucudur: 401 yerine 200 + hata zarfı.
+      // (Chromium, fetch 4xx yanıtlarını console'a "Failed to load resource"
+      // olarak yazdırır; sözleşme /api/auth/user 200/null ile aynı ilkeyi izler.)
+      // Mesaj kullanıcıya UI'da gösterilmeye devam eder; brute force yine
+      // rate limiter (429) ve audit kaydıyla korunur.
+      return res.json({ ok: false as const, message: GENERIC_LOGIN_ERROR });
     }
 
     if (needsRehash(user.password)) {

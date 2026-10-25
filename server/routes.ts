@@ -18,16 +18,24 @@ import { registerTenantRoutes } from "./tenant-routes";
 import { registerPublicPlanRoutes, registerAdminPlanRoutes } from "./plan-routes";
 import { registerBillingRoutes, registerAdminBillingRoutes } from "./payments/routes";
 import { registerHealthRoutes, registerSeoRoutes } from "./seo";
+import { registerAnalyticsSettingsRoutes, registerSectorRoutes, warmSeoCaches } from "./analytics-settings";
 import { registerCsvExportRoutes } from "./csv-export";
 import { registerDomainRoutes, registerCustomDomainHostRewrite } from "./domains";
 import { registerAiMenuRoutes } from "./ai/routes";
 import { registerAdminTemplateRoutes, registerPublicTemplateRoutes } from "./admin-templates";
 import { registerPluginRoutes } from "./plugins";
+import { registerSectorOpsRoutes } from "./sector-ops";
+import { registerSectorDrivers } from "./sector-drivers";
+import { registerDeliveryService } from "./delivery-service";
+import { registerIntegrationCenterRoutes } from "./integration-center";
+import { registerSubscriptionCheckoutRoutes } from "./subscription";
+import { emitIntegrationEvent } from "./integrations/runner";
+import { integrationApiKeys } from "@shared/schema";
+import crypto from "crypto";
 import { assertWithin3dLimit, Model3dLimitError, isValid3dUrl } from "./plans";
 import { enforcePlanLimit } from "./plans";
 import { insertRestaurantSchema, insertLicenseSchema, insertAdminNotificationSchema, restaurants, users } from "@shared/schema";
-import { and, eq } from "drizzle-orm";
-import { db } from "./db";
+import { and, eq } from "drizzle-orm";import { db } from "./db";
 import { writeAudit } from "./audit";
 
 function sendValidationError(err: unknown, res: import("express").Response): boolean {
@@ -76,12 +84,41 @@ export async function registerRoutes(
   registerBillingRoutes(app);
   registerHealthRoutes(app);
   registerSeoRoutes(app);
+  await warmSeoCaches();
+  registerAnalyticsSettingsRoutes(app);
+  registerSectorRoutes(app);
   registerAnalyticsRoutes(app);
   registerCsvExportRoutes(app);
   registerDomainRoutes(app);
   registerAiMenuRoutes(app);
   registerPluginRoutes(app);
+  registerSectorOpsRoutes(app);
+  registerSectorDrivers(app);
+  registerDeliveryService(app);
+  registerIntegrationCenterRoutes(app);
+  registerSubscriptionCheckoutRoutes(app);
   registerPublicTemplateRoutes(app);
+
+  // === PUBLIC: /api/ic/ping — Veri Aktarımı API bağlantı testi (X-API-Key doğrulamalı) ===
+  // Not: /api/health zaten registerHealthRoutes tarafından kullanıldığı için ayrı uç nokta.
+  app.get("/api/ic/ping", async (req, res) => {
+    const apiKey = String(req.headers["x-api-key"] ?? "");
+    const restaurantId = Number(req.headers["x-restaurant-id"] ?? 0);
+    if (!apiKey || !Number.isInteger(restaurantId) || restaurantId <= 0) {
+      return res.status(401).json({ ok: false, message: "API anahtarı ve restoran kimliği gerekli." });
+    }
+    const keyHash = crypto.createHash("sha256").update(apiKey).digest("hex");
+    const [keyRow] = (await db
+      .select()
+      .from(integrationApiKeys)
+      .where(and(eq(integrationApiKeys.keyHash, keyHash), eq(integrationApiKeys.isActive, true)))
+      .limit(1));
+    if (!keyRow || keyRow.restaurantId !== restaurantId) {
+      return res.status(401).json({ ok: false, message: "API anahtarı geçersiz." });
+    }
+    await db.update(integrationApiKeys).set({ lastUsedAt: new Date() }).where(eq(integrationApiKeys.id, keyRow.id));
+    res.json({ ok: true, service: "makethemenu-data-api", restaurantId, time: new Date().toISOString() });
+  });
 
   // === PUBLIC: CONTACT / APPLICATION FORMS ===
   app.post(api.contact.submit.path, async (req, res) => {
@@ -101,6 +138,18 @@ export async function registerRoutes(
       if (sendValidationError(err, res)) return;
       throw err;
     }
+  });
+
+  // === PUBLIC: LICENSE CHECK (masaüstü uygulama /desktop demo lisans doğrulaması) ===
+  app.get("/api/license-check", (_req, res) => {
+    // Demo kurulumunda lisans sunucusu yerine mock yanıt döner.
+    // Gerçek dağıtımda bu endpoint lisans anahtarını doğrulayan servise köprü olur.
+    res.json({
+      status: "valid",
+      edition: "DEMO",
+      server: "Connected (SQL Server Mock)",
+      checkedAt: new Date().toISOString(),
+    });
   });
 
   // Business (tenant) data: must be logged in and belong to a business
@@ -278,6 +327,8 @@ export async function registerRoutes(
       const totalAmount = (subtotal * 1.1).toFixed(2); // 10% tax, matches client display
 
       const order = await storage.createOrder(tid, { ...orderData, totalAmount }, itemsWithPrices);
+      // Entegrasyon Merkezi: giden webhook'lara sipariş oluşturuldu olayı yayınla
+      emitIntegrationEvent(tid, "order.created", { internalOrderId: order.id, total: Number(order.totalAmount), source: "pos" }).catch(() => undefined);
       res.status(201).json(order);
     } catch (err) {
       if (sendValidationError(err, res)) return;

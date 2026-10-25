@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import QRCode from "qrcode";
 import { db } from "./db";
-import { restaurants, restaurantSlugRedirects, users } from "@shared/schema";
+import { restaurants, restaurantSlugRedirects, users, sectorProfiles } from "@shared/schema";
 import { validateSlug } from "@shared/slug";
 import { requireRestaurant, tenantId } from "./auth/middleware";
 import { isSlugTaken } from "./tenancy/slugs";
@@ -38,6 +38,22 @@ const updateSettingsSchema = z
     menuRadius: z.number().int().min(0).max(32),
     menuTemplate: z.enum(MENU_TEMPLATES),
     menuPreset: z.string().trim().max(64).nullable(),
+    // Şablon oluşturucudan kaydedilen özel tasarım (renk/font/logo).
+    customPreset: z
+      .object({
+        bg: z.string().max(32),
+        text: z.string().max(32),
+        muted: z.string().max(32),
+        accent: z.string().max(32),
+        sectionTitleColor: z.string().max(32).optional(),
+        itemColor: z.string().max(32).optional(),
+        logoFont: z.string().max(32).optional(),
+        headingFont: z.string().max(32).optional(),
+        itemFont: z.string().max(32).optional(),
+        descFont: z.string().max(32).optional(),
+        logoSize: z.number().min(10).max(80).optional(),
+      })
+      .nullable(),
     showProductImages: z.boolean(),
     menuLanguage: z.enum(MENU_LANGUAGES),
     paymentTypes: z.array(paymentTypeSchema).max(60).nullable(),
@@ -68,9 +84,11 @@ function settingsDto(r: typeof restaurants.$inferSelect) {
     menuRadius: r.menuRadius,
     menuTemplate: r.menuTemplate,
     menuPreset: r.menuPreset ?? null,
+    customPreset: r.customPreset ?? null,
     showProductImages: r.showProductImages,
     menuLanguage: r.menuLanguage,
     paymentTypes: r.paymentTypes ?? null,
+    sectorSlug: r.sectorSlug ?? null,
     publicUrl: r.slug ? `${publicBaseUrl()}/p/${r.slug}` : null,
   };
 }
@@ -80,6 +98,29 @@ export function registerTenantRoutes(app: Express) {
     const [r] = await db.select().from(restaurants).where(eq(restaurants.id, tenantId(req)));
     if (!r) return res.status(404).json({ message: "İşletme bulunamadı." });
     res.json(settingsDto(r));
+  });
+
+  // Onboarding/ayarlar: işletmenin sektör profilini seç. Boş değer sektörü sıfırlar (restoran/kafe varsayılanı).
+  app.put("/api/restaurant/sector", requireRestaurant, async (req: Request, res: Response) => {
+    const parsed = z.object({ sectorSlug: z.string().trim().max(64).nullable() }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz istek." });
+    const slug = parsed.data.sectorSlug || null;
+    if (slug) {
+      const [sector] = await db
+        .select({ id: sectorProfiles.id, isActive: sectorProfiles.isActive })
+        .from(sectorProfiles)
+        .where(eq(sectorProfiles.slug, slug))
+        .limit(1);
+      if (!sector || !sector.isActive) {
+        return res.status(400).json({ message: "Sektör bulunamadı veya pasif durumda." });
+      }
+    }
+    const [updated] = await db
+      .update(restaurants)
+      .set({ sectorSlug: slug })
+      .where(eq(restaurants.id, tenantId(req)));
+    if (!updated) return res.status(404).json({ message: "İşletme bulunamadı." });
+    res.json({ ok: true, sectorSlug: slug });
   });
 
   app.patch("/api/restaurant", requireRestaurant, async (req: Request, res: Response) => {

@@ -3,6 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <script>
+      // Tema ve dilin ilk boya (FOUC) önce uygulanması: localStorage'daki açık seçim
+      // yoksa tarayıcı tercihine (prefers-color-scheme) göre karar verilir.
+      // Kural DarkModeContext ile birebir aynıdır.
+      (function () {
+        try {
+          var lang = localStorage.getItem("language");
+          if (lang === "tr" || lang === "en") document.documentElement.lang = lang;
+        } catch (e) {}
+        var theme = "system";
+        try {
+          var saved = localStorage.getItem("theme");
+          if (saved === "dark" || saved === "light" || saved === "system") theme = saved;
+        } catch (e) {}
+        var dark =
+          theme === "dark" ||
+          (theme === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.classList.add("dark");
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      })();
+    </script>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; frame-src https://www.googletagmanager.com; connect-src 'self' ws: wss: http: https: blob:;">
     <title>makethemenu | Dijital Menü ve POS Platformu</title>
     <meta name="description" content="makethemenu ile restoran, kafe ve işletmenizi dijitalleştirin: hızlı POS, masa yönetimi, dijital menü ve raporlama tek platformda." />
@@ -28,6 +49,23 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Google Consent Mode v2 — varsayılan: rıza yok. Rıza banner'ı kararından sonra
+      // analytics.updateConsentMode() ile güncellenir. Ölçüm etiketleri ancak
+      // kullanıcı tercihi ve ayarlar (analytics_settings) uyarınca yüklenir.
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = window.gtag || gtag;
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        functionality_storage: 'granted',
+        security_storage: 'granted',
+        wait_for_update: 500
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

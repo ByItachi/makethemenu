@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Receipt, Settings, LogOut, PanelLeftOpen, Menu } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Receipt, Settings, LogOut, PanelLeftOpen, Menu, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 const items = [
-  { href: "/panel", label: "Panel", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
   { href: "/pos", label: "POS", icon: ShoppingBag },
   { href: "/masalar", label: "Masalar", icon: PanelLeftOpen },
   { href: "/siparisler", label: "Siparişler", icon: Receipt },
@@ -74,14 +75,17 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-2 border-sidebar-border text-destructive dark:text-red-400 hover:bg-destructive/10 dark:hover:bg-red-900/20 hover:text-destructive dark:hover:text-red-300 hover:border-destructive/30 dark:hover:border-red-400/30 transition-all"
-          onClick={() => logout()}
-        >
-          <LogOut className="h-4 w-4" />
-          Çıkış Yap
-        </Button>
+        <div className="flex gap-2">
+          <ThemeToggle />
+          <Button
+            variant="outline"
+            className="flex-1 justify-center gap-2 border-sidebar-border text-destructive dark:text-red-400 hover:bg-destructive/10 dark:hover:bg-red-900/20 hover:text-destructive dark:hover:text-red-300 hover:border-destructive/30 dark:hover:border-red-400/30 transition-all"
+            onClick={() => logout()}
+          >
+            <LogOut className="h-4 w-4" />
+            Çıkış Yap
+          </Button>
+        </div>
       </div>
     </div>
   );

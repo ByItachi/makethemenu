@@ -26,16 +26,16 @@ export function TrialPopup() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", duration: 0.5 }}
-            className="bg-white rounded-2xl p-8 md:p-10 w-full max-w-md relative shadow-2xl text-center"
+            className="bg-card text-card-foreground rounded-2xl p-8 md:p-10 w-full max-w-md relative shadow-2xl text-center"
           >
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-black transition-colors p-2 hover:bg-slate-100 rounded-full"
+              className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors p-2 hover:bg-muted rounded-full"
             >
               <X className="w-6 h-6" />
             </button>
 
-            <h2 className="text-2xl md:text-3xl font-display font-semibold mb-8 leading-snug text-slate-900">
+            <h2 className="text-2xl md:text-3xl font-display font-semibold mb-8 leading-snug text-foreground">
               Hiçbir risk almadan <span className="text-primary">Makethemenu</span>'nün avantajlarını test edin.
             </h2>
 
@@ -60,7 +60,7 @@ export function TrialPopup() {
 
             <div className="flex justify-center">
               <Link href="/iletisim">
-                <Button className="w-full text-white h-14 rounded-xl font-bold text-lg hover:scale-[1.02] transition-transform shadow-xl shadow-primary/20">
+                <Button className="w-full h-14 rounded-xl font-bold text-lg hover:scale-[1.02] transition-transform shadow-xl shadow-primary/20">
                   Ücretsiz Denemeyi Başlat
                 </Button>
               </Link>

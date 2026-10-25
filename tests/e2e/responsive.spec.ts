@@ -16,14 +16,14 @@ const SIZES: Size[] = [
 ];
 
 const PUBLIC_ROUTES = ["/", "/giris", "/kayit", "/fiyatlar", "/ozellikler", "/iletisim"];
-const PANEL_ROUTES = ["/panel", "/restoran/integrations/plugins", "/menu", "/masalar", "/siparisler", "/ayarlar"];
+const PANEL_ROUTES = ["/dashboard", "/restoran/integrations/plugins", "/menu", "/masalar", "/siparisler", "/ayarlar"];
 
 async function login(page: import("@playwright/test").Page) {
   await page.goto("/giris");
   await page.getByPlaceholder("E-Posta Adresi veya Telefon Numarası").fill("demo@makethemenu.com");
   await page.getByPlaceholder("Şifre").fill("demo1234");
   await page.getByRole("button", { name: /Giriş Yap/i }).click();
-  await expect(page).toHaveURL(/\/panel/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 20_000 });
 }
 
 interface Issue {

@@ -59,6 +59,12 @@ type PublicMenu = {
     currency: string;
     menuTheme?: string;
     menuPreset?: string | null;
+    customPreset?: {
+      bg: string; text: string; muted: string; accent: string;
+      sectionTitleColor?: string; itemColor?: string;
+      logoFont?: string; headingFont?: string; itemFont?: string; descFont?: string;
+      logoSize?: number;
+    } | null;
     menuRadius?: number;
     menuTemplate?: string;
     showProductImages?: boolean;
@@ -308,7 +314,25 @@ export default function PublicMenuPage() {
   const currency = restaurant.currency;
   // Hazır şablon stili: işletme panelden bir şablon seçtiyse tüm sayfa o markanın
   // arka planı, metin rengi, vurgusu ve fontlarıyla çizilir.
-  const preset = restaurant.menuPreset ? MENU_PRESET_BY_ID[restaurant.menuPreset] : undefined;
+  const cp = restaurant.menuPreset === "custom" ? restaurant.customPreset : undefined;
+  const preset = cp
+    ? {
+        name: "", emoji: "",
+        style: {
+          bg: cp.bg, text: cp.text, muted: cp.muted, accent: cp.accent,
+          sectionTitleColor: cp.sectionTitleColor, itemColor: cp.itemColor,
+          logoFont: (cp.logoFont as keyof typeof MENU_PRESET_FONTS) ?? "sans",
+          headingFont: (cp.headingFont as keyof typeof MENU_PRESET_FONTS) ?? "sans",
+          itemFont: cp.itemFont as keyof typeof MENU_PRESET_FONTS | undefined,
+          descFont: cp.descFont as keyof typeof MENU_PRESET_FONTS | undefined,
+          logoSize: cp.logoSize,
+          logoUpper: false,
+          logoItalic: false,
+        },
+      }
+    : restaurant.menuPreset
+      ? MENU_PRESET_BY_ID[restaurant.menuPreset]
+      : undefined;
   const ps = preset?.style;
   const accent = ps?.accent ?? MENU_THEME_HEX[restaurant.menuTheme ?? "yesil"] ?? MENU_THEME_HEX.yesil;
   const radius = Math.max(0, Math.min(32, restaurant.menuRadius ?? 12));
@@ -365,7 +389,7 @@ export default function PublicMenuPage() {
       }}
     >
       <header className="border-b px-4 sm:px-6 py-10 text-center" style={{ borderColor: ps ? `${ps.muted}44` : undefined }}>
-        {preset && (
+        {preset && (preset.emoji || preset.name) && (
           <p
             className="mb-2 text-[11px] uppercase"
             style={{ color: accent, letterSpacing: "0.3em", fontFamily: MENU_PRESET_FONTS.sans }}

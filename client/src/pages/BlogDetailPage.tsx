@@ -3,12 +3,28 @@ import { Footer } from "@/components/Footer";
 import { Link, useRoute } from "wouter";
 import { ArrowLeft, CalendarDays, Clock, ArrowRight } from "lucide-react";
 import { getBlogPost, blogPosts } from "@/lib/blog-posts";
+import { useSeo } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 
 export default function BlogDetailPage() {
   const [, params] = useRoute("/kaynaklar/blog/:slug");
   const post = getBlogPost(params?.slug || "");
   const others = blogPosts.filter((p) => p.slug !== post?.slug).slice(0, 3);
+
+  useSeo({
+    title: post ? post.title : "Yazı Bulunamadı",
+    description: post?.description ?? "Makethemenu blog yazıları: restoran teknolojisi ve dijital menü içerikleri.",
+    path: post ? `/kaynaklar/blog/${post.slug}` : "/kaynaklar/blog",
+    image: post ? `${typeof window !== "undefined" ? window.location.origin : ""}${post.image}` : undefined,
+    type: "article",
+    publishedTimeISO: post?.dateISO,
+    noindex: !post,
+    breadcrumbs: [
+      { name: "Ana Sayfa", path: "/" },
+      { name: "Blog", path: "/kaynaklar/blog" },
+      ...(post ? [{ name: post.title, path: `/kaynaklar/blog/${post.slug}` }] : []),
+    ],
+  });
 
   if (!post) {
     return (

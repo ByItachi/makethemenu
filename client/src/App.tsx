@@ -1,6 +1,6 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { useEffect } from "react";
-import { initAnalytics, trackPageView } from "@/lib/analytics";
+import { initAnalytics, trackPageView, watchConsentChanges } from "@/lib/analytics";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,6 +12,15 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import POS from "@/pages/POS";
 import Tables from "@/pages/Tables";
+import SuSiparisPage from "@/pages/SuSiparisPage";
+import HaliYikamaPage from "@/pages/HaliYikamaPage";
+import SuOpsDemo from "@/pages/SuOpsDemo";
+import HaliOpsDemo from "@/pages/HaliOpsDemo";
+import DriverServicePage from "@/pages/DriverServicePage";
+import DeliveryConfirmPage from "@/pages/DeliveryConfirmPage";
+import WaterOpsPanel from "@/pages/WaterOpsPanel";
+import FleetPage from "@/pages/FleetPage";
+import DriverLocationPage from "@/pages/DriverLocationPage";
 import Orders from "@/pages/Orders";
 import Menu from "@/pages/Menu";
 import Settings from "@/pages/Settings";
@@ -42,10 +51,16 @@ import FeatureDetailPage from "@/pages/FeatureDetailPage";
 import AboutSubPage from "@/pages/AboutSubPage";
 import PartnersPage from "@/pages/PartnersPage";
 import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
+import KnowledgeBaseArticlePage from "@/pages/KnowledgeBaseArticlePage";
 import ApiDocsPage from "@/pages/ApiDocsPage";
+import LegalPage from "@/pages/LegalPage";
+import AdminAnalyticsSettings from "@/pages/admin/AdminAnalyticsSettings";
+import AdminSectors from "@/pages/admin/AdminSectors";
+import AdminIntegrations from "@/pages/admin/AdminIntegrations";
 import SuccessStoriesPage from "@/pages/SuccessStoriesPage";
 import Purchase from "@/pages/Purchase";
 import IntegrationPurchase from "@/pages/IntegrationPurchase";
+import PlanCheckout from "@/pages/PlanCheckout";
 
 // Adisyo Business Pages
 import CafeAutomationPage from "@/pages/CafeAutomationPage";
@@ -153,10 +168,15 @@ function Router() {
       <Route path="/kaynaklar/blog" component={Blog} />
       <Route path="/kaynaklar/blog/:slug" component={BlogDetailPage} />
       <Route path="/kaynaklar/bilgi-merkezi" component={KnowledgeBasePage} />
+      <Route path="/kaynaklar/bilgi-merkezi/:slug" component={KnowledgeBaseArticlePage} />
       <Route path="/kaynaklar/api" component={ApiDocsPage} />
+      <Route path="/gizlilik" component={() => <LegalPage kind="gizlilik" />} />
+      <Route path="/kvkk" component={() => <LegalPage kind="kvkk" />} />
+      <Route path="/kosullar" component={() => <LegalPage kind="kosullar" />} />
       <Route path="/basari-hikayeleri" component={SuccessStoriesPage} />
       <Route path="/purchase" component={Purchase} />
       <Route path="/integration-purchase" component={IntegrationPurchase} />
+      <Route path="/checkout" component={PlanCheckout} />
       <Route path="/p/:slug" component={PublicMenuPage} />
       <Route path="/dogrula" component={VerifyEmailPage} />
       <Route path="/sifre-sifirla" component={ResetPasswordPage} />
@@ -211,6 +231,15 @@ function Router() {
       <Route path="/admin/settings">
         {() => <AdminRoute component={AdminSettings} />}
       </Route>
+      <Route path="/admin/settings/analytics">
+        {() => <AdminRoute component={AdminAnalyticsSettings} />}
+      </Route>
+      <Route path="/admin/sectors">
+        {() => <AdminRoute component={AdminSectors} />}
+      </Route>
+      <Route path="/admin/integrations">
+        {() => <AdminRoute component={AdminIntegrations} />}
+      </Route>
 
       <Route path="/desktop">
         {() => <ProtectedRoute component={DesktopDashboard} />}
@@ -241,6 +270,25 @@ function Router() {
       <Route path="/dashboard">
         {() => <ProtectedRoute component={Dashboard} />}
       </Route>
+      <Route path="/dashboard/fleet">
+        {() => <ProtectedRoute component={FleetPage} />}
+      </Route>
+      <Route path="/driver/location">
+        {() => <ProtectedRoute component={DriverLocationPage} />}
+      </Route>
+      <Route path="/surucu" component={() => <Redirect to="/surucu/hali" />} />
+      <Route path="/surucu/hali" component={() => <DriverServicePage key="carpet" sector="carpet" />} />
+      <Route path="/surucu/su" component={() => <DriverServicePage key="water" sector="water" />} />
+      <Route path="/surucu/tup" component={() => <DriverServicePage key="tube" sector="tube" />} />
+      <Route path="/teslimat/:rest">
+        {({ rest }) => <DeliveryConfirmPage key={rest} code={decodeURIComponent(rest ?? "")} />}
+      </Route>
+      <Route path="/su-servisi" component={() => <WaterOpsPanel kind="damacana" />} />
+      <Route path="/tup-servisi" component={() => <WaterOpsPanel kind="tup" />} />
+      <Route path="/su-siparisi" component={SuSiparisPage} />
+      <Route path="/hali-yikama" component={HaliYikamaPage} />
+      <Route path="/su" component={SuOpsDemo} />
+      <Route path="/hali" component={HaliOpsDemo} />
       <Route path="/panel">
         {() => <Redirect to="/dashboard" />}
       </Route>
@@ -275,6 +323,7 @@ function AnalyticsTracker() {
   const [location] = useLocation();
   useEffect(() => {
     initAnalytics();
+    watchConsentChanges();
   }, []);
   useEffect(() => {
     trackPageView(location);

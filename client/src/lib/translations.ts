@@ -20,6 +20,8 @@ export const translations = {
         burger: "Burger Cafe & Restaurant",
         hotel: "Hotel Cafe & Restaurant",
         seasonal: "Sezonluk İşletmeler",
+        waterDelivery: "Su Dağıtım & Damacana",
+        carpetCleaning: "Halı Yıkama",
       },
       feat: {
         templates: "Şablonlar",
@@ -59,6 +61,9 @@ export const translations = {
     theme: {
       toggleToDark: "Karanlık moda geç",
       toggleToLight: "Aydınlık moda geç",
+      system: "Sistem",
+      light: "Aydınlık",
+      dark: "Karanlık",
     },
     cookie: {
       title: "Çerezleri Kullanıyoruz",
@@ -230,6 +235,8 @@ export const translations = {
         burger: "Burger Cafe & Restaurant",
         hotel: "Hotel Cafe & Restaurant",
         seasonal: "Seasonal Businesses",
+        waterDelivery: "Water Delivery & Bottled",
+        carpetCleaning: "Carpet Cleaning",
       },
       feat: {
         templates: "Templates",
@@ -269,6 +276,9 @@ export const translations = {
     theme: {
       toggleToDark: "Switch to dark mode",
       toggleToLight: "Switch to light mode",
+      system: "System",
+      light: "Light",
+      dark: "Dark",
     },
     cookie: {
       title: "We Use Cookies",

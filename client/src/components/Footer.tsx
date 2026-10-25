@@ -108,10 +108,17 @@ export function Footer() {
 
         <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500 text-sm">
           <p>&copy; {new Date().getFullYear()} {t("footer.rights")}</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">{t("footer.privacy")}</a>
-            <a href="#" className="hover:text-white transition-colors">{t("footer.terms")}</a>
-            <a href="#" className="hover:text-white transition-colors">{t("footer.kvkk")}</a>
+          <div className="flex flex-wrap justify-center gap-6">
+            <Link href="/gizlilik" className="hover:text-white transition-colors">{t("footer.privacy")}</Link>
+            <Link href="/kosullar" className="hover:text-white transition-colors">{t("footer.terms")}</Link>
+            <Link href="/kvkk" className="hover:text-white transition-colors">{t("footer.kvkk")}</Link>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("mtm:open-consent"))}
+              className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+            >
+              Çerez Tercihleri
+            </button>
           </div>
         </div>
       </div>

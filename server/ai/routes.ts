@@ -5,9 +5,22 @@ import { categories, products } from "@shared/schema";
 import { requireRestaurant, tenantId } from "../auth/middleware";
 import { getRestaurantPlan, PlanLimitError } from "../plans";
 import { writeAudit } from "../audit";
-import { draftSchema, generateMenuDraft, slugifySection } from "./menu-generator";
+import { draftSchema, generateMenuDraft, slugifySection, suggestTheme } from "./menu-generator";
 
 export function registerAiMenuRoutes(app: Express) {
+  // Şablon oluşturucu: açıklama ve/veya logo bağlantısından renk paleti önerir.
+  app.post("/api/restaurant/ai/suggest-theme", requireRestaurant, async (req: Request, res: Response) => {
+    try {
+      const result = await suggestTheme(req.body);
+      res.json(result);
+    } catch (err) {
+      if (err instanceof Error && "issues" in (err as any)) {
+        return res.status(400).json({ message: (err as any).issues?.[0]?.message ?? "Geçersiz istek." });
+      }
+      throw err;
+    }
+  });
+
   // Generates a draft menu. Uses the configured AI provider when available
   // (AI_API_KEY / ABACUS_API_KEY), otherwise built-in Turkish templates.
   app.post("/api/restaurant/ai/generate-menu", requireRestaurant, async (req: Request, res: Response) => {

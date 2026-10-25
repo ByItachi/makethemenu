@@ -1,47 +1,28 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Link } from "wouter";
-import { ArrowRight } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { BlogCard } from "@/components/BlogCard";
 import { Button } from "@/components/ui/button";
 import { blogPosts } from "@/lib/blog-posts";
-
-function BlogCard({ slug, title, description, date, readTime, image }: {
-  slug: string; title: string; description: string; date: string; readTime: string; image: string;
-}) {
-  return (
-    <Link href={`/kaynaklar/blog/${slug}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full group">
-        <div className="aspect-video overflow-hidden">
-          <img
-            src={image}
-            alt={title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
-        <div className="p-6">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-            <span>{date}</span>
-            <span>•</span>
-            <span>{readTime}</span>
-          </div>
-          <h3 className="text-xl font-bold mb-3 line-clamp-2">{title}</h3>
-          <p className="text-muted-foreground mb-4 line-clamp-3">{description}</p>
-          <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
-            Devamını Oku
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </div>
-      </Card>
-    </Link>
-  );
-}
+import { useSeo } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 export default function Blog() {
+  useSeo({
+    title: "Blog — Restoran Yönetimi ve Teknoloji",
+    description:
+      "Restoran yönetimi, POS, dijital menü ve sektör trendleri hakkında en güncel bilgiler, ipuçları ve rehberler. Makethemenu blog.",
+    path: "/kaynaklar/blog",
+    breadcrumbs: [
+      { name: "Ana Sayfa", path: "/" },
+      { name: "Kaynaklar", path: "/kaynaklar/blog" },
+      { name: "Blog", path: "/kaynaklar/blog" },
+    ],
+  });
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      
+
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-white/0 dark:to-transparent pointer-events-none" />
         <div className="site-container text-center pt-32 relative z-10">
@@ -83,16 +64,26 @@ export default function Blog() {
             <p className="text-muted-foreground mb-8">
               Restoran yönetimi hakkında en güncel ipuçları ve trendler için bültenimize abone olun.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <form
+              className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+              onSubmit={(e) => {
+                e.preventDefault();
+                trackEvent("generate_lead", { lead_type: "newsletter" });
+                (e.target as HTMLFormElement).reset();
+              }}
+            >
+              <label htmlFor="blog-newsletter-email" className="sr-only">E-posta adresiniz</label>
               <input
+                id="blog-newsletter-email"
                 type="email"
+                required
                 placeholder="E-posta adresiniz"
                 className="flex-1 px-4 py-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <Button className="px-8">
+              <Button type="submit" className="px-8">
                 Abone Ol
               </Button>
-            </div>
+            </form>
           </div>
         </div>
       </section>

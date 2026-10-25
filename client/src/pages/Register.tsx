@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Headset, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
+import { trackEvent } from "@/lib/analytics";
 
 const sliderImages = [
   "https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=1600&auto=format&fit=crop",
@@ -49,6 +50,7 @@ export default function Register() {
         return;
       }
       const data = await res.json();
+      trackEvent("sign_up", { method: "password", business_name: form.businessName || undefined });
       window.location.href = data.restaurantSlug ? "/sablon-sec" : "/giris";
     } catch {
       setError("Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.");

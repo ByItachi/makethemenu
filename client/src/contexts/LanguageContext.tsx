@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo } from "react";
+import React, { createContext, useContext, useState, useMemo, useEffect } from "react";
 import { translations, type Language } from "@/lib/translations";
 
 type LanguageContextType = {
@@ -13,14 +13,23 @@ function getByPath(obj: any, path: string): unknown {
   return path.split(".").reduce((acc, key) => (acc && typeof acc === "object" ? acc[key] : undefined), obj);
 }
 
-export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window !== "undefined") {
+/** Kayıtlı tercih yoksa tarayıcı dilinden başlangıç dili seç (SEO/UX: <html lang> ile uyumlu). */
+function initialLanguage(): Language {
+  if (typeof window !== "undefined") {
+    try {
       const saved = localStorage.getItem("language");
       if (saved === "tr" || saved === "en") return saved;
+    } catch {
+      /* localStorage kapalı olabilir */
     }
-    return "tr";
-  });
+    const nav = typeof navigator !== "undefined" ? navigator.language : "";
+    return nav && /^en\b/i.test(nav) ? "en" : "tr";
+  }
+  return "tr";
+}
+
+export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguageState] = useState<Language>(initialLanguage);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
@@ -28,6 +37,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.setItem("language", lang);
     }
   };
+
+  // Dil değişince <html lang> senkronlanır (arama motorları ve ekran okuyucular için).
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const t = useMemo(() => {
     return (path: string) => {

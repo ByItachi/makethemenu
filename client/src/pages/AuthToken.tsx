@@ -50,7 +50,7 @@ export function VerifyEmailPage() {
         {state === "ok" && (
           <>
             <p role="status">E-posta adresiniz doğrulandı.</p>
-            <Link href="/panel" className="text-primary underline">Panele git</Link>
+            <Link href="/dashboard" className="text-primary underline">Panele git</Link>
           </>
         )}
         {state === "error" && (

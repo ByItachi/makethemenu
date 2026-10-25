@@ -1,6 +1,7 @@
 import {
   Navbar
 } from "@/components/Navbar";
+import { BlogCard } from "@/components/BlogCard";
 import { Footer } from "@/components/Footer";
 import { TrialPopup } from "@/components/TrialPopup";
 import { Link } from "wouter";
@@ -22,31 +23,9 @@ import {
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const contactSchema = z.object({
-  name: z.string().min(2, "Ad en az 2 karakter olmalıdır"),
-  email: z.string().email("Geçerli bir e-posta adresi giriniz"),
-  subject: z.string().min(2, "Konu en az 2 karakter olmalıdır"),
-  message: z.string().min(10, "Mesaj en az 10 karakter olmalıdır"),
-});
-
-type ContactForm = z.infer<typeof contactSchema>;
+// Bölüm başlıklarını iki renkli yapar: ilk kelime(ler) normal, son kelime primary.
 
 // Bölüm başlıklarını iki renkli yapar: ilk kelime(ler) normal, son kelime primary.
 // Tek kelimelik başlıklarda tamamı primary olur.
@@ -64,7 +43,6 @@ function TwoToneTitle({ text }: { text: string }) {
 }
 
 export default function LandingPage() {
-  const { toast } = useToast();
   const { t, language } = useLanguage();
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -79,33 +57,6 @@ export default function LandingPage() {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const form = useForm<ContactForm>({
-    resolver: zodResolver(contactSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    },
-  });
-
-  const onSubmit = async (data: ContactForm) => {
-    try {
-      await apiRequest("POST", "/api/contact", data);
-      toast({
-        title: t("landing.contact.successTitle"),
-        description: t("landing.contact.successDesc"),
-      });
-      form.reset();
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("landing.contact.errorTitle"),
-        description: t("landing.contact.errorDesc"),
-      });
-    }
   };
 
   return (
@@ -162,13 +113,13 @@ export default function LandingPage() {
               </div>
 
               {/* Floating Element 1 */}
-              <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl border border-slate-100 flex items-center gap-4 animate-bounce duration-[3000ms]">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+              <div className="absolute -bottom-6 -left-6 bg-card p-4 rounded-xl shadow-xl border border-border flex items-center gap-4 animate-bounce duration-[3000ms]">
+                <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-950 flex items-center justify-center text-green-600">
                   <BarChart3 />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-semibold uppercase">{t("landing.hero.dailyRevenue")}</p>
-                  <p className="text-lg font-bold text-slate-900">₺12,450</p>
+                  <p className="text-lg font-bold text-foreground">₺12,450</p>
                 </div>
               </div>
             </div>
@@ -297,10 +248,10 @@ export default function LandingPage() {
               />
 
               {/* Floating Badge */}
-              <div className="absolute bottom-10 right-10 md:right-20 bg-white p-4 rounded-2xl shadow-xl animate-bounce duration-[4000ms]">
+              <div className="absolute bottom-10 right-10 md:right-20 bg-card p-4 rounded-2xl shadow-xl animate-bounce duration-[4000ms]">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                  <span className="font-bold text-sm">{t("landing.mobile.systemOnline")}</span>
+                  <span className="font-bold text-sm text-foreground">{t("landing.mobile.systemOnline")}</span>
                 </div>
               </div>
             </div>
@@ -319,20 +270,23 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <PricingCard
               title={t("landing.pricing.starter")}
-              price="299"
+              price="199"
+              planId="baslangic"
               features={[t("landing.pricing.starterF1"), t("landing.pricing.starterF2"), t("landing.pricing.starterF3")]}
               t={t}
             />
             <PricingCard
               title={t("landing.pricing.pro")}
-              price="599"
+              price="349"
+              planId="profesyonel"
               highlighted={true}
               features={[t("landing.pricing.proF1"), t("landing.pricing.proF2"), t("landing.pricing.proF3"), t("landing.pricing.proF4")]}
               t={t}
             />
             <PricingCard
               title={t("landing.pricing.enterprise")}
-              price="999"
+              price="Özel"
+              planId="kurumsal"
               features={[t("landing.pricing.entF1"), t("landing.pricing.entF2"), t("landing.pricing.entF3"), t("landing.pricing.entF4")]}
               t={t}
             />
@@ -398,6 +352,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <BlogCard
+              slug="restoran-yonetiminde-dijital-donusum"
               title={t("landing.blog.post1Title")}
               description={t("landing.blog.post1Desc")}
               date={t("landing.blog.date1")}
@@ -406,6 +361,7 @@ export default function LandingPage() {
               readMore={t("landing.blog.readMore")}
             />
             <BlogCard
+              slug="musteri-memnuniyetini-artirmanin-5-yolu"
               title={t("landing.blog.post2Title")}
               description={t("landing.blog.post2Desc")}
               date={t("landing.blog.date2")}
@@ -414,6 +370,7 @@ export default function LandingPage() {
               readMore={t("landing.blog.readMore")}
             />
             <BlogCard
+              slug="pos-sistemleri-ile-stok-takibi"
               title={t("landing.blog.post3Title")}
               description={t("landing.blog.post3Desc")}
               date={t("landing.blog.date3")}
@@ -425,76 +382,29 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-24">
-        <div className="site-container">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-display font-bold mb-4"><TwoToneTitle text={t("landing.contact.title")} /></h2>
-              <p className="text-muted-foreground">{t("landing.contact.subtitle")}</p>
-            </div>
-
-            <Card className="p-8 shadow-xl border-t-4 border-t-primary">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t("landing.contact.name")}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={t("landing.contact.namePlaceholder")} autoComplete="name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t("landing.contact.email")}</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder={t("landing.contact.emailPlaceholder")} autoComplete="email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("landing.contact.subject")}</FormLabel>
-                        <FormControl>
-                          <Input placeholder={t("landing.contact.subjectPlaceholder")} autoComplete="off" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="message"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("landing.contact.message")}</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder={t("landing.contact.messagePlaceholder")} className="min-h-[120px]" autoComplete="off" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full h-12 text-lg">{t("landing.contact.send")}</Button>
-                </form>
-              </Form>
-            </Card>
+      {/* Homepage CTA Band — iletişim formu yerine (ana sayfaya özel) */}
+      <section className="py-20 bg-primary text-primary-foreground">
+        <div className="site-container text-center">
+          <h2 className="text-4xl font-display font-bold mb-6">Restoranınızı Dijitalleştirmeye Hazır mısınız?</h2>
+          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+            Ücretsiz denemeye başlayın, 14 gün boyunca tüm özellikleri sınırsız kullanın. Kredi kartı gerekmez, kurulum ücreti yoktur.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 text-lg px-8"
+              onClick={() => (window.location.href = "/kayit")}
+            >
+              Hemen Başla
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10 text-lg px-8"
+              onClick={() => (window.location.href = "/fiyatlar")}
+            >
+              Detaylı Bilgi Al
+            </Button>
           </div>
         </div>
       </section>
@@ -505,7 +415,7 @@ export default function LandingPage() {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-40 w-12 h-12 rounded-full bg-primary text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center"
+          className="fixed bottom-8 right-8 z-40 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center"
           aria-label="Yukarı çık"
           title="Yukarı çık"
         >
@@ -528,7 +438,7 @@ function FeatureCard({ icon: Icon, title, description }: any) {
   );
 }
 
-function PricingCard({ title, price, features, highlighted, t }: any) {
+function PricingCard({ title, price, features, highlighted, planId, t }: any) {
   return (
     <Card className={`p-8 ${highlighted ? 'border-2 border-primary shadow-2xl scale-105' : 'border-border/50 shadow-lg'} relative bg-card`}>
       {highlighted && (
@@ -539,8 +449,8 @@ function PricingCard({ title, price, features, highlighted, t }: any) {
       <div className="mb-8">
         <h3 className="text-xl font-bold mb-2">{title}</h3>
         <div className="flex items-baseline gap-1">
-          <span className="text-4xl font-bold font-display">₺{price}</span>
-          <span className="text-muted-foreground text-sm">{t("landing.pricing.month")}</span>
+          <span className="text-4xl font-bold font-display">{price === "Özel" ? "Özel" : `₺${price}`}</span>
+          {price !== "Özel" && <span className="text-muted-foreground text-sm">{t("landing.pricing.month")}</span>}
         </div>
       </div>
       <ul className="space-y-4 mb-8 text-sm">
@@ -551,7 +461,7 @@ function PricingCard({ title, price, features, highlighted, t }: any) {
           </li>
         ))}
       </ul>
-      <Button className="w-full h-11" variant={highlighted ? 'default' : 'outline'} onClick={() => window.location.href = "/iletisim"}>
+      <Button className="w-full h-11" variant={highlighted ? 'default' : 'outline'} onClick={() => window.location.href = planId === 'kurumsal' ? '/iletisim' : `/checkout?plan=${planId}&cycle=monthly`}>
         {t("landing.pricing.select")}
       </Button>
     </Card>
@@ -576,28 +486,3 @@ function AboutItem({ text }: { text: string }) {
   );
 }
 
-function BlogCard({ title, description, date, readTime, image, readMore }: any) {
-  return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="aspect-video overflow-hidden">
-        <img
-          src={image}
-          alt={title}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-        />
-      </div>
-      <div className="p-6">
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-          <span>{date}</span>
-          <span>•</span>
-          <span>{readTime}</span>
-        </div>
-        <h3 className="text-xl font-bold mb-3 line-clamp-2">{title}</h3>
-        <p className="text-muted-foreground mb-4 line-clamp-3">{description}</p>
-        <Button variant="outline" className="w-full">
-          {readMore}
-        </Button>
-      </div>
-    </Card>
-  );
-}

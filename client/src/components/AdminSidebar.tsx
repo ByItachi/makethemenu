@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, CreditCard, Receipt, Settings, MapPin, Building2, FileText, LogOut, Bell, Menu, Ticket } from "lucide-react";
+import { LayoutDashboard, CreditCard, Receipt, Settings, MapPin, Building2, FileText, LogOut, Bell, Menu, Ticket, Palette, Sparkles, Globe, BarChart3, Blocks, Puzzle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 const items = [
@@ -12,8 +13,14 @@ const items = [
   { href: "/admin/licenses", label: "Lisanslar", icon: FileText },
   { href: "/admin/notifications", label: "Bildirimler", icon: Bell },
   { href: "/admin/payments", label: "Ödeme", icon: CreditCard },
+  { href: "/admin/templates", label: "Şablonlar", icon: Palette },
+  { href: "/admin/ai-builder", label: "AI Builder", icon: Sparkles },
+  { href: "/admin/demos", label: "Demo Sayfaları", icon: Globe },
   { href: "/admin/coupons", label: "Kuponlar", icon: Ticket },
   { href: "/admin/invoices", label: "Fatura", icon: Receipt },
+  { href: "/admin/settings/analytics", label: "Ölçümleme ve SEO", icon: BarChart3 },
+  { href: "/admin/sectors", label: "Sektörler", icon: Blocks },
+  { href: "/admin/integrations", label: "Entegrasyonlar", icon: Puzzle },
   { href: "/admin/settings", label: "Ayarlar", icon: Settings },
 ];
 
@@ -63,15 +70,18 @@ function AdminSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="p-4 border-t border-border">
-        <Link href="/">
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-          >
-            <LogOut className="h-4 w-4" />
-            Çıkış Yap
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <ThemeToggle />
+          <Link href="/" className="flex-1 min-w-0">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+            >
+              <LogOut className="h-4 w-4" />
+              Çıkış Yap
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

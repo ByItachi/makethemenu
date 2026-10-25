@@ -18,6 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { trackEvent } from "@/lib/analytics";
 import { Handshake, Megaphone, CheckCircle2, Send } from "lucide-react";
 
 const PARTNER_TITLES: Record<string, string> = {
@@ -59,6 +60,7 @@ export default function PartnersPage() {
         title: "Başvurunuz Alındı",
         description: "Bayilik başvurunuz ekibimize iletildi; en kısa sürede size dönüş yapacağız.",
       });
+      trackEvent("generate_lead", { form: "bayilik-basvuru", city: data.city || undefined });
       form.reset();
     } catch (error) {
       toast({

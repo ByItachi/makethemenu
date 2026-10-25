@@ -8,7 +8,10 @@ export interface BlogPost {
   slug: string;
   title: string;
   description: string;
+  /** Görüntülenen yayın tarihi (Türkçe biçim). */
   date: string;
+  /** ISO yayın tarihi (YYYY-MM-DD): sitemap lastmod ve Article structured data için. */
+  dateISO: string;
   readTime: string;
   image: string;
   sections: BlogPostSection[];
@@ -21,6 +24,7 @@ export const blogPosts: BlogPost[] = [
     description:
       "Geleneksel restoran yönetiminden modern dijital çözümlere geçiş süreci ve avantajları.",
     date: "15 Şubat 2024",
+    dateISO: "2024-02-15",
     readTime: "5 dk okuma",
     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80",
     sections: [
@@ -58,6 +62,7 @@ export const blogPosts: BlogPost[] = [
     description:
       "Restoranınızda müşteri deneyimini iyileştirmek için uygulayabileceğiniz pratik ipuçları.",
     date: "10 Şubat 2024",
+    dateISO: "2024-02-10",
     readTime: "4 dk okuma",
     image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&q=80",
     sections: [
@@ -99,6 +104,7 @@ export const blogPosts: BlogPost[] = [
     description:
       "Modern POS sistemlerinin stok yönetimindeki rolü ve işletme verimliliğine katkıları.",
     date: "5 Şubat 2024",
+    dateISO: "2024-02-05",
     readTime: "6 dk okuma",
     image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80",
     sections: [
@@ -139,6 +145,7 @@ export const blogPosts: BlogPost[] = [
     description:
       "İşletme maliyetlerini düşürürken verimliliği artırmak için stratejiler ve çözümler.",
     date: "1 Şubat 2024",
+    dateISO: "2024-02-01",
     readTime: "7 dk okuma",
     image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
     sections: [
@@ -179,6 +186,7 @@ export const blogPosts: BlogPost[] = [
     description:
       "Modern rezervasyon sistemleriyle müşteri memnuniyetini nasıl artırabilirsiniz?",
     date: "25 Ocak 2024",
+    dateISO: "2024-01-25",
     readTime: "5 dk okuma",
     image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80",
     sections: [
@@ -214,6 +222,7 @@ export const blogPosts: BlogPost[] = [
     description:
       "Veri analizi ile restoran performansınızı nasıl optimize edebilirsiniz?",
     date: "20 Ocak 2024",
+    dateISO: "2024-01-20",
     readTime: "8 dk okuma",
     image: "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=600&q=80",
     sections: [

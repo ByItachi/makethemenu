@@ -10,6 +10,7 @@ const BASE_URL = process.env.BASE_URL ?? `http://localhost:${PORT}`;
 export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: "**/*.spec.ts",
+  globalSetup: "./tests/e2e/global-setup.ts",
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,

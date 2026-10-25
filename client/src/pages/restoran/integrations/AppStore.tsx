@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,11 +8,28 @@ import { IntegrationSetupWizard, usePluginState } from './IntegrationSetupWizard
 import {
   Search, Sparkles, Crown, Zap, Building2, Store, Utensils, Bike,
   FileText, Hotel, HeartHandshake, Plug, ArrowRight, Check, Wrench,
-  CreditCard,
+  CreditCard, ShoppingCart, Trash2,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 // id -> detail page path (routed under /restoran/integrations/<id>)
 const detailPageIds = new Set(integrations.map(i => i.id));
+
+// Mağaza entegrasyonu → Eklenti Merkezi katalog anahtarı (shared/plugins.ts ile aynı)
+const storeToPluginKey = (id: string) => (id === 'urun-3d-gosterim' ? 'menu-3d' : id === 'getir' ? 'getiryemek' : id);
+
+// Sepet localStorage anahtarı (satın alma sayfası ile ortak)
+const CART_KEY = 'integrationCart';
+
+const readCart = (): string[] => {
+  try {
+    const raw = localStorage.getItem(CART_KEY);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+};
 
 // Adisyo tarzı vitrin bölümleri: kategori -> bölüm
 const sections: { title: string; categoryKey: string; description: string; icon: React.ComponentType<any>; ids: string[] }[] = [
@@ -81,6 +98,37 @@ const AppStore: React.FC = () => {
   const [, navigate] = useLocation();
   const [wizardFor, setWizardFor] = useState<(Integration & { categoryKey?: string }) | null>(null);
   const pluginsState = usePluginState();
+  const queryClient = useQueryClient();
+  const [cart, setCart] = useState<string[]>(() => readCart());
+
+  // Satın alma sonrası mağazaya dönüşte sahiplik tazele
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/plugins"] });
+  }, [queryClient]);
+
+  const pluginByKey = useMemo(() => {
+    const map = new Map<string, { isEnabled: boolean; owned: boolean }>();
+    (pluginsState.data?.plugins ?? []).forEach((p) => map.set(p.key, { isEnabled: p.isEnabled, owned: (p as { owned?: boolean }).owned === true }));
+    return map;
+  }, [pluginsState.data]);
+
+  const isOwned = (i: Integration) => {
+    const p = pluginByKey.get(storeToPluginKey(i.id));
+    return Boolean(p?.owned || p?.isEnabled) || i.status === 'purchased';
+  };
+
+  const cartItems = cart.map((id) => integrations.find((i) => i.id === id)).filter((x): x is Integration => Boolean(x));
+  const cartTotal = cartItems.reduce((sum, i) => sum + (i.price || 0), 0);
+
+  const inCart = (id: string) => cart.includes(id);
+
+  const toggleCart = (i: Integration) => {
+    setCart((cur) => {
+      const next = cur.includes(i.id) ? cur.filter((x) => x !== i.id) : [...cur, i.id];
+      localStorage.setItem(CART_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
   const byId = (id: string) => integrations.find(i => i.id === id)!;
 
@@ -89,18 +137,12 @@ const AppStore: React.FC = () => {
     i.description.toLowerCase().includes(searchTerm.toLowerCase());
 
   const trialBadge = (i: Integration) =>
-    i.status === 'inactive' && (i.subscriptionDays ?? 0) >= 7;
-
-  const openIntegration = (i: Integration) => {
-    // Mağaza akışı: satın alma sayfası (deneme/satın al); yönetim ise detay sayfası
-    localStorage.setItem('integrationCart', JSON.stringify([i]));
-    navigate('/integration-purchase');
-  };
+    !isOwned(i) && (i.subscriptionDays ?? 0) >= 7;
 
   const renderCard = (i: Integration, recommended = false, categoryKey = 'operasyon') => {
     const hasDetail = detailPageIds.has(i.id);
-    const pluginKey = i.id === 'urun-3d-gosterim' ? 'menu-3d' : i.id === 'getir' ? 'getiryemek' : i.id;
-    const isActive = pluginsState.data?.plugins?.find(p => p.key === pluginKey)?.isEnabled === true;
+    const owned = isOwned(i);
+    const inCartNow = inCart(i.id);
     return (
       <Card key={i.id} className={`overflow-hidden flex flex-col ${recommended ? 'ring-2 ring-primary/40' : ''}`}>
         <CardContent className="p-4 flex flex-col gap-3 grow">
@@ -125,7 +167,7 @@ const AppStore: React.FC = () => {
 
           <div className="flex items-center justify-between pt-1">
             <div className="text-sm">
-              {i.status === 'purchased' ? (
+              {owned ? (
                 <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
                   <Check className="h-4 w-4" /> Sahipsiniz
                 </span>
@@ -137,23 +179,33 @@ const AppStore: React.FC = () => {
               )}
             </div>
             <div className="flex items-center gap-2">
-              {hasDetail && (
+              {hasDetail && owned && (
                 <Link href={`/restoran/integrations/${i.id}`}>
                   <Button variant="ghost" size="sm" className="h-8 gap-1">
                     <Wrench className="h-3.5 w-3.5" /> Yönet
                   </Button>
                 </Link>
               )}
-              {i.status === 'inactive' && !isActive ? (
-                <Button size="sm" className="h-8 gap-1" onClick={() => setWizardFor({ ...i, categoryKey })} data-testid={`add-${i.id}`}>
-                  + Ekle
+              {owned ? (
+                hasDetail ? (
+                  <Link href={`/restoran/integrations/${i.id}`}>
+                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                      Ayarlar <ArrowRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => setWizardFor({ ...i, categoryKey })}>
+                    Kurulum <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                )
+              ) : inCartNow ? (
+                <Button size="sm" variant="secondary" className="h-8 gap-1" onClick={() => toggleCart(i)} data-testid={`cart-${i.id}`}>
+                  <Check className="h-3.5 w-3.5" /> Sepette
                 </Button>
               ) : (
-                <Link href={`/restoran/integrations/${i.id}`}>
-                  <Button variant="outline" size="sm" className="h-8 gap-1">
-                    Ayarlar <ArrowRight className="h-3.5 w-3.5" />
-                  </Button>
-                </Link>
+                <Button size="sm" className="h-8 gap-1" onClick={() => toggleCart(i)} data-testid={`add-${i.id}`}>
+                  <ShoppingCart className="h-3.5 w-3.5" /> Sepete Ekle
+                </Button>
               )}
             </div>
           </div>
@@ -177,6 +229,42 @@ const AppStore: React.FC = () => {
           Restoranınız için entegrasyonları keşfedin, deneyin ve tek tıkla ekleyin.
         </p>
       </div>
+
+      {/* Sepet özeti */}
+      {cartItems.length > 0 && (
+        <div
+          className="sticky top-2 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card/95 backdrop-blur px-4 py-3 shadow-sm"
+          data-testid="cart-bar"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative">
+              <ShoppingCart className="h-5 w-5 text-primary" />
+              <span className="absolute -top-2 -right-2 h-4 min-w-4 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">
+                {cartItems.length}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-medium truncate">
+                {cartItems.map((i) => i.name).join(', ')}
+              </div>
+              <div className="text-xs text-muted-foreground">Aylık toplam: {cartTotal}₺</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-muted-foreground"
+              onClick={() => { setCart([]); localStorage.removeItem(CART_KEY); }}
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Temizle
+            </Button>
+            <Button size="sm" className="h-8 gap-1" onClick={() => navigate('/integration-purchase')} data-testid="go-checkout">
+              <CreditCard className="h-3.5 w-3.5" /> Sepete Git
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Arama */}
       <div className="relative max-w-xl">
