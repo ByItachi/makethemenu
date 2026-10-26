@@ -31,7 +31,8 @@ import { registerDeliveryService } from "./delivery-service";
 import { registerIntegrationCenterRoutes } from "./integration-center";
 import { registerSubscriptionCheckoutRoutes } from "./subscription";
 import { emitIntegrationEvent } from "./integrations/runner";
-import { integrationApiKeys } from "@shared/schema";
+import { integrationApiKeys, integrationConnections } from "@shared/schema";
+import { CATALOG } from "./integrations/registry";
 import crypto from "crypto";
 import { assertWithin3dLimit, Model3dLimitError, isValid3dUrl } from "./plans";
 import { enforcePlanLimit } from "./plans";
@@ -352,7 +353,7 @@ export async function registerRoutes(
   });
 
   // === PLATFORM ADMIN (all /api/admin and /api/integrations routes) ===
-  app.use(["/api/admin", "/api/integrations"], requirePlatformAdmin);
+  app.use("/api/admin", requirePlatformAdmin);
   registerAdminPlanRoutes(app);
   registerAdminBillingRoutes(app);
   registerAdminTemplateRoutes(app);
@@ -528,180 +529,88 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
-  // === INTEGRATIONS ===
-  // Yemek Sepeti Integration
-  app.get('/api/integrations/yemeksepeti/status', async (req, res) => {
-    try {
-      // Check if Yemek Sepeti integration is configured
-      const config = JSON.parse(localStorage.getItem('yemeksepeti_config') || '{}');
-      const connected = !!(config.apiKey && config.restaurantId);
-      res.json({ 
-        connected, 
-        lastSync: localStorage.getItem('yemeksepeti_last_sync') || null 
-      });
-    } catch (error) {
-      res.status(500).json({ message: 'Status check failed' });
-    }
-  });
+  // === INTEGRATIONS (eski detay sayfası uçları) ===
+  // Dürüstlük kuralı: Buradaki uçlar sahte başarı/localStorage kurgusu üretmez.
+  // Gerçekten çalışan sağlayıcı (veri-aktarimi) registry adapter'ına delege edilir;
+  // diğerleri 501 "henüz geliştirilmedi" döndürür. Birincil ve tam özellikli
+  // arayüz Entegrasyon Merkezi'dir (/api/ic/*).
+  const NOT_IMPLEMENTED_MSG =
+    "Bu entegrasyon henüz geliştirilmedi. Sağlayıcı API erişimi sağlandığında yazılacak. Entegrasyon Merkezi'nden durumunu görebilirsiniz.";
+  const isVeriAktarimi = (sv: string) => sv === "veri-aktarimi" || sv === "veri-aktarimi-api";
 
-  app.post('/api/integrations/yemeksepeti/test', async (req, res) => {
-    try {
-      const { apiKey, apiSecret, restaurantId, branchId } = req.body;
-      
-      // Simulate API test
-      if (apiKey && restaurantId) {
-        // In real implementation, make actual API call to Yemek Sepeti
-        res.json({ success: true, message: 'Connection successful' });
-      } else {
-        res.status(400).json({ message: 'Missing required fields' });
-      }
-    } catch (error) {
-      res.status(500).json({ message: 'Connection test failed' });
-    }
-  });
+  const veriAdapter = CATALOG["veri-aktarimi"];
+  const veriCreds = (body: unknown) => {
+    const { apiKey, apiSecret } = (body ?? {}) as { apiKey?: string; apiSecret?: string };
+    if (!apiKey || !apiSecret) return null;
+    return { apiKey, apiSecret };
+  };
+  const missingCreds = { message: "API anahtarı ve gizli anahtar zorunludur." };
 
-  app.post('/api/integrations/yemeksepeti/sync', async (req, res) => {
-    try {
-      // Simulate sync process
-      localStorage.setItem('yemeksepeti_last_sync', new Date().toISOString());
-      res.json({ success: true, message: 'Sync completed' });
-    } catch (error) {
-      res.status(500).json({ message: 'Sync failed' });
-    }
-  });
-
-  app.post('/api/integrations/yemeksepeti/disconnect', async (req, res) => {
-    try {
-      localStorage.removeItem('yemeksepeti_config');
-      localStorage.removeItem('yemeksepeti_last_sync');
-      res.json({ success: true, message: 'Disconnected successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Disconnect failed' });
-    }
-  });
-
-  // Getir Integration
-  app.get('/api/integrations/getir/status', async (req, res) => {
-    try {
-      const config = JSON.parse(localStorage.getItem('getir_config') || '{}');
-      const connected = !!(config.clientId && config.restaurantId);
-      res.json({ 
-        connected, 
-        lastSync: localStorage.getItem('getir_last_sync') || null 
-      });
-    } catch (error) {
-      res.status(500).json({ message: 'Status check failed' });
-    }
-  });
-
-  app.post('/api/integrations/getir/test', async (req, res) => {
-    try {
-      const { clientId, clientSecret, restaurantId, branchId } = req.body;
-      
-      if (clientId && restaurantId) {
-        // Simulate API test for Getir
-        res.json({ success: true, message: 'Connection successful' });
-      } else {
-        res.status(400).json({ message: 'Missing required fields' });
-      }
-    } catch (error) {
-      res.status(500).json({ message: 'Connection test failed' });
-    }
-  });
-
-  app.post('/api/integrations/getir/sync', async (req, res) => {
-    try {
-      localStorage.setItem('getir_last_sync', new Date().toISOString());
-      res.json({ success: true, message: 'Sync completed' });
-    } catch (error) {
-      res.status(500).json({ message: 'Sync failed' });
-    }
-  });
-
-  app.post('/api/integrations/getir/disconnect', async (req, res) => {
-    try {
-      localStorage.removeItem('getir_config');
-      localStorage.removeItem('getir_last_sync');
-      res.json({ success: true, message: 'Disconnected successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Disconnect failed' });
-    }
-  });
-
-  // Generic integration endpoints for other services
-  app.get('/api/integrations/:service/status', async (req, res) => {
+  app.get("/api/integrations/:service/status", requireRestaurant, async (req, res) => {
     const { service } = req.params;
-    try {
-      const config = JSON.parse(localStorage.getItem(`${service}_config`) || '{}');
-      const connected = !!(config.apiKey || config.clientId);
-      res.json({ 
-        connected, 
-        lastSync: localStorage.getItem(`${service}_last_sync`) || null 
-      });
-    } catch (error) {
-      res.status(500).json({ message: 'Status check failed' });
-    }
+    if (!isVeriAktarimi(String(service))) return res.status(501).json({ message: NOT_IMPLEMENTED_MSG });
+    const rid = tenantId(req);
+    const row = (
+      await db
+        .select()
+        .from(integrationConnections)
+        .where(and(eq(integrationConnections.restaurantId, rid), eq(integrationConnections.providerKey, "veri-aktarimi")))
+        .limit(1)
+    )[0];
+    res.json({ connected: !!row, lastSync: row?.updatedAt ?? null, implemented: true });
   });
 
-  app.post('/api/integrations/:service/test', async (req, res) => {
+  app.post("/api/integrations/:service/test", requireRestaurant, async (req, res) => {
     const { service } = req.params;
-    try {
-      // Generic test endpoint for all integrations
-      res.json({ success: true, message: `${service} connection test successful` });
-    } catch (error) {
-      res.status(500).json({ message: 'Connection test failed' });
-    }
+    if (!isVeriAktarimi(String(service))) return res.status(501).json({ message: NOT_IMPLEMENTED_MSG });
+    const creds = veriCreds(req.body);
+    if (!creds) return res.status(400).json(missingCreds);
+    res.json(await veriAdapter.testConnection!(tenantId(req), creds));
   });
 
-  app.post('/api/integrations/:service/sync', async (req, res) => {
+  app.post("/api/integrations/:service/sync", requireRestaurant, async (req, res) => {
     const { service } = req.params;
+    if (!isVeriAktarimi(String(service))) return res.status(501).json({ message: NOT_IMPLEMENTED_MSG });
+    const creds = veriCreds(req.body);
+    if (!creds) return res.status(400).json(missingCreds);
     try {
-      localStorage.setItem(`${service}_last_sync`, new Date().toISOString());
-      res.json({ success: true, message: `${service} sync completed` });
-    } catch (error) {
-      res.status(500).json({ message: 'Sync failed' });
+      const items = await veriAdapter.fetchOrders!(tenantId(req), creds);
+      res.json({ success: true, message: "Senkronizasyon tamamlandı.", count: items.length });
+    } catch (err) {
+      res.status(502).json({ success: false, message: `Sağlayıcıdan veri alınamadı: ${err instanceof Error ? err.message : "bilinmeyen hata"}` });
     }
   });
 
-  app.post('/api/integrations/:service/disconnect', async (req, res) => {
+  app.post("/api/integrations/veri-aktarimi-api/test-transfer", requireRestaurant, async (req, res) => {
+    const creds = veriCreds(req.body);
+    if (!creds) return res.status(400).json(missingCreds);
+    const rid = tenantId(req);
+    const test = await veriAdapter.testConnection!(rid, creds);
+    if (!test.ok) return res.status(400).json({ success: false, message: test.message });
+    try {
+      const items = await veriAdapter.fetchOrders!(rid, creds);
+      res.json({ success: true, message: "Test veri aktarımı tamamlandı.", itemCount: items.length });
+    } catch (err) {
+      res.status(502).json({ success: false, message: `Test aktarımı başarısız: ${err instanceof Error ? err.message : "bilinmeyen hata"}` });
+    }
+  });
+
+  app.post("/api/integrations/:service/disconnect", requireRestaurant, async (req, res) => {
     const { service } = req.params;
-    try {
-      localStorage.removeItem(`${service}_config`);
-      localStorage.removeItem(`${service}_last_sync`);
-      res.json({ success: true, message: `${service} disconnected successfully` });
-    } catch (error) {
-      res.status(500).json({ message: 'Disconnect failed' });
-    }
-  });
-  
-  // Custom endpoints for specific integrations
-  // E-Adisyon: Generate adisyon
-  app.post('/api/integrations/eadisyon/generate', async (req, res) => {
-    try {
-      res.json({ success: true, message: 'E-Adisyon generated successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'E-Adisyon generate failed' });
-    }
+    if (!isVeriAktarimi(String(service))) return res.status(501).json({ message: NOT_IMPLEMENTED_MSG });
+    const rid = tenantId(req);
+    await db
+      .delete(integrationConnections)
+      .where(and(eq(integrationConnections.restaurantId, rid), eq(integrationConnections.providerKey, "veri-aktarimi")));
+    res.json({ success: true, message: "Bağlantı kaldırıldı." });
   });
 
-  // BOOSTFEEL: Create campaign
-  app.post('/api/integrations/boostfeel/campaign', async (req, res) => {
-    try {
-      res.json({ success: true, message: 'Campaign created successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Campaign creation failed' });
-    }
-  });
+  // Diğer özel sağlayıcı uçları (e-adisyon üretimi, kampanya, rezervasyon
+  // senkronu) gerçek API erişimi olmadan sahte başarı DÖNDÜRMEZ; dürüst 501.
+  app.post("/api/integrations/eadisyon/generate", (_req, res) => res.status(501).json({ message: NOT_IMPLEMENTED_MSG }));
+  app.post("/api/integrations/boostfeel/campaign", (_req, res) => res.status(501).json({ message: NOT_IMPLEMENTED_MSG }));
+  app.post("/api/integrations/hotel-runner/sync-reservations", (_req, res) => res.status(501).json({ message: NOT_IMPLEMENTED_MSG }));
 
-  // Hotel Runner: Sync reservations
-  app.post('/api/integrations/hotel-runner/sync-reservations', async (req, res) => {
-    try {
-      res.json({ success: true, message: 'Reservations sync successful' });
-    } catch (error) {
-      res.status(500).json({ message: 'Reservations sync failed' });
-    }
-  });
-  
   // Custom-domain host rewrite must come after all API routes and before vite/static (index.ts).
   registerCustomDomainHostRewrite(app);
 

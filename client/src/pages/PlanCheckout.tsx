@@ -34,11 +34,12 @@ export default function PlanCheckout() {
     if (!plan.purchasable) navigate("/iletisim", { replace: true });
   }, [plan, navigate]);
 
-  // Oturum varsa sipariş işletmeye bağlanır (opsiyonel).
-  const { data: me } = useQuery<{ restaurant?: { id: number } | null }>({
-    queryKey: ["/api/auth/me"],
+  // Oturum varsa başarı ekranında işletme paneline yönlendirilir (opsiyonel).
+  // Not: gerçek uç /api/auth/user'dır; yanıt publicUser() şeklindedir.
+  const { data: me } = useQuery<{ restaurantId?: number | null }>({
+    queryKey: ["/api/auth/user"],
     queryFn: async () => {
-      const r = await fetch("/api/auth/me", { credentials: "include" });
+      const r = await fetch("/api/auth/user", { credentials: "include" });
       return r.ok ? r.json() : null;
     },
     retry: false,
@@ -304,7 +305,7 @@ export default function PlanCheckout() {
                   <ShieldCheck className="w-4 h-4 text-primary" /> Bu bir demo ödeme altyapısıdır; gerçek tahsilat yapılmaz.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  {me?.restaurant ? (
+                  {me?.restaurantId ? (
                     <Button onClick={() => navigate("/restoran/dashboard")}>Panele Git</Button>
                   ) : (
                     <Button onClick={() => navigate("/kayit")}>Hesap Oluştur & Kuruluma Başla</Button>
