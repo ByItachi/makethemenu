@@ -86,9 +86,14 @@ const PUBLIC_PAGES = [
   '/hakkimizda',
   '/basari-hikayeleri',
   '/kaynaklar/blog/olmayan-yazi', // bulunamadı durumu da hatasız olmalı
+  '/surucu/hali', '/surucu/su', '/surucu/tup',
 ];
 
-const CUSTOMER_PAGES = ['/panel', '/pos', '/masalar', '/siparisler', '/menu', '/isletme', '/ayarlar'];
+const CUSTOMER_PAGES = [
+  '/panel', '/pos', '/masalar', '/siparisler', '/menu', '/isletme', '/ayarlar',
+  '/hali', '/su-servisi', '/tup-servisi', '/dashboard/fleet',
+  '/restoran/integrations/center',
+];
 
 const ADMIN_PAGES = [
   '/admin',
@@ -104,6 +109,9 @@ const ADMIN_PAGES = [
   '/admin/ai-builder',
   '/admin/demos',
   '/admin/settings',
+  '/admin/integrations',
+  '/admin/sectors',
+  '/admin/analytics',
 ];
 
 test.describe('Genel sayfalar — konsol ve ağ temizliği', () => {
