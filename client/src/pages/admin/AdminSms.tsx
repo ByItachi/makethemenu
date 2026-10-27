@@ -7,7 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { MessageSquare, RefreshCw, AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { MessageSquare, RefreshCw, AlertTriangle, CheckCircle2, Clock, Trash2, BarChart3 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TenantRow {
   restaurantId: number;
@@ -44,6 +47,11 @@ export default function AdminSms() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("failed");
+  const [restaurantFilter, setRestaurantFilter] = useState<string>("");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [page, setPage] = useState(1);
 
   const { data: overview, isLoading: loadingOverview } = useQuery<Overview>({
     queryKey: ["/api/admin/sms/overview"],
@@ -51,9 +59,17 @@ export default function AdminSms() {
   });
 
   const { data: outbox, isLoading: loadingOutbox } = useQuery<OutboxRow[]>({
-    queryKey: ["/api/admin/sms/outbox", statusFilter],
+    queryKey: ["/api/admin/sms/outbox", statusFilter, restaurantFilter, dateFrom, dateTo, page],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/admin/sms/outbox?status=${statusFilter}`);
+      const params = new URLSearchParams({
+        status: statusFilter,
+        page: page.toString(),
+        limit: "50",
+      });
+      if (restaurantFilter) params.append("restaurantId", restaurantFilter);
+      if (dateFrom) params.append("dateFrom", dateFrom);
+      if (dateTo) params.append("dateTo", dateTo);
+      const res = await apiRequest("GET", `/api/admin/sms/outbox?${params}`);
       return res.json();
     },
     refetchInterval: 15000,
@@ -68,6 +84,55 @@ export default function AdminSms() {
     } catch {
       toast({ title: "İşlem başarısız oldu.", variant: "destructive" });
     }
+  };
+
+  const bulkRetry = async () => {
+    if (selectedIds.size === 0) {
+      toast({ title: "Hiç mesaj seçilmedi.", variant: "destructive" });
+      return;
+    }
+    try {
+      await apiRequest("POST", `/api/admin/sms/outbox/bulk/retry`, {
+        ids: Array.from(selectedIds),
+      });
+      toast({ title: `${selectedIds.size} mesaj yeniden kuyruğa alındı.` });
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/outbox"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/overview"] });
+    } catch {
+      toast({ title: "İşlem başarısız oldu.", variant: "destructive" });
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) {
+      toast({ title: "Hiç mesaj seçilmedi.", variant: "destructive" });
+      return;
+    }
+    if (!confirm(`${selectedIds.size} mesajı silmek istediğinize emin misiniz?`)) return;
+    try {
+      await apiRequest("POST", `/api/admin/sms/outbox/bulk/delete`, {
+        ids: Array.from(selectedIds),
+      });
+      toast({ title: `${selectedIds.size} mesaj silindi.` });
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/outbox"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/overview"] });
+    } catch {
+      toast({ title: "İşlem başarısız oldu.", variant: "destructive" });
+    }
+  };
+
+  const toggleSelect = (id: number) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedIds(newSet);
+  };
+
+  const toggleSelectAll = (ids: number[]) => {
+    if (selectedIds.size === ids.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(ids));
   };
 
   return (
@@ -152,18 +217,67 @@ export default function AdminSms() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" /> Mesaj Kuyruğu</CardTitle>
-              <CardDescription>Tüm işletmelerden son 200 mesaj.</CardDescription>
+          <CardHeader>
+            <div className="flex flex-row items-center justify-between mb-4">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" /> Mesaj Kuyruğu</CardTitle>
+                <CardDescription>Tüm işletmelerden mesajlar (sayfa başına 50).</CardDescription>
+              </div>
+              <div className="flex gap-1">
+                {["failed", "retry", "queued", "sent", "scheduled"].map((s) => (
+                  <Button key={s} size="sm" variant={statusFilter === s ? "default" : "outline"} onClick={() => { setStatusFilter(s); setPage(1); }}>
+                    {STATUS_LABELS[s]}
+                  </Button>
+                ))}
+              </div>
             </div>
-            <div className="flex gap-1">
-              {["failed", "retry", "queued", "sent", "scheduled"].map((s) => (
-                <Button key={s} size="sm" variant={statusFilter === s ? "default" : "outline"} onClick={() => setStatusFilter(s)}>
-                  {STATUS_LABELS[s]}
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">İşletme</label>
+                <Select value={restaurantFilter} onValueChange={(v) => { setRestaurantFilter(v); setPage(1); }}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Tümü" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Tümü</SelectItem>
+                    {overview?.tenants.map((t) => (
+                      <SelectItem key={t.restaurantId} value={t.restaurantId.toString()}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Başlangıç Tarihi</label>
+                <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} className="mt-1" />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Bitiş Tarihi</label>
+                <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} className="mt-1" />
+              </div>
+
+              <div className="flex items-end gap-2">
+                <Button size="sm" variant="outline" onClick={() => { setRestaurantFilter(""); setDateFrom(""); setDateTo(""); setPage(1); }} className="w-full">
+                  Sıfırla
                 </Button>
-              ))}
+              </div>
             </div>
+
+            {selectedIds.size > 0 && (
+              <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md mb-4">
+                <span className="text-sm font-medium">{selectedIds.size} mesaj seçildi</span>
+                <Button size="sm" onClick={bulkRetry} className="ml-auto">
+                  <RefreshCw className="h-3.5 w-3.5 mr-1" /> Yeniden Gönder
+                </Button>
+                <Button size="sm" variant="destructive" onClick={bulkDelete}>
+                  <Trash2 className="h-3.5 w-3.5 mr-1" /> Sil
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             {loadingOutbox ? (
@@ -171,35 +285,60 @@ export default function AdminSms() {
             ) : !outbox || outbox.length === 0 ? (
               <p className="text-sm text-muted-foreground">Bu durumda mesaj yok.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-muted-foreground border-b border-border">
-                      <th className="py-2 pr-4">İşletme</th>
-                      <th className="py-2 pr-4">Telefon</th>
-                      <th className="py-2 pr-4">Durum</th>
-                      <th className="py-2 pr-4">Deneme</th>
-                      <th className="py-2 pr-4">Hata</th>
-                      <th className="py-2 pr-4" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {outbox.map((row) => (
-                      <tr key={row.id} className="border-b border-border/50">
-                        <td className="py-2 pr-4">#{row.restaurantId ?? "-"}</td>
-                        <td className="py-2 pr-4 font-mono">{row.toPhone}</td>
-                        <td className="py-2 pr-4"><Badge variant={row.status === "failed" ? "destructive" : "secondary"}>{STATUS_LABELS[row.status] ?? row.status}</Badge></td>
-                        <td className="py-2 pr-4">{row.attempts}</td>
-                        <td className="py-2 pr-4 text-xs text-muted-foreground max-w-[240px] truncate">{row.lastError ?? "-"}</td>
-                        <td className="py-2 pr-4">
-                          {(row.status === "failed" || row.status === "retry") && (
-                            <Button size="sm" variant="ghost" onClick={() => retry(row.id)}><RefreshCw className="h-3.5 w-3.5 mr-1" /> Yeniden dene</Button>
-                          )}
-                        </td>
+              <div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-muted-foreground border-b border-border">
+                        <th className="py-2 pr-4 w-8">
+                          <Checkbox
+                            checked={outbox && outbox.length > 0 && selectedIds.size === outbox.length}
+                            onCheckedChange={() => toggleSelectAll(outbox?.map((r) => r.id) ?? [])}
+                          />
+                        </th>
+                        <th className="py-2 pr-4">İşletme</th>
+                        <th className="py-2 pr-4">Telefon</th>
+                        <th className="py-2 pr-4">Durum</th>
+                        <th className="py-2 pr-4">Deneme</th>
+                        <th className="py-2 pr-4">Hata</th>
+                        <th className="py-2 pr-4" />
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {outbox.map((row) => (
+                        <tr key={row.id} className="border-b border-border/50">
+                          <td className="py-2 pr-4">
+                            <Checkbox checked={selectedIds.has(row.id)} onCheckedChange={() => toggleSelect(row.id)} />
+                          </td>
+                          <td className="py-2 pr-4">#{row.restaurantId ?? "-"}</td>
+                          <td className="py-2 pr-4 font-mono">{row.toPhone}</td>
+                          <td className="py-2 pr-4"><Badge variant={row.status === "failed" ? "destructive" : "secondary"}>{STATUS_LABELS[row.status] ?? row.status}</Badge></td>
+                          <td className="py-2 pr-4">{row.attempts}</td>
+                          <td className="py-2 pr-4 text-xs text-muted-foreground max-w-[240px] truncate">{row.lastError ?? "-"}</td>
+                          <td className="py-2 pr-4">
+                            {(row.status === "failed" || row.status === "retry") && (
+                              <Button size="sm" variant="ghost" onClick={() => retry(row.id)}><RefreshCw className="h-3.5 w-3.5 mr-1" /> Yeniden dene</Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                  <div className="text-xs text-muted-foreground">
+                    Sayfa <strong>{page}</strong>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}>
+                      Önceki
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setPage(page + 1)} disabled={!outbox || outbox.length < 50}>
+                      Sonraki
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

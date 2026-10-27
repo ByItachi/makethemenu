@@ -339,8 +339,39 @@ export function registerSmsRoutes(app: Express) {
   });
 
   // En son başarısız/kuyruktaki mesajları (tüm tenant'lar) platform yöneticisi görebilsin.
+  // Filtreleme: status, restaurantId, dateFrom, dateTo; sayfalama: page, limit
   app.get("/api/admin/sms/outbox", requirePlatformAdmin, async (req: Request, res: Response) => {
     const statusFilter = typeof req.query.status === "string" ? req.query.status : undefined;
+    const restaurantIdFilter = typeof req.query.restaurantId === "string" ? Number(req.query.restaurantId) : undefined;
+    const dateFromStr = typeof req.query.dateFrom === "string" ? req.query.dateFrom : undefined;
+    const dateToStr = typeof req.query.dateTo === "string" ? req.query.dateTo : undefined;
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(10, Number(req.query.limit) || 50));
+    const offset = (page - 1) * limit;
+
+    const conditions: any[] = [];
+    if (statusFilter) conditions.push(eq(smsOutbox.status, statusFilter));
+    if (restaurantIdFilter && Number.isInteger(restaurantIdFilter)) {
+      conditions.push(eq(smsOutbox.restaurantId, restaurantIdFilter));
+    }
+    if (dateFromStr) {
+      const dateFrom = new Date(dateFromStr);
+      if (!Number.isNaN(dateFrom.getTime())) {
+        conditions.push(sql`${smsOutbox.createdAt} >= ${dateFrom.toISOString()}`);
+      }
+    }
+    if (dateToStr) {
+      const dateTo = new Date(dateToStr);
+      if (!Number.isNaN(dateTo.getTime())) {
+        // Bitiş tarihi sonuna kadar (23:59:59)
+        const endOfDay = new Date(dateTo);
+        endOfDay.setHours(23, 59, 59, 999);
+        conditions.push(sql`${smsOutbox.createdAt} <= ${endOfDay.toISOString()}`);
+      }
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
     const rows = await db
       .select({
         id: smsOutbox.id,
@@ -354,9 +385,10 @@ export function registerSmsRoutes(app: Express) {
         sentAt: smsOutbox.sentAt,
       })
       .from(smsOutbox)
-      .where(statusFilter ? eq(smsOutbox.status, statusFilter) : undefined)
+      .where(whereClause)
       .orderBy(desc(smsOutbox.id))
-      .limit(200);
+      .limit(limit)
+      .offset(offset);
     res.json(rows);
   });
 
@@ -368,5 +400,23 @@ export function registerSmsRoutes(app: Express) {
     if (!row) return res.status(404).json({ message: "Bulunamadı." });
     await db.update(smsOutbox).set({ status: "queued", lastError: null }).where(eq(smsOutbox.id, id));
     res.json({ success: true });
+  });
+
+  // Toplu yeniden gönderme: seçili mesajları kuyruğa alır.
+  app.post("/api/admin/sms/outbox/bulk/retry", requirePlatformAdmin, async (req: Request, res: Response) => {
+    const parsed = z.object({ ids: z.array(z.number().int().positive()).min(1).max(500) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz istek.", issues: parsed.error.issues });
+    const ids = parsed.data.ids;
+    await db.update(smsOutbox).set({ status: "queued", lastError: null }).where(sql`${smsOutbox.id} in (${sql.join(ids, sql`, `)})`);
+    res.json({ success: true, retried: ids.length });
+  });
+
+  // Toplu silme: seçili mesajları siler.
+  app.post("/api/admin/sms/outbox/bulk/delete", requirePlatformAdmin, async (req: Request, res: Response) => {
+    const parsed = z.object({ ids: z.array(z.number().int().positive()).min(1).max(500) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz istek.", issues: parsed.error.issues });
+    const ids = parsed.data.ids;
+    await db.delete(smsOutbox).where(sql`${smsOutbox.id} in (${sql.join(ids, sql`, `)})`);
+    res.json({ success: true, deleted: ids.length });
   });
 }
