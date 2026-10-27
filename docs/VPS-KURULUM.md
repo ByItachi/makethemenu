@@ -139,7 +139,19 @@ curl -I https://sizin-domaininiz.com
 curl https://sizin-domaininiz.com/api/auth/user
 ```
 
-Admin panelinden giriş yapıp `/admin/sms` sayfasından SMS sağlayıcı durumunu kontrol edin.
+### İlk hesabınızı oluşturun ve platform yöneticisi yapın
+
+Güvenlik nedeniyle üretimde hiçbir demo/varsayılan hesap otomatik oluşturulmaz.
+İlk hesabınızı normal kayıt ekranından (`/register` veya ana sayfadaki "Kayıt Ol")
+oluşturun, ardından bu hesabı platform yöneticisi yapmak için VPS üzerinde:
+
+```bash
+cd /opt/makethemenu
+docker compose exec app npx tsx script/promote-platform-admin.ts sizin@eposta.com
+```
+
+Bu komut yalnızca zaten var olan bir hesabı yükseltir; hardcoded şifre içermez.
+Ardından `/admin/sms` sayfasından SMS sağlayıcı durumunu kontrol edin.
 
 ## 9) Gerçek SMS sağlayıcısı bağlama
 
