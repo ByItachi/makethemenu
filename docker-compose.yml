@@ -1,20 +1,46 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: restopos-postgres
+  mysql:
+    image: mysql:8.0
+    container_name: makethemenu-mysql
     environment:
-      POSTGRES_DB: db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-makethemenu_root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-makethemenu}
+      MYSQL_USER: ${MYSQL_USER:-restopos}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-restopos_dev_pw}
     ports:
-      - "5433:5432"
+      - "3306:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: makethemenu-app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-restopos}:${MYSQL_PASSWORD:-restopos_dev_pw}@mysql:3306/${MYSQL_DATABASE:-makethemenu}
+      NODE_ENV: production
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      SMS_PROVIDER: ${SMS_PROVIDER:-makethemenu}
+      MTM_SMS_UPSTREAM: ${MTM_SMS_UPSTREAM:-mock}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  mysql_data:
