@@ -20,7 +20,34 @@ export interface ProviderDef {
   adapter: IntegrationAdapter;
 }
 
+/** Üçüncü taraf iş ortağı gerektirmeyen, platformun kendi (native) ve zaten canlı
+ * çalışan özellikleri. Bunlar "entegrasyon" değil dahili modüllerdir; adapter
+ * arayüzüne sahte olarak uydurulmaz, yalnızca katalogda doğru durumda gösterilir. */
+function nativeFeature(capabilities: AdapterCapability[], notes: string): IntegrationAdapter {
+  return {
+    implemented: true,
+    capabilities,
+    credentialFields: [],
+    docs: { sandboxAvailable: true, requiresPartnerAgreement: false, notes },
+    async testConnection() {
+      return { ok: true, message: "Bu platformun kendi (native) özelliğidir, üçüncü taraf bağlantı gerektirmez." };
+    },
+  };
+}
+
 export const CATALOG: Record<string, IntegrationAdapter> = {
+  "qr-menu": nativeFeature(
+    ["getCapabilities"],
+    "Zaten canlı: masa bazlı karekod üretimi ve dijital menü (server/tenant-routes.ts). Ek kuruluma gerek yok."
+  ),
+  "menu-3d": nativeFeature(
+    ["getCapabilities"],
+    "Zaten canlı: ürünlere .glb/.gltf 3D model bağlantısı eklenebiliyor (Menü sayfası, model3dUrl alanı)."
+  ),
+  "ai-menu": nativeFeature(
+    ["getCapabilities"],
+    "Zaten canlı: yapay zeka destekli menü taslağı üretimi (/api/restaurant/ai/generate-menu). Gerçek bir AI sağlayıcı anahtarı (AI_API_KEY/ABACUS_API_KEY) tanımlı değilse yerleşik Türkçe şablonlarla üretir; anahtar eklenince gerçek LLM kullanır."
+  ),
   "veri-aktarimi": {
     implemented: true,
     capabilities: ["testConnection", "getCapabilities", "fetchOrders", "healthCheck", "receiveWebhook"],
