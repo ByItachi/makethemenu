@@ -127,6 +127,8 @@ export default function HaliOpsDemo() {
   const [smsText, setSmsText] = useState(SMS_TEMPLATES[0].text);
   const [smsStatus, setSmsStatus] = useState<{ configured: boolean; provider: string | null } | null>(null);
   const [smsSending, setSmsSending] = useState(false);
+  const [smsSchedule, setSmsSchedule] = useState(false);
+  const [smsScheduleAt, setSmsScheduleAt] = useState("");
   const [csvRecipients, setCsvRecipients] = useState<{ name: string; phone: string }[]>([]);
   const [csvFileName, setCsvFileName] = useState<string | null>(null);
   const [csvError, setCsvError] = useState<string | null>(null);
@@ -434,21 +436,28 @@ export default function HaliOpsDemo() {
           .replaceAll("{firmaTelefon}", "").replaceAll("{borç}", `${fmtTL(c.due)} ₺`),
       }));
     if (!messages.length) return showToast("Telefon numarası olan alıcı yok");
+    if (smsSchedule && !smsScheduleAt) return showToast("Zamanlama için tarih/saat seçin");
+    const scheduledDate = smsSchedule && smsScheduleAt ? new Date(smsScheduleAt) : null;
+    if (scheduledDate && scheduledDate.getTime() <= Date.now()) return showToast("Zamanlama tarihi gelecekte olmalı");
     setSmsSending(true);
     try {
       const r = await fetch("/api/ops/sms/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ messages, ...(scheduledDate ? { scheduledAt: scheduledDate.toISOString() } : {}) }),
       });
       const d = await r.json();
       if (!r.ok) return showToast(d.message ?? "Gönderim kuyruğa eklenemedi");
       setSmsStatus({ configured: d.configured, provider: d.provider });
-      showToast(
-        d.configured
-          ? `${d.queued} mesaj kuyruğa alındı, ${d.provider} ile gönderiliyor`
-          : `${d.queued} mesaj kuyruğa alındı — gönderim için SMS sağlayıcı gerekli (Ayarlar: .env → SMS_PROVIDER)`,
-      );
+      if (d.scheduled) {
+        showToast(`${d.queued} mesaj ${new Date(d.scheduledAt).toLocaleString("tr-TR")} için zamanlandı`);
+      } else {
+        showToast(
+          d.configured
+            ? `${d.queued} mesaj kuyruğa alındı, ${d.provider} ile gönderiliyor`
+            : `${d.queued} mesaj kuyruğa alındı — gönderim için SMS sağlayıcı gerekli (Ayarlar: .env → SMS_PROVIDER)`,
+        );
+      }
     } finally {
       setSmsSending(false);
     }
@@ -1335,10 +1344,31 @@ export default function HaliOpsDemo() {
               Mesajlar kuyruğa alınır, gerçekten gönderilmez. `.env` içinde SMS_PROVIDER tanımlanmalı.
             </p>
           )}
+          <div className="mt-3 rounded-lg border border-orange-100 p-2.5 space-y-2">
+            <label className="flex items-center gap-2 text-xs font-medium text-slate-700">
+              <input type="checkbox" checked={smsSchedule} onChange={(e) => setSmsSchedule(e.target.checked)} />
+              Zamanla gönder
+            </label>
+            {smsSchedule && (
+              <input
+                type="datetime-local"
+                value={smsScheduleAt}
+                min={new Date(Date.now() + 60_000).toISOString().slice(0, 16)}
+                onChange={(e) => setSmsScheduleAt(e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            )}
+          </div>
           <Button className="mt-3 w-full bg-primary text-primary-foreground hover:brightness-105 disabled:opacity-50"
             disabled={!smsRecipients.length || smsSending}
             onClick={sendBulkSms}>
-            {smsSending ? "Kuyruğa alınıyor..." : smsRecipients.length ? `Gönder (${smsRecipients.length})` : "Alıcı yok"}
+            {smsSending
+              ? "İşleniyor..."
+              : !smsRecipients.length
+                ? "Alıcı yok"
+                : smsSchedule
+                  ? `Zamanla (${smsRecipients.length})`
+                  : `Gönder (${smsRecipients.length})`}
           </Button>
         </aside>
       </div>

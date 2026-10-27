@@ -8,9 +8,25 @@ const lockFor = (seconds: number) => sql`DATE_ADD(NOW(), INTERVAL ${seconds} SEC
 
 export type SmsOutboxResult = { sent: number; retried: number; failed: number };
 
-/** Queues an outgoing SMS. Until an adapter is configured, messages stay 'queued' — nothing is claimed as sent. */
-export async function enqueueSms(restaurantId: number | null, toPhone: string, body: string): Promise<number> {
-  const [result] = await db.insert(smsOutbox).values({ restaurantId, toPhone, body });
+/**
+ * Queues an outgoing SMS. Until an adapter is configured, messages stay 'queued' — nothing is claimed as sent.
+ * If scheduledAt is a future date, the message is stored as 'scheduled' and only becomes eligible for
+ * sending once that time passes (checked by processSmsOutbox, no separate promotion step needed).
+ */
+export async function enqueueSms(
+  restaurantId: number | null,
+  toPhone: string,
+  body: string,
+  scheduledAt?: Date | null,
+): Promise<number> {
+  const isFuture = scheduledAt instanceof Date && scheduledAt.getTime() > Date.now();
+  const [result] = await db.insert(smsOutbox).values({
+    restaurantId,
+    toPhone,
+    body,
+    scheduledAt: isFuture ? scheduledAt : null,
+    status: isFuture ? "scheduled" : "queued",
+  });
   return (result as any).insertId as number;
 }
 
@@ -23,7 +39,13 @@ export async function processSmsOutbox(transport: SmsTransport, limit = 20): Pro
   const due = await db
     .select({ id: smsOutbox.id })
     .from(smsOutbox)
-    .where(and(inArray(smsOutbox.status, ["queued", "retry", "sending"]), or(isNull(smsOutbox.lockedUntil), lte(smsOutbox.lockedUntil, sql`NOW()`))))
+    .where(
+      and(
+        inArray(smsOutbox.status, ["queued", "retry", "sending", "scheduled"]),
+        or(isNull(smsOutbox.lockedUntil), lte(smsOutbox.lockedUntil, sql`NOW()`)),
+        or(isNull(smsOutbox.scheduledAt), lte(smsOutbox.scheduledAt, sql`NOW()`)),
+      ),
+    )
     .orderBy(asc(smsOutbox.id))
     .limit(limit);
 

@@ -346,6 +346,7 @@ export const smsOutbox = mysqlTable("sms_outbox", {
   attempts: int("attempts").notNull().default(0),
   lastError: varchar("last_error", { length: 255 }),
   lockedUntil: timestamp("locked_until"),
+  scheduledAt: timestamp("scheduled_at"),
   createdAt: timestamp("created_at").defaultNow(),
   sentAt: timestamp("sent_at"),
 });

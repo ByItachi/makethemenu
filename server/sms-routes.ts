@@ -20,6 +20,9 @@ const bulkSchema = z.object({
     phone: z.string().min(10).max(32),
     text: z.string().min(1).max(600),
   })).min(1).max(500),
+  // Belirtilirse ve gelecekte bir tarihse, mesajlar 'scheduled' olarak kuyruğa alınır ve
+  // yalnızca o zaman geldiğinde işçi (worker) tarafından gönderilir.
+  scheduledAt: z.string().datetime().optional(),
 });
 
 const otpRequestSchema = z.object({
@@ -44,7 +47,7 @@ export function registerSmsRoutes(app: Express) {
 
     // Kuyruk istatistikleri
     const rows = await db.select({ status: smsOutbox.status }).from(smsOutbox).where(eq(smsOutbox.restaurantId, rid));
-    const queue = { queued: 0, sending: 0, sent: 0, failed: 0, retry: 0 } as Record<string, number>;
+    const queue = { queued: 0, sending: 0, sent: 0, failed: 0, retry: 0, scheduled: 0 } as Record<string, number>;
     for (const r of rows) {
       if (r.status in queue) queue[r.status] += 1;
     }
@@ -60,15 +63,35 @@ export function registerSmsRoutes(app: Express) {
     const parsed = bulkSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "Geçersiz istek.", issues: parsed.error.issues });
     const rid = tenantId(req);
+    const scheduledAt = parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : null;
+    if (scheduledAt && (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now())) {
+      return res.status(400).json({ message: "Zamanlama tarihi gelecekte olmalı." });
+    }
     for (const m of parsed.data.messages) {
-      await enqueueSms(rid, m.phone, m.text);
+      await enqueueSms(rid, m.phone, m.text, scheduledAt);
     }
     const transport = getSmsTransport();
     res.json({
       queued: parsed.data.messages.length,
+      scheduled: Boolean(scheduledAt),
+      scheduledAt: scheduledAt?.toISOString() ?? null,
       configured: Boolean(transport),
       provider: transport?.name ?? null,
     });
+  });
+
+  // Zamanlanmış (henüz gönderilmemiş) bir mesajı iptal eder.
+  app.delete("/api/ops/sms/outbox/:id", requireRestaurant, async (req: Request, res: Response) => {
+    const rid = tenantId(req);
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ message: "Geçersiz kimlik." });
+    const [row] = await db.select().from(smsOutbox).where(and(eq(smsOutbox.id, id), eq(smsOutbox.restaurantId, rid)));
+    if (!row) return res.status(404).json({ message: "Bulunamadı." });
+    if (row.status !== "scheduled" && row.status !== "queued") {
+      return res.status(409).json({ message: "Yalnızca henüz gönderilmemiş mesajlar iptal edilebilir." });
+    }
+    await db.update(smsOutbox).set({ status: "failed", lastError: "Kullanıcı tarafından iptal edildi." }).where(eq(smsOutbox.id, id));
+    res.json({ success: true });
   });
 
   app.get("/api/ops/sms/outbox", requireRestaurant, async (req: Request, res: Response) => {
@@ -81,6 +104,7 @@ export function registerSmsRoutes(app: Express) {
         attempts: smsOutbox.attempts,
         lastError: smsOutbox.lastError,
         createdAt: smsOutbox.createdAt,
+        scheduledAt: smsOutbox.scheduledAt,
         sentAt: smsOutbox.sentAt,
       })
       .from(smsOutbox)
