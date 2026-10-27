@@ -1,4 +1,4 @@
-import { useCategories, useProducts, useCreateCategory, useCreateProduct, useDeleteProduct, useUpdateProduct } from "@/hooks/use-resto";
+import { useCategories, useProducts, useCreateCategory, useCreateProduct, useDeleteProduct, useUpdateProduct, useDeleteCategory } from "@/hooks/use-resto";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
@@ -21,6 +21,7 @@ export default function Menu() {
   const { data: products } = useProducts();
   const { data: categories } = useCategories();
   const deleteProduct = useDeleteProduct();
+  const deleteCategory = useDeleteCategory();
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -109,6 +110,7 @@ export default function Menu() {
                       <TableHead>İsim</TableHead>
                       <TableHead>Bağlantı (Slug)</TableHead>
                       <TableHead className="text-right">Ürünler</TableHead>
+                      <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -118,6 +120,21 @@ export default function Menu() {
                         <TableCell className="text-muted-foreground">{category.slug}</TableCell>
                         <TableCell className="text-right">
                           {products?.filter(p => p.categoryId === category.id).length || 0} ürün
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              if (confirm(`"${category.name}" kategorisini silmek istediğinize emin misiniz?`)) {
+                                deleteCategory.mutate(category.id);
+                              }
+                            }}
+                            disabled={deleteCategory.isPending}
+                            data-testid={`button-delete-category-${category.id}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

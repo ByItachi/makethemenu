@@ -134,11 +134,20 @@ export function useDeleteCategory() {
     mutationFn: async (id: number) => {
       const url = buildUrl(api.categories.delete.path, { id });
       const res = await fetch(url, { method: "DELETE", credentials: "include" });
-      if (!res.ok) throw new Error("Failed to delete category");
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        const message = data?.message?.includes("foreign key constraint")
+          ? "Bu kategoride ürünler var. Önce kategorideki ürünleri silin veya başka bir kategoriye taşıyın."
+          : data?.message || "Kategori silinemedi";
+        throw new Error(message);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.categories.list.path] });
       toast({ title: "Başarılı", description: "Kategori silindi" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
     },
   });
 }
