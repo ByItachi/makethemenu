@@ -1,4 +1,4 @@
-// Su Servisi (/su-servisi) & Tüp Servisi (/tup-servisi) — işletme sevkiyat paneli.
+// Su Servisi (/su-servisi) & Tüp Servisi (/tup-servisi) — işletme kanban paneli (halı paneli gibi).
 // Aynı mantık: sipariş seç → araç ata → "Teslimata Çıkar" → sürücüde canlı konum otomatik açılır (kapatılamaz).
 // Veri: gerçek water_orders (kind= damacana|tup). QR etiketleri sipariş no ile basılır.
 import { useEffect, useMemo, useState } from "react";
@@ -6,7 +6,9 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Droplets, Flame, Truck, Package, QrCode, Navigation, Radio, Phone, MapPin, X, Menu, Home,
+  Droplets, Flame, Truck, Package, QrCode, Navigation, Phone, MapPin, X, Menu, Home,
+  Receipt, Users, Route as RouteIcon, CalendarDays, Wallet, BookUser, BarChart3, MessageSquare,
+  Car, Settings, Plus, ChevronLeft, ChevronRight, Search, Sun, Moon, UserRound, TrendingUp, Radio,
 } from "lucide-react";
 
 interface WaterOrder {
@@ -18,27 +20,30 @@ interface WaterOrder {
 interface Vehicle { id: number; plate: string; driverName: string | null; isActive: boolean }
 interface SectorDriver { id: number; sector: string; name: string; phone: string | null; isActive: boolean }
 
-const FLOW = [
-  { key: "new", label: "Yeni", color: "#3b82f6" },
-  { key: "preparing", label: "Hazırlanıyor", color: "#f59e0b" },
-  { key: "on_route", label: "Teslimatta", color: "#ea580c" },
-  { key: "delivered", label: "Teslim Edildi", color: "#22c55e" },
-];
+/** 4 aşamalı su/tüp akışı, halı paneli gibi kanban tasarımı */
+const GROUPS = [
+  { key: "new", label: "Yeni", icon: Package, stages: ["new"], color: "#3b82f6", soft: "bg-blue-50" },
+  { key: "preparing", label: "Hazırlanıyor", icon: Droplets, stages: ["preparing"], color: "#f59e0b", soft: "bg-amber-50" },
+  { key: "on_route", label: "Teslimatta", icon: Truck, stages: ["on_route"], color: "#ea580c", soft: "bg-orange-50" },
+  { key: "delivered", label: "Teslim Edildi", icon: QrCode, stages: ["delivered"], color: "#22c55e", soft: "bg-green-50" },
+] as const;
+
 const STATUS_LABEL: Record<string, string> = {
   new: "Yeni", preparing: "Hazırlanıyor", on_route: "Teslimatta",
   delivered: "Teslim Edildi", failed: "Başarısız", cancelled: "İptal",
 };
 
+const fmtTL = (n: number) => n.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
   const [orders, setOrders] = useState<WaterOrder[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  // Bu sektörün (su veya tüp) kendi sürücü havuzu — halı panelinin havuzundan bağımsızdır.
   const [drivers, setDrivers] = useState<SectorDriver[]>([]);
-  const [showDrivers, setShowDrivers] = useState(false);
-  const [stage, setStage] = useState("new");
   const [authed, setAuthed] = useState<"loading" | boolean>("loading");
   const [toast, setToast] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<string>("new");
+  const [showDrivers, setShowDrivers] = useState(false);
   const [selVehicle, setSelVehicle] = useState<Record<number, number>>({});
   const [selDriver, setSelDriver] = useState<Record<number, number>>({});
   const [, navigate] = useLocation();
@@ -67,24 +72,12 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
 
   const counts = useMemo(() => {
     const m: Record<string, number> = {};
-    for (const f of FLOW) m[f.key] = orders.filter((o) => o.status === f.key).length;
+    for (const g of GROUPS) m[g.key] = orders.filter((o) => o.status === g.key).length;
     return m;
   }, [orders]);
 
-  const assign = async (o: WaterOrder) => {
-    const vehicleId = selVehicle[o.id];
-    if (!vehicleId) return showToast("Önce araç seçin");
-    const r = await fetch(`/api/ops/water/orders/${o.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ vehicleId, status: "preparing" }),
-    });
-    if (r.ok) { showToast(`${o.orderNo} → ${vehicles.find((v) => v.id === vehicleId)?.plate}`); load(); }
-  };
-
   const driverById = useMemo(() => new Map(drivers.map((d) => [d.id, d])), [drivers]);
 
-  /** Otomatik atama: sunucu bu sektörün en az yüklü aktif sürücüsünü seçer. */
   const autoAssign = async (o: WaterOrder) => {
     const r = await fetch("/api/ops/drivers/assign", {
       method: "POST",
@@ -98,7 +91,6 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
     load();
   };
 
-  /** Manuel atama: listeden seçilen sürücü. */
   const manualAssign = async (o: WaterOrder, driverId: number) => {
     setSelDriver((s) => ({ ...s, [o.id]: driverId }));
     const r = await fetch("/api/ops/drivers/assign", {
@@ -111,7 +103,6 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
 
   const dispatch = async (o: WaterOrder) => {
     const vehicleId = selVehicle[o.id] ?? o.vehicleId ?? undefined;
-    // Atanmış sürücü ile çık; atanmamışsa sunucu otomatik sürücü atar.
     const driverId = o.driverId ?? selDriver[o.id] ?? undefined;
     const r = await fetch("/api/driver/delivery/start", {
       method: "POST",
@@ -131,7 +122,7 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
     load();
   };
 
-  if (authed === "loading") return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Yükleniyor…</div>;
+  if (authed === "loading") return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Yükleniyor...</div>;
   if (!authed) {
     return (
       <div className="min-h-screen bg-[linear-gradient(135deg,#fff7ed,#fffbeb)] flex items-center justify-center p-6">
@@ -150,16 +141,11 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
     return id ? driverById.get(id)?.name ?? null : null;
   };
 
-  const list = orders.filter((o) => o.status === stage);
-  const DriverLink = (
-    <a href={driverPanelHref} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-slate-800">
-      <Navigation className="w-4 h-4" /> Sürücü Paneli
-    </a>
-  );
+  const list = orders.filter((o) => o.status === selectedGroup);
 
   return (
     <div className="min-h-screen bg-[linear-gradient(135deg,#fff7ed_0%,#fffbeb_55%,#ffedd5_100%)]">
-      {/* Üst bar (mobil menü dahil) */}
+      {/* Üst bar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-orange-100">
         <div className="max-w-6xl mx-auto px-3 sm:px-5 h-14 flex items-center gap-3">
           <button className="lg:hidden p-2 rounded-lg border border-orange-100" onClick={() => setDrawerOpen(true)} aria-label="Menüyü aç">
@@ -175,7 +161,9 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
             <a className="px-3 py-2 rounded-lg text-slate-600 hover:bg-orange-50 flex items-center gap-2" href="/dashboard/fleet"><Truck className="w-4 h-4" /> Filo</a>
             <a className="px-3 py-2 rounded-lg text-slate-600 hover:bg-orange-50 flex items-center gap-2" href="/hali"><Package className="w-4 h-4" /> Halı Paneli</a>
           </nav>
-          <div className="ml-auto lg:ml-2">{DriverLink}</div>
+          <a href={driverPanelHref} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-slate-800">
+            <Navigation className="w-4 h-4" /> Sürücü Paneli
+          </a>
         </div>
       </header>
 
@@ -199,17 +187,16 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
       <main className="max-w-6xl mx-auto p-3 sm:p-5 space-y-4">
         {/* Aşama şeridi */}
         <div className="bg-white/90 rounded-2xl border border-orange-100 shadow-sm p-2 sm:p-3 grid grid-cols-2 lg:grid-cols-4 gap-2">
-          {FLOW.map((f, i) => (
-            <button key={f.key}
-              className={"flex items-center gap-3 rounded-xl px-3 sm:px-4 py-3 border-2 text-left " + (stage === f.key ? "bg-orange-50" : "border-transparent hover:bg-slate-50")}
-              style={stage === f.key ? { borderColor: f.color } : undefined}
-              onClick={() => setStage(f.key)}>
-              <span className="w-9 h-9 rounded-full grid place-items-center text-white shrink-0" style={{ backgroundColor: f.color }}>
-                {f.key === "delivered" ? <Truck className="w-4 h-4" /> : <Package className="w-4 h-4" />}
+          {GROUPS.map((g, i) => (
+            <button key={g.key}
+              className={"flex items-center gap-3 rounded-xl px-3 sm:px-4 py-3 border-2 text-left transition-all " + (selectedGroup === g.key ? "bg-orange-50" : "border-transparent hover:bg-slate-50")}
+              style={selectedGroup === g.key ? { borderColor: g.color } : undefined}
+              onClick={() => setSelectedGroup(g.key)}>
+              <span className="w-9 h-9 rounded-full grid place-items-center text-white shrink-0" style={{ backgroundColor: g.color }}>
+                <g.icon className="w-4 h-4" />
               </span>
-              <span className="text-xs sm:text-sm font-semibold text-slate-800">{f.label}</span>
-              <span className="ml-auto text-xl font-bold" style={{ color: f.color }}>{counts[f.key] ?? 0}</span>
-              {i < FLOW.length - 1 && <Radio className="hidden lg:block absolute" />}
+              <span className="text-xs sm:text-sm font-semibold text-slate-800">{g.label}</span>
+              <span className="ml-auto text-xl font-bold" style={{ color: g.color }}>{counts[g.key] ?? 0}</span>
             </button>
           ))}
         </div>
@@ -217,7 +204,7 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
         {/* Sipariş listesi */}
         <section className="bg-white/95 rounded-2xl border border-orange-100 shadow-sm overflow-hidden min-h-[300px] flex flex-col">
           <header className="px-4 sm:px-5 py-4 border-b border-orange-50 flex items-center gap-2">
-            <h2 className="font-semibold text-slate-900">{FLOW.find((f) => f.key === stage)?.label} siparişler</h2>
+            <h2 className="font-semibold text-slate-900">{GROUPS.find((g) => g.key === selectedGroup)?.label} siparişler</h2>
             <span className="text-xs text-slate-400">{list.length} kayıt</span>
             <Badge className="ml-auto bg-primary/10 text-primary border-0">{prefix}-siparişleri</Badge>
           </header>
@@ -231,14 +218,14 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
             ) : (
               <div className="space-y-3">
                 {list.map((o) => (
-                  <div key={o.id} className="rounded-xl border border-orange-50 bg-white px-4 py-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                  <div key={o.id} className="rounded-xl border border-orange-50 bg-white px-4 py-3 hover:shadow-md transition-shadow">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-slate-800">
                           <span className="font-mono text-xs text-slate-400 mr-2">{o.orderNo}</span>{o.customerName}
                         </p>
                         <p className="text-xs text-slate-400 flex items-center gap-1.5 truncate">
-                          <MapPin className="w-3 h-3" /> {o.addressText}
+                          <MapPin className="w-3 h-3 shrink-0" /> {o.addressText}
                         </p>
                         <p className="text-xs text-slate-400 mt-0.5">
                           {o.items.map((i) => `${i.name} ×${i.qty}`).join(" · ")} — ₺{Number(o.total).toFixed(2)} · {o.scheduledDate} {o.timeSlot}
@@ -247,62 +234,77 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
                       <div className="flex items-center gap-2 shrink-0">
                         <a href={`/api/qr.svg?text=${encodeURIComponent(location.origin + "/teslimat/" + o.orderNo)}`}
                           target="_blank" rel="noreferrer" title="QR etiket (yazdır)"
-                          className="p-2 rounded-lg border border-orange-100 text-primary hover:bg-orange-50">
+                          className="p-2 rounded-lg border border-orange-100 text-primary hover:bg-orange-50 transition-colors">
                           <QrCode className="w-5 h-5" />
                         </a>
-                        <a href={`tel:${o.phone}`} className="p-2 rounded-lg border border-orange-100 text-slate-500 hover:bg-orange-50" title="Müşteriyi ara">
+                        <a href={`tel:${o.phone}`} className="p-2 rounded-lg border border-orange-100 text-slate-500 hover:bg-orange-50 transition-colors" title="Müşteriyi ara">
                           <Phone className="w-5 h-5" />
                         </a>
                       </div>
                     </div>
                     {o.status !== "delivered" && (
-                      <div className="mt-2 pt-2 border-t border-orange-50 flex flex-col sm:flex-row sm:items-center gap-2">
-                        <select
-                          className="h-9 rounded-lg border border-orange-100 bg-white px-2 text-xs"
-                          value={selVehicle[o.id] ?? o.vehicleId ?? ""}
-                          onChange={(e) => setSelVehicle({ ...selVehicle, [o.id]: Number(e.target.value) })}
-                        >
-                          <option value="">Araç seç...</option>
-                          {vehicles.filter((v) => v.isActive).map((v) => (
-                            <option key={v.id} value={v.id}>{v.plate}{v.driverName ? ` · ${v.driverName}` : ""}</option>
-                          ))}
-                        </select>
-                        <Button size="sm" variant="outline" className="border-orange-100 bg-white text-slate-600 h-9" onClick={() => assign(o)}>
-                          Araç Ata
-                        </Button>
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 sm:ml-auto" onClick={() => dispatch(o)}>
-                          <Navigation className="w-4 h-4" /> Teslimata Çıkar
-                        </Button>
-                      </div>
-                    )}
-                    {/* Sürücü ataması — bu sektörün kendi sürücü havuzundan */}
-                    {["new", "preparing"].includes(o.status) && (
-                      <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
-                        <select
-                          className="h-9 rounded-lg border border-orange-100 bg-white px-2 text-xs"
-                          value={o.driverId ?? selDriver[o.id] ?? ""}
-                          onChange={(e) => e.target.value && manualAssign(o, Number(e.target.value))}
-                        >
-                          <option value="">Sürücü seçin (manuel)</option>
-                          {drivers.filter((d) => d.isActive).map((d) => (
-                            <option key={d.id} value={d.id}>{d.name}</option>
-                          ))}
-                        </select>
-                        <Button size="sm" variant="outline" className="border-orange-100 bg-white text-slate-600 h-9" onClick={() => autoAssign(o)}>
-                          Otomatik Ata
-                        </Button>
-                        {driverNameFor(o) && <span className="text-[11px] text-slate-400 sm:ml-auto">Atanan: <b>{driverNameFor(o)}</b></span>}
+                      <div className="mt-3 pt-3 border-t border-orange-50 space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <select
+                            className="h-9 rounded-lg border border-orange-100 bg-white px-2 text-xs"
+                            value={selVehicle[o.id] ?? o.vehicleId ?? ""}
+                            onChange={(e) => setSelVehicle({ ...selVehicle, [o.id]: Number(e.target.value) })}
+                          >
+                            <option value="">Araç seç...</option>
+                            {vehicles.filter((v) => v.isActive).map((v) => (
+                              <option key={v.id} value={v.id}>{v.plate}{v.driverName ? ` · ${v.driverName}` : ""}</option>
+                            ))}
+                          </select>
+                          <Button size="sm" variant="outline" className="border-orange-100 bg-white text-slate-600 h-9" onClick={() => {
+                            const vid = selVehicle[o.id] ?? o.vehicleId;
+                            if (!vid) return showToast("Önce araç seçin");
+                            fetch(`/api/ops/water/orders/${o.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ vehicleId: vid, status: "preparing" }),
+                            }).then((r) => {
+                              if (r.ok) { showToast(`${o.orderNo} → ${vehicles.find((v) => v.id === vid)?.plate}`); load(); }
+                            });
+                          }}>
+                            Araç Ata
+                          </Button>
+                          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 sm:ml-auto" onClick={() => dispatch(o)}>
+                            <Navigation className="w-4 h-4" /> Teslimata Çıkar
+                          </Button>
+                        </div>
+                        {["new", "preparing"].includes(o.status) && (
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <select
+                              className="h-9 rounded-lg border border-orange-100 bg-white px-2 text-xs"
+                              value={o.driverId ?? selDriver[o.id] ?? ""}
+                              onChange={(e) => e.target.value && (async () => {
+                                const did = Number(e.target.value);
+                                setSelDriver((s) => ({ ...s, [o.id]: did }));
+                                const r = await fetch("/api/ops/drivers/assign", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ sector: driverSector, orderNo: o.orderNo, driverId: did }),
+                                });
+                                if (r.ok) showToast(`${o.orderNo} → ${driverById.get(did)?.name ?? "sürücü"} atandı`);
+                              })()}
+                            >
+                              <option value="">Sürücü seçin (manuel)</option>
+                              {drivers.filter((d) => d.isActive).map((d) => (
+                                <option key={d.id} value={d.id}>{d.name}</option>
+                              ))}
+                            </select>
+                            <Button size="sm" variant="outline" className="border-orange-100 bg-white text-slate-600 h-9" onClick={() => autoAssign(o)}>
+                              Otomatik Ata
+                            </Button>
+                            {driverNameFor(o) && <span className="text-[11px] text-slate-400 sm:ml-auto">Atanan: <b>{driverNameFor(o)}</b></span>}
+                          </div>
+                        )}
                       </div>
                     )}
                     {o.status === "on_route" && (
-                      <p className="mt-2 text-[11px] text-amber-600 flex items-center gap-1.5">
+                      <p className="mt-3 text-[11px] text-amber-600 flex items-center gap-1.5">
                         <Radio className="w-3 h-3 animate-pulse" />
                         Sürücüde canlı konum açık{driverNameFor(o) ? ` — sürücü: ${driverNameFor(o)}` : ""} — QR okutulunca teslim işaretlenir.
-                      </p>
-                    )}
-                    {o.status === "on_route" && (
-                      <p className="mt-2 text-[11px] text-amber-600 flex items-center gap-1.5">
-                        <Radio className="w-3 h-3 animate-pulse" /> Sürücüde canlı konum açık — teslimat QR ile kapanır.
                       </p>
                     )}
                   </div>
@@ -315,17 +317,17 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
           </footer>
         </section>
 
-        {/* Bu sektörün sürücü havuzu — su/tüp sürücü sistemi buradan yönetilir (mantık halı paneliyle aynı) */}
+        {/* Sürücü havuzu */}
         <section className="bg-white/95 rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
-          <button className="w-full px-4 sm:px-5 py-4 flex items-center gap-2" onClick={() => setShowDrivers((s) => !s)}>
+          <button className="w-full px-4 sm:px-5 py-4 flex items-center gap-2 hover:bg-orange-50/50 transition-colors" onClick={() => setShowDrivers((s) => !s)}>
             <Truck className="w-4 h-4 text-primary" />
             <h2 className="font-semibold text-slate-900">{label} Sürücüleri</h2>
             <Badge className="bg-primary/10 text-primary border-0">{drivers.filter((d) => d.isActive).length} aktif</Badge>
             <span className="ml-auto text-xs text-slate-400">{showDrivers ? "gizle ▲" : "yönet ▼"}</span>
           </button>
           {showDrivers && (
-            <div className="px-4 sm:px-5 pb-5 space-y-2">
-              <p className="text-xs text-slate-500">
+            <div className="px-4 sm:px-5 pb-5 space-y-3 border-t border-orange-50">
+              <p className="text-xs text-slate-500 pt-3">
                 Yeni siparişler <b>otomatik olarak en az yüklü aktif sürücüye</b> atanır; isterseniz siparişte manuel atayın.
                 Sürücü görevini <a className="text-primary underline" href={driverPanelHref}>{driverPanelHref}</a> panelinden yürütür: zorunlu GPS + QR ile teslim.
               </p>
@@ -334,20 +336,20 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
               ) : (
                 <div className="space-y-2">
                   {drivers.map((d) => (
-                    <div key={d.id} className="rounded-xl border border-orange-50 bg-white px-4 py-3 flex items-center gap-3">
-                      <span className="w-9 h-9 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-bold">{d.name.slice(0, 1)}</span>
+                    <div key={d.id} className="rounded-xl border border-orange-50 bg-white px-4 py-3 flex items-center gap-3 hover:shadow-sm transition-shadow">
+                      <span className="w-9 h-9 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-bold shrink-0">{d.name.slice(0, 1)}</span>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-slate-800">{d.name} {d.isActive ? "" : <span className="text-xs text-slate-400">(pasif)</span>}</p>
                         <p className="text-xs text-slate-400">{d.phone || "telefon yok"} · yoldaki görev: {orders.filter((x) => x.status === "on_route" && x.driverId === d.id).length}</p>
                       </div>
-                      <button className="text-[11px] px-2 py-1 rounded-lg border border-orange-100 hover:bg-orange-50"
+                      <button className="text-[11px] px-2 py-1 rounded-lg border border-orange-100 hover:bg-orange-50 transition-colors"
                         onClick={async () => {
                           await fetch(`/api/ops/drivers/${d.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !d.isActive }) });
                           load();
                         }}>
                         {d.isActive ? "Pasife Al" : "Aktife Al"}
                       </button>
-                      <button className="text-[11px] px-2 py-1 rounded-lg border border-rose-100 text-rose-600 hover:bg-rose-50"
+                      <button className="text-[11px] px-2 py-1 rounded-lg border border-rose-100 text-rose-600 hover:bg-rose-50 transition-colors"
                         onClick={async () => {
                           if (!window.confirm(`${d.name} silinsin mi?`)) return;
                           await fetch(`/api/ops/drivers/${d.id}`, { method: "DELETE" });
@@ -357,28 +359,29 @@ export default function WaterOpsPanel({ kind }: { kind: "damacana" | "tup" }) {
                   ))}
                 </div>
               )}
-              <Button size="sm" className="bg-primary text-primary-foreground hover:brightness-105 h-9" onClick={async () => {
+              <Button size="sm" className="bg-primary text-primary-foreground hover:brightness-105 h-9 w-full" onClick={async () => {
                 const name = window.prompt("Sürücü adı soyadı");
                 if (!name || name.trim().length < 2) return;
                 const phone = window.prompt("Telefon (opsiyonel)") ?? "";
                 const r = await fetch("/api/ops/drivers", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ sector: driverSector, name: name.trim(), phone }),
+                  body: JSON.stringify({ sector: driverSector, name: name.trim(), phone: phone.trim() || null }),
                 });
-                if (r.ok) { showToast("Sürücü eklendi"); load(); } else showToast((await r.json()).message ?? "Eklenemedi");
-              }}>+ Sürücü Ekle</Button>
+                if (r.ok) { showToast("Sürücü eklendi"); load(); } else showToast("Hata");
+              }}>
+                <Plus className="w-4 h-4" /> Sürücü Ekle
+              </Button>
             </div>
           )}
         </section>
-
-        <p className="text-xs text-slate-400">
-          Müşteri siparişi: {kind === "tup" ? <a className="text-primary font-medium" href="/tup-servisi/talep">Tüp dolum talebi</a> : <a className="text-primary font-medium" href="/su-siparisi">Su siparişi</a>} · Filo: <a className="text-primary font-medium" href="/dashboard/fleet">Araç Takip</a>
-        </p>
       </main>
 
+      {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 inset-x-4 sm:inset-x-auto sm:right-6 z-[60] rounded-xl bg-slate-900 text-white px-4 py-2.5 shadow-xl text-sm text-center sm:text-left">{toast}</div>
+        <div className="fixed bottom-4 right-4 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-lg text-sm font-medium animate-in fade-in slide-in-from-bottom-2 z-50">
+          {toast}
+        </div>
       )}
     </div>
   );
