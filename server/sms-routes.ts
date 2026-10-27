@@ -18,11 +18,21 @@ const bulkSchema = z.object({
 });
 
 export function registerSmsRoutes(app: Express) {
-  app.get("/api/ops/sms/status", requireRestaurant, async (_req: Request, res: Response) => {
+  app.get("/api/ops/sms/status", requireRestaurant, async (req: Request, res: Response) => {
+    const rid = tenantId(req);
     const transport = getSmsTransport();
+
+    // Kuyruk istatistikleri
+    const rows = await db.select({ status: smsOutbox.status }).from(smsOutbox).where(eq(smsOutbox.restaurantId, rid));
+    const queue = { queued: 0, sending: 0, sent: 0, failed: 0, retry: 0 } as Record<string, number>;
+    for (const r of rows) {
+      if (r.status in queue) queue[r.status] += 1;
+    }
+
     res.json({
       configured: Boolean(transport),
       provider: transport?.name ?? null,
+      queue,
     });
   });
 

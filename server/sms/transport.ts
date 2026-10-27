@@ -24,6 +24,18 @@ export function loadSmsConfig(env: NodeJS.ProcessEnv = process.env): SmsTranspor
   const provider = (env.SMS_PROVIDER ?? "").toLowerCase();
   if (!provider) return null;
 
+  // Mock sağlayıcı: test için gerçek SMS göndermeden kuyruk işlemini test et
+  if (provider === "mock") {
+    return {
+      name: "mock",
+      async send(message) {
+        console.log(`[sms-mock] Gönderiliyor: ${message.to} -> "${message.text.slice(0, 50)}..."`);
+        // Simüle edilmiş gecikme
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      },
+    };
+  }
+
   if (provider === "iletimerkezi") {
     const user = env.ILETIMERKEZI_API_KEY;
     const pass = env.ILETIMERKEZI_API_HASH;

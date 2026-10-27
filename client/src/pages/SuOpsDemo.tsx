@@ -345,6 +345,11 @@ export default function SuOpsDemo() {
   );
 
   // Ana Sayfa
+  const anaOrders = groupOrders(selectedGroup);
+  const selectedG = GROUPS.find((g) => g.key === selectedGroup) ?? GROUPS[0];
+  const teslimEdilen = orders.filter((o) => o.status === "delivered").length;
+  const aktifSiparis = orders.filter((o) => o.status !== "delivered").length;
+
   const renderAna = () => (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -356,40 +361,120 @@ export default function SuOpsDemo() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-xs text-slate-500 mb-1">Bugünkü Ciro</p>
-          <p className="text-2xl font-bold text-slate-900">₺{fmtTL(kpi.ciro)}</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-xs text-slate-500 mb-1">Tahsil Edilen</p>
-          <p className="text-2xl font-bold text-slate-900">₺{fmtTL(kpi.tahsil)}</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-xs text-slate-500 mb-1">Açık Bakiye</p>
-          <p className="text-2xl font-bold text-slate-900">₺{fmtTL(kpi.veresiye)}</p>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="font-semibold text-slate-900">Durum Özeti</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {GROUPS.map((g) => (
+      {/* Durum şeridi */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 sm:p-3 grid grid-cols-2 lg:grid-cols-4 gap-2">
+        {GROUPS.map((g) => {
+          const selected = selectedGroup === g.key;
+          const n = counts[g.key] ?? 0;
+          return (
             <button
               key={g.key}
-              onClick={() => { setSelectedGroup(g.key); setView("siparisler"); }}
-              className={`rounded-lg border-2 p-3 text-center transition-all ${
-                selectedGroup === g.key
-                  ? "border-primary bg-primary/5"
-                  : "border-slate-200 hover:border-slate-300"
-              }`}
+              className={"w-full flex items-center gap-2 sm:gap-3 rounded-xl px-3 sm:px-4 py-3 text-left transition-all border-2 " +
+                (selected ? g.soft : "border-transparent hover:bg-slate-50")}
+              style={selected ? { borderColor: g.color } : undefined}
+              onClick={() => setSelectedGroup(g.key)}
             >
-              <g.icon className="w-5 h-5 mx-auto mb-1 text-slate-600" />
-              <p className="text-sm font-medium text-slate-900">{g.label}</p>
-              <p className="text-lg font-bold text-primary">{counts[g.key] ?? 0}</p>
+              <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-full grid place-items-center text-white shrink-0" style={{ backgroundColor: g.color }}>
+                <g.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-xs sm:text-sm font-semibold text-slate-800">{g.label}</span>
+                <span className="text-[11px] sm:text-xs text-slate-400">{n} sipariş</span>
+              </span>
+              <span className="ml-auto text-xl sm:text-2xl font-bold" style={{ color: g.color }}>{n}</span>
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4 lg:gap-5 items-start">
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[360px]">
+          <header className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: selectedG.color }} />
+              <h2 className="font-semibold text-slate-900">{selectedG.label}</h2>
+              <span className="text-xs text-slate-400">{anaOrders.length} kayıt</span>
+            </div>
+            <span className="flex items-center gap-1.5 text-xs text-green-600 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Canlı
+            </span>
+          </header>
+          <div className="p-4 sm:p-5">
+            {!anaOrders.length ? (
+              emptyState(<Package className="w-7 h-7" />, "Bu listede sipariş yok", "Yeni sipariş eklediğinizde burada görünecek.")
+            ) : (
+              <div className="space-y-3">
+                {anaOrders.map((o) => (
+                  <div key={o.id} className="rounded-xl border border-slate-200 p-4">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0">
+                        <p className="font-medium text-slate-900 truncate">{o.customerName}</p>
+                        <p className="text-xs text-slate-500 font-mono">{o.orderNo}</p>
+                      </div>
+                      <Badge variant="outline">{STATUS_LABEL[o.status] ?? o.status}</Badge>
+                    </div>
+                    <p className="text-sm text-slate-600 mb-1">{o.addressText}</p>
+                    <p className="text-xs text-slate-500">
+                      {o.scheduledDate} · {o.timeSlot} · Dolu: {o.filledDelivered} / Boş: {o.emptyTaken} · ₺{Number(o.total).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <aside className="space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+            <h3 className="font-semibold text-slate-900 mb-3">Bugün</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-lg bg-slate-50 p-2.5">
+                <p className="text-[11px] text-slate-400">Ciro</p>
+                <p className="text-sm font-bold text-slate-900">{fmtTL(kpi.ciro)} ₺</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-2.5">
+                <p className="text-[11px] text-slate-400">Teslim edilen</p>
+                <p className="text-sm font-bold text-slate-900">{teslimEdilen}</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-2.5">
+                <p className="text-[11px] text-slate-400">Aktif sipariş</p>
+                <p className="text-sm font-bold text-slate-900">{aktifSiparis}</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-2.5">
+                <p className="text-[11px] text-slate-400">Tahsilat</p>
+                <p className="text-sm font-bold text-slate-900">{fmtTL(kpi.tahsil)} ₺</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-slate-900">Son 7 gün</h3>
+              <button className="text-xs text-primary font-medium flex items-center" onClick={() => go("raporlar")}>
+                Raporlar <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400">7 günlük ciro</p>
+            <p className="text-2xl font-bold text-slate-900 mb-3">{fmtTL(kpi.ciro)} ₺</p>
+            <div className="flex items-end justify-between gap-1.5 h-20">
+              {[0.2, 0.5, 0.35, 0.8, 0.6, 0.45, 1].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="w-full rounded-t bg-primary/15" style={{ height: `${h * 100}%` }} />
+                  <span className="text-[9px] text-slate-400">{["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"][i]}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-sm">
+              <span className="text-slate-500">İçerideki iş</span>
+              <span className="font-semibold text-slate-800">{aktifSiparis} sipariş</span>
+            </div>
+          </div>
+
+          <button className="w-full rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 p-4 text-sm text-slate-500 hover:border-primary/50"
+            onClick={() => navigate("/su-siparisi")}>
+            + Müşteri talebi oluşturmak için tıklayın
+          </button>
+        </aside>
       </div>
     </div>
   );
