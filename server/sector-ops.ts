@@ -17,6 +17,7 @@ import {
 } from "@shared/schema";
 import { requireRestaurant, tenantId } from "./auth/middleware";
 import { writeAudit } from "./audit";
+import { sendEventNotification } from "./sms/templates";
 
 /** Halı yıkama üretim akışı (işletme ayarlanabilir; varsayılan akış). */
 export const CARPET_FLOW = [
@@ -185,6 +186,10 @@ export function registerSectorOpsRoutes(app: Express) {
       actorUserId: null,
       meta: { orderNo: row.orderNo, total },
     });
+    await sendEventNotification(DEMO_RESTAURANT_ID, "order_created", input.phone, {
+      customer_name: input.customerName,
+      order_number: row.orderNo,
+    });
     res.status(201).json({ orderNo: row.orderNo, total });
   });
 
@@ -298,6 +303,10 @@ export function registerSectorOpsRoutes(app: Express) {
       restaurantId: DEMO_RESTAURANT_ID,
       actorUserId: null,
       meta: { orderNo: row.orderNo, pieces: input.pieces },
+    });
+    await sendEventNotification(DEMO_RESTAURANT_ID, "order_created", input.phone, {
+      customer_name: input.customerName,
+      order_number: row.orderNo,
     });
     res.status(201).json({ orderNo: row.orderNo, labelCodes: items.map((i) => i.labelCode) });
   });
@@ -413,6 +422,21 @@ export function registerSectorOpsRoutes(app: Express) {
         failReason: input.failReason || null,
       })
       .where(eq(waterOrders.id, order.id));
+    if (input.status && input.status !== order.status) {
+      const eventKey = input.status === "delivered" ? "order_delivered" : "order_status_changed";
+      await sendEventNotification(rid, eventKey, order.phone, {
+        customer_name: order.customerName,
+        order_number: order.orderNo,
+        status: input.status,
+      });
+    }
+    if (input.paidAmount != null && input.paidAmount > 0) {
+      await sendEventNotification(rid, "payment_received", order.phone, {
+        customer_name: order.customerName,
+        order_number: order.orderNo,
+        amount: input.paidAmount.toFixed(2),
+      });
+    }
     res.json({ ok: true });
   });
 
@@ -475,7 +499,19 @@ export function registerSectorOpsRoutes(app: Express) {
     // Sipariş durumunu güncelle: en geride kalan halı sipariş durumunu belirler.
     const siblings = await db.select().from(carpetItems).where(eq(carpetItems.orderId, item.orderId));
     const minIdx = Math.min(...siblings.map((s) => CARPET_FLOW.indexOf(s.status as typeof CARPET_FLOW[number])));
-    await db.update(carpetOrders).set({ status: CARPET_FLOW[minIdx] }).where(eq(carpetOrders.id, item.orderId));
+    const orderStatus = CARPET_FLOW[minIdx];
+    await db.update(carpetOrders).set({ status: orderStatus }).where(eq(carpetOrders.id, item.orderId));
+    if (orderStatus !== item.status) {
+      const [order] = await db.select().from(carpetOrders).where(eq(carpetOrders.id, item.orderId)).limit(1);
+      if (order) {
+        const eventKey = orderStatus === "delivered" ? "order_delivered" : "order_status_changed";
+        await sendEventNotification(rid, eventKey, order.phone, {
+          customer_name: order.customerName,
+          order_number: order.orderNo,
+          status: orderStatus,
+        });
+      }
+    }
     res.json({ ok: true });
   });
 

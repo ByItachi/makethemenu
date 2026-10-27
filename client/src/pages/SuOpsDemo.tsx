@@ -26,6 +26,14 @@ interface KasaEntry { id: number; type: "gelir" | "gider"; amount: number; note:
 interface ApiKeyRow { id: number; label: string; keyPrefix: string; revokedAt: string | null; createdAt: string; lastUsedAt: string | null }
 interface LedgerRow { id: number; delta: number; balanceAfter: number; reason: string; note: string | null; createdAt: string }
 interface BalanceState { balance: number; history: LedgerRow[] }
+interface NotifTemplate { eventKey: string; bodyTemplate: string; enabled: boolean; isDefault: boolean }
+
+const EVENT_LABELS: Record<string, string> = {
+  order_created: "Sipariş Oluşturuldu",
+  order_status_changed: "Sipariş Durumu Değişti",
+  order_delivered: "Sipariş Teslim Edildi",
+  payment_received: "Ödeme Alındı",
+};
 
 const GROUPS = [
   { key: "yeni", label: "Yeni", icon: ClipboardList, stages: ["new"], color: "#e11d48", soft: "bg-rose-50" },
@@ -43,7 +51,7 @@ const STATUS_LABEL: Record<string, string> = {
   delivered: "Teslim Edildi", failed: "Başarısız", cancelled: "İptal",
 };
 
-type View = "ana" | "siparisler" | "teslim" | "musteriler" | "kasa" | "veresiye" | "suruculer" | "raporlar" | "sms" | "api" | "ayarlar";
+type View = "ana" | "siparisler" | "teslim" | "musteriler" | "kasa" | "veresiye" | "suruculer" | "raporlar" | "sms" | "api" | "bildirim" | "ayarlar";
 
 const MENU_MAIN: { label: string; icon: typeof Home; view: View }[] = [
   { label: "Ana Sayfa", icon: Home, view: "ana" },
@@ -58,6 +66,7 @@ const MENU_MGMT: { label: string; icon: typeof Home; view?: View; href?: string 
   { label: "Raporlar", icon: BarChart3, view: "raporlar" },
   { label: "Toplu SMS", icon: MessageSquare, view: "sms" },
   { label: "API ve Bakiye", icon: KeyRound, view: "api" },
+  { label: "Bildirim Şablonları", icon: MessageSquare, view: "bildirim" },
   { label: "Araç Takip", icon: Car, href: "/dashboard/fleet" },
 ];
 
@@ -95,6 +104,9 @@ export default function SuOpsDemo() {
   const [keyBusy, setKeyBusy] = useState(false);
   const [topupAmount, setTopupAmount] = useState(1000);
   const [topupBusy, setTopupBusy] = useState(false);
+  const [notifTemplates, setNotifTemplates] = useState<NotifTemplate[]>([]);
+  const [notifDraft, setNotifDraft] = useState<Record<string, string>>({});
+  const [notifBusy, setNotifBusy] = useState<string | null>(null);
 
   const [, navigate] = useLocation();
 
@@ -119,6 +131,44 @@ export default function SuOpsDemo() {
   };
 
   useEffect(() => { if (view === "api") loadApiData(); }, [view]);
+
+  const loadNotifTemplates = async () => {
+    const r = await fetch("/api/ops/sms/templates");
+    if (!r.ok) return;
+    const d = await r.json();
+    setNotifTemplates(d.templates ?? []);
+    const draft: Record<string, string> = {};
+    for (const t of d.templates ?? []) draft[t.eventKey] = t.bodyTemplate;
+    setNotifDraft(draft);
+  };
+
+  useEffect(() => { if (view === "bildirim") loadNotifTemplates(); }, [view]);
+
+  const saveNotifTemplate = async (eventKey: string, enabled: boolean) => {
+    setNotifBusy(eventKey);
+    try {
+      const r = await fetch(`/api/ops/sms/templates/${eventKey}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bodyTemplate: notifDraft[eventKey] ?? "", enabled }),
+      });
+      if (!r.ok) { const d = await r.json(); return showToast(d.message ?? "Kaydedilemedi"); }
+      showToast("Şablon kaydedildi");
+      loadNotifTemplates();
+    } finally {
+      setNotifBusy(null);
+    }
+  };
+
+  const resetNotifTemplate = async (eventKey: string) => {
+    setNotifBusy(eventKey);
+    try {
+      const r = await fetch(`/api/ops/sms/templates/${eventKey}`, { method: "DELETE" });
+      if (r.ok) { showToast("Varsayılana döndürüldü"); loadNotifTemplates(); }
+    } finally {
+      setNotifBusy(null);
+    }
+  };
 
   const createKey = async () => {
     if (!newKeyLabel.trim()) return showToast("Anahtar için bir isim girin");
@@ -1053,6 +1103,58 @@ export default function SuOpsDemo() {
     </div>
   );
 
+  // Sipariş/fatura bildirim şablonları
+  const renderBildirim = () => (
+    <div className="space-y-6">
+      {pageHeader("Bildirim Şablonları", "Sipariş durumu değiştiğinde müşteriye otomatik gönderilen SMS metinleri")}
+      <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600">
+        Kullanılabilir değişkenler: <code className="font-mono">{"{{customer_name}}"}</code>, <code className="font-mono">{"{{order_number}}"}</code>, <code className="font-mono">{"{{status}}"}</code>, <code className="font-mono">{"{{amount}}"}</code>
+      </div>
+      {!notifTemplates.length ? (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">{emptyState(<MessageSquare className="w-6 h-6" />, "Yükleniyor...")}</div>
+      ) : (
+        <div className="space-y-4">
+          {notifTemplates.map((t) => (
+            <div key={t.eventKey} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-slate-900">{EVENT_LABELS[t.eventKey] ?? t.eventKey}</h3>
+                  {t.isDefault && <Badge variant="outline" className="text-[10px]">Varsayılan</Badge>}
+                  {!t.enabled && <Badge variant="outline" className="text-[10px] text-rose-600 border-rose-200">Kapalı</Badge>}
+                </div>
+                <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={t.enabled}
+                    onChange={(e) => saveNotifTemplate(t.eventKey, e.target.checked)}
+                  />
+                  Etkin
+                </label>
+              </div>
+              <textarea
+                className="w-full rounded-lg border border-slate-200 p-3 text-sm resize-none"
+                rows={2}
+                maxLength={480}
+                value={notifDraft[t.eventKey] ?? ""}
+                onChange={(e) => setNotifDraft((d) => ({ ...d, [t.eventKey]: e.target.value }))}
+              />
+              <div className="flex items-center justify-end gap-2 mt-3">
+                {!t.isDefault && (
+                  <Button variant="outline" size="sm" disabled={notifBusy === t.eventKey} onClick={() => resetNotifTemplate(t.eventKey)}>
+                    Varsayılana Dön
+                  </Button>
+                )}
+                <Button size="sm" disabled={notifBusy === t.eventKey} onClick={() => saveNotifTemplate(t.eventKey, t.enabled)}>
+                  {notifBusy === t.eventKey ? "Kaydediliyor..." : "Kaydet"}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   // Ayarlar
   const setupItems = [
     { l: "Logo", v: "Yüklenmedi", icon: ImageIcon, ok: false },
@@ -1122,6 +1224,7 @@ export default function SuOpsDemo() {
       case "raporlar": return renderRaporlar();
       case "sms": return renderSms();
       case "api": return renderApi();
+      case "bildirim": return renderBildirim();
       case "ayarlar": return renderAyarlar();
       default: return null;
     }

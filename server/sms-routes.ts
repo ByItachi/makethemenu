@@ -12,6 +12,7 @@ import { verifyIletimerkeziWebhook, verifyNetgsmWebhook, processSmsWebhook } fro
 import { createApiKey, listApiKeys, revokeApiKey } from "./sms/apiKey";
 import { getBalance, getLedgerHistory, applyLedgerEntry } from "./sms/balance";
 import { requestOtp, verifyOtp } from "./sms/otp";
+import { getTemplates, upsertTemplate, resetTemplate, EVENT_KEYS, type EventKey } from "./sms/templates";
 import { rateLimit } from "./auth/middleware";
 
 const bulkSchema = z.object({
@@ -148,6 +149,31 @@ export function registerSmsRoutes(app: Express) {
     const rid = tenantId(req);
     const result = await applyLedgerEntry(rid, parsed.data.amount, "topup", { note: "Test modu yükleme (gerçek ödeme değil)" });
     res.json({ testMode: true, balance: result.balance });
+  });
+
+  // --- Sipariş/fatura bildirim şablonları (olay bazlı, değişkenli, düzenlenebilir) ---
+  app.get("/api/ops/sms/templates", requireRestaurant, async (req: Request, res: Response) => {
+    const rid = tenantId(req);
+    const templates = await getTemplates(rid);
+    res.json({ templates, availableVariables: ["customer_name", "order_number", "status", "amount"] });
+  });
+
+  app.put("/api/ops/sms/templates/:eventKey", requireRestaurant, async (req: Request, res: Response) => {
+    const eventKey = req.params.eventKey as EventKey;
+    if (!EVENT_KEYS.includes(eventKey)) return res.status(404).json({ message: "Bilinmeyen bildirim olayı." });
+    const parsed = z.object({ bodyTemplate: z.string().min(3).max(480), enabled: z.boolean() }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz istek.", issues: parsed.error.issues });
+    const rid = tenantId(req);
+    await upsertTemplate(rid, eventKey, parsed.data.bodyTemplate, parsed.data.enabled);
+    res.json({ ok: true });
+  });
+
+  app.delete("/api/ops/sms/templates/:eventKey", requireRestaurant, async (req: Request, res: Response) => {
+    const eventKey = req.params.eventKey as EventKey;
+    if (!EVENT_KEYS.includes(eventKey)) return res.status(404).json({ message: "Bilinmeyen bildirim olayı." });
+    const rid = tenantId(req);
+    await resetTemplate(rid, eventKey);
+    res.json({ ok: true });
   });
 
   // --- OTP (tek kullanımlık doğrulama kodu) — işletmenin kendi müşterilerine, oturum üzerinden ---

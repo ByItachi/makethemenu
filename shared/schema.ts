@@ -412,6 +412,18 @@ export const smsOtp = mysqlTable("sms_otp", {
   createdAt: timestamp("created_at").defaultNow(),
 }, (t) => [index("idx_sms_otp_phone").on(t.restaurantId, t.phone, t.purpose)]);
 
+// Sipariş/fatura bildirim şablonları: her işletme olay başına (order_created, order_delivered, ...)
+// kendi şablonunu özelleştirebilir. Satır yoksa server/sms/templates.ts içindeki varsayılan metin kullanılır.
+export const smsNotificationTemplates = mysqlTable("sms_notification_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  eventKey: varchar("event_key", { length: 40 }).notNull(),
+  bodyTemplate: varchar("body_template", { length: 480 }).notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_sms_tpl_restaurant").on(t.restaurantId, t.eventKey)]);
+
 // ---- Billing (subscriptions, payments, coupons, webhooks). Card data is never stored here;
 // only provider references, brand and last4 as reported by the provider.
 export const subscriptions = mysqlTable("subscriptions", {

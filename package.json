@@ -39,6 +39,7 @@
     "db:migrate-v22": "tsx server/migrations/v22.ts",
     "db:migrate-v23": "tsx server/migrations/v23.ts",
     "db:migrate-v24": "tsx server/migrations/v24.ts",
+    "db:migrate-v25": "tsx server/migrations/v25.ts",
     "db:seed-templates": "tsx server/migrations/seed-templates.ts",
     "db:seed-demos": "tsx server/migrations/seed-demos.ts",
     "db:clean-demo": "tsx server/migrations/clean-demo-data.ts",
