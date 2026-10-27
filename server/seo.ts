@@ -3,6 +3,7 @@ import { eq, desc, sql, and } from "drizzle-orm";
 import { db } from "./db";
 import { restaurants, templates } from "@shared/schema";
 import { publicBaseUrl } from "./tenant-routes";
+import { PLUGIN_CATALOG } from "@shared/plugins";
 
 const xmlEscape = (s: string) =>
   s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]!);
@@ -24,7 +25,46 @@ export function registerHealthRoutes(app: Express) {
  * robots.txt and sitemap.xml. Only published menus are listed; private areas are disallowed.
  * Sitemap is generated on each request from the database, so it reflects publish/unpublish at once.
  */
+const AI_CRAWLERS = [
+  "GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "PerplexityBot",
+  "Google-Extended", "Applebot-Extended", "CCBot", "Bingbot",
+];
+
+function buildLlmsTxt(base: string): string {
+  const features = PLUGIN_CATALOG.filter((p) => ["qr-menu", "menu-3d", "ai-menu", "stok-maliyet", "personel-vardiya", "musteri-cari", "veri-aktarimi"].includes(p.key));
+  return [
+    "# MakeTheMenu",
+    "",
+    "> MakeTheMenu, restoran, kafe ve benzeri işletmeler için Türkçe dijital menü, QR menü, adisyon/POS, masa yönetimi, stok, personel, cari müşteri ve SMS bildirim platformudur.",
+    "",
+    "## Ana sayfalar",
+    `- [Ana sayfa](${base}/): Platform tanıtımı`,
+    `- [Özellikler](${base}/ozellikler): Modül ve özellik listesi`,
+    `- [Şablonlar](${base}/sablonlar): Dijital menü şablonları`,
+    `- [Fiyatlar](${base}/fiyatlar): Paketler ve fiyatlandırma`,
+    `- [Çözümler](${base}/cozumler): Sektöre göre çözümler`,
+    `- [Blog](${base}/kaynaklar/blog): Restoran yönetimi yazıları`,
+    `- [Bilgi merkezi](${base}/kaynaklar/bilgi-merkezi): Kullanım rehberleri`,
+    `- [API dokümantasyonu](${base}/kaynaklar/api): Geliştirici kaynakları`,
+    `- [İletişim](${base}/iletisim)`,
+    "",
+    "## Öne çıkan özellikler",
+    ...features.map((p) => `- ${p.name}: ${p.description}`),
+    "",
+    "## Notlar",
+    "- Hizmet dili Türkçedir; arayüz Türkçe ve İngilizce desteklenir.",
+    "- Fiyat ve paket bilgisi için güncel kaynak /fiyatlar sayfasıdır.",
+    "- Giriş, panel ve API uç noktaları (/api, /admin, /dashboard) içerik değildir; taranmamalıdır.",
+    "",
+  ].join("\n");
+}
+
 export function registerSeoRoutes(app: Express) {
+  app.get("/llms.txt", (_req: Request, res: Response) => {
+    res.type("text/plain; charset=utf-8").setHeader("Cache-Control", "public, max-age=3600");
+    res.send(buildLlmsTxt(publicBaseUrl()));
+  });
+
   app.get("/robots.txt", (_req: Request, res: Response) => {
     const base = publicBaseUrl();
     res.type("text/plain").setHeader("Cache-Control", "public, max-age=3600");
@@ -52,6 +92,7 @@ export function registerSeoRoutes(app: Express) {
         "Disallow: /integration-purchase",
         "Disallow: /fiyatlandirma",
         "",
+        ...AI_CRAWLERS.flatMap((bot) => [`User-agent: ${bot}`, "Allow: /", "Allow: /llms.txt", "Disallow: /api/", "Disallow: /admin", "Disallow: /dashboard", ""]),
         `Sitemap: ${base}/sitemap.xml`,
         "",
       ].join("\n"),
