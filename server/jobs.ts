@@ -39,7 +39,7 @@ export function startBackgroundJobs(): void {
           if (r.sent || r.retried || r.failed) console.log(`[sms] gönderildi=${r.sent} yeniden=${r.retried} hatalı=${r.failed}`);
         })
         .catch((e) => console.error("[sms] işçi hatası:", e?.code ?? e?.message));
-    setInterval(smsTick, 15_000).unref();
+    setInterval(smsTick, 5_000).unref();
     void smsTick();
   }
 

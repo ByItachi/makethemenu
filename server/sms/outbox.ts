@@ -30,11 +30,41 @@ export async function enqueueSms(
   return (result as any).insertId as number;
 }
 
+async function sendOne(transport: SmsTransport, id: number, result: SmsOutboxResult): Promise<void> {
+  const [claim] = await db
+    .update(smsOutbox)
+    .set({ status: "sending", attempts: sql`${smsOutbox.attempts} + 1`, lockedUntil: lockFor(60) })
+    .where(and(eq(smsOutbox.id, id), or(isNull(smsOutbox.lockedUntil), lte(smsOutbox.lockedUntil, sql`NOW()`))));
+  if (!claim.affectedRows) return;
+
+  const [row] = await db.select().from(smsOutbox).where(eq(smsOutbox.id, id));
+  try {
+    await transport.send({ to: row.toPhone, text: row.body });
+    await db
+      .update(smsOutbox)
+      .set({ status: "sent", sentAt: new Date(), lastError: null, lockedUntil: null })
+      .where(eq(smsOutbox.id, id));
+    result.sent++;
+  } catch (err: any) {
+    const message = sanitizeError(String(err?.message ?? "Bilinmeyen hata"));
+    if (row.attempts >= MAX_SMS_ATTEMPTS) {
+      await db.update(smsOutbox).set({ status: "failed", lastError: message, lockedUntil: null }).where(eq(smsOutbox.id, id));
+      result.failed++;
+    } else {
+      const backoffSec = row.attempts * 60;
+      await db.update(smsOutbox).set({ status: "retry", lastError: message, lockedUntil: lockFor(backoffSec) }).where(eq(smsOutbox.id, id));
+      result.retried++;
+    }
+  }
+}
+
 /**
  * Sends queued SMS messages. Each row is claimed with a time lock before sending, so two workers
  * never send the same message twice. Failed attempts retry with growing delay until MAX_SMS_ATTEMPTS.
+ * Messages are sent in parallel batches (bounded by `concurrency`) so a large backlog drains in
+ * seconds instead of one-by-one; the provider's own rate limit is still the real-world ceiling.
  */
-export async function processSmsOutbox(transport: SmsTransport, limit = 20): Promise<SmsOutboxResult> {
+export async function processSmsOutbox(transport: SmsTransport, limit = 200, concurrency = 10): Promise<SmsOutboxResult> {
   const result: SmsOutboxResult = { sent: 0, retried: 0, failed: 0 };
   const due = await db
     .select({ id: smsOutbox.id })
@@ -49,32 +79,9 @@ export async function processSmsOutbox(transport: SmsTransport, limit = 20): Pro
     .orderBy(asc(smsOutbox.id))
     .limit(limit);
 
-  for (const { id } of due) {
-    const [claim] = await db
-      .update(smsOutbox)
-      .set({ status: "sending", attempts: sql`${smsOutbox.attempts} + 1`, lockedUntil: lockFor(60) })
-      .where(and(eq(smsOutbox.id, id), or(isNull(smsOutbox.lockedUntil), lte(smsOutbox.lockedUntil, sql`NOW()`))));
-    if (!claim.affectedRows) continue;
-
-    const [row] = await db.select().from(smsOutbox).where(eq(smsOutbox.id, id));
-    try {
-      await transport.send({ to: row.toPhone, text: row.body });
-      await db
-        .update(smsOutbox)
-        .set({ status: "sent", sentAt: new Date(), lastError: null, lockedUntil: null })
-        .where(eq(smsOutbox.id, id));
-      result.sent++;
-    } catch (err: any) {
-      const message = sanitizeError(String(err?.message ?? "Bilinmeyen hata"));
-      if (row.attempts >= MAX_SMS_ATTEMPTS) {
-        await db.update(smsOutbox).set({ status: "failed", lastError: message, lockedUntil: null }).where(eq(smsOutbox.id, id));
-        result.failed++;
-      } else {
-        const backoffSec = row.attempts * 60;
-        await db.update(smsOutbox).set({ status: "retry", lastError: message, lockedUntil: lockFor(backoffSec) }).where(eq(smsOutbox.id, id));
-        result.retried++;
-      }
-    }
+  for (let i = 0; i < due.length; i += concurrency) {
+    const batch = due.slice(i, i + concurrency);
+    await Promise.all(batch.map(({ id }) => sendOne(transport, id, result)));
   }
   return result;
 }
