@@ -3,6 +3,7 @@
 import type { Express, NextFunction, Request, Response } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
+import swaggerUi from "swagger-ui-express";
 import { db } from "./db";
 import { smsOutbox, smsInbound } from "@shared/schema";
 import { verifyApiKey } from "./sms/apiKey";
@@ -11,6 +12,7 @@ import { enqueueSms } from "./sms/outbox";
 import { getSmsTransport } from "./sms";
 import { rateLimit } from "./auth/middleware";
 import { requestOtp, verifyOtp } from "./sms/otp";
+import { smsOpenApiSpec } from "./sms/openapi";
 
 declare global {
   namespace Express {
@@ -39,10 +41,12 @@ const apiRateLimit = rateLimit({ windowMs: 60_000, max: 120, keyPrefix: "sms-api
 const sendSchema = z.object({
   to: z.string().min(10).max(32),
   text: z.string().min(1).max(600),
+  scheduledAt: z.string().datetime().optional(),
 });
 
 const bulkSchema = z.object({
   messages: z.array(sendSchema).min(1).max(1000),
+  scheduledAt: z.string().datetime().optional(),
 });
 
 const otpRequestSchema = z.object({
@@ -62,6 +66,10 @@ export function registerSmsPublicApi(app: Express) {
     res.json({ status: "ok", time: new Date().toISOString() });
   });
 
+  // İnteraktif API dokümantasyonu: API anahtarı gerektirmez, "Authorize" ile kendi anahtarınızı girip deneyebilirsiniz.
+  app.get("/api/v1/openapi.json", (_req, res) => res.json(smsOpenApiSpec));
+  app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(smsOpenApiSpec, { customSiteTitle: "Makethemenu SMS API" }));
+
   app.use("/api/v1", requireApiKey, apiRateLimit);
 
   app.post("/api/v1/sms/send", async (req: Request, res: Response) => {
@@ -70,14 +78,20 @@ export function registerSmsPublicApi(app: Express) {
       return res.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
     }
     const rid = req.smsApiRestaurantId!;
+    const scheduledAt = parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : null;
+    if (scheduledAt && (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now())) {
+      return res.status(400).json({ error: "invalid_request", message: "scheduledAt gelecekte olmalı." });
+    }
     const ledger = await applyLedgerEntry(rid, -SMS_COST_PER_MESSAGE, "sms_send", { note: "API: tekli gönderim" });
     if (!ledger.ok) {
       return res.status(402).json({ error: "insufficient_balance", message: "Yetersiz kontör bakiyesi.", balance: ledger.balance });
     }
-    await enqueueSms(rid, parsed.data.to, parsed.data.text);
+    const id = await enqueueSms(rid, parsed.data.to, parsed.data.text, scheduledAt);
     const transport = getSmsTransport();
     res.status(202).json({
-      status: "queued",
+      status: scheduledAt ? "scheduled" : "queued",
+      id,
+      scheduledAt: scheduledAt?.toISOString() ?? null,
       configured: Boolean(transport),
       balance: ledger.balance,
     });
@@ -89,15 +103,24 @@ export function registerSmsPublicApi(app: Express) {
       return res.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
     }
     const rid = req.smsApiRestaurantId!;
+    const scheduledAt = parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : null;
+    if (scheduledAt && (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now())) {
+      return res.status(400).json({ error: "invalid_request", message: "scheduledAt gelecekte olmalı." });
+    }
     const cost = parsed.data.messages.length * SMS_COST_PER_MESSAGE;
     const ledger = await applyLedgerEntry(rid, -cost, "sms_send", { note: `API: toplu gönderim (${parsed.data.messages.length} mesaj)` });
     if (!ledger.ok) {
       return res.status(402).json({ error: "insufficient_balance", message: "Yetersiz kontör bakiyesi.", balance: ledger.balance });
     }
     for (const m of parsed.data.messages) {
-      await enqueueSms(rid, m.to, m.text);
+      await enqueueSms(rid, m.to, m.text, scheduledAt);
     }
-    res.status(202).json({ status: "queued", count: parsed.data.messages.length, balance: ledger.balance });
+    res.status(202).json({
+      status: scheduledAt ? "scheduled" : "queued",
+      count: parsed.data.messages.length,
+      scheduledAt: scheduledAt?.toISOString() ?? null,
+      balance: ledger.balance,
+    });
   });
 
   app.get("/api/v1/sms/messages/:id", async (req: Request, res: Response) => {

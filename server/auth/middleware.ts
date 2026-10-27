@@ -117,7 +117,11 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  if (req.path.startsWith("/api")) {
+  // /api/v1/docs: Swagger UI kendi JS/CSS/font varlıklarını yükleyen bir HTML sayfasıdır,
+  // JSON döndüren diğer /api uçları gibi "default-src 'none'" ile kısıtlanamaz.
+  if (req.path.startsWith("/api/v1/docs")) {
+    res.setHeader("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:");
+  } else if (req.path.startsWith("/api")) {
     res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
     res.setHeader("Cache-Control", "no-store");
   }
