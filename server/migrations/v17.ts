@@ -42,11 +42,14 @@ async function main() {
   `);
   console.log("v17: delivery_sessions hazır.");
 
-  // Demo işletme (97) için tüp ürünleri — halihazırda tüp ürünü yoksa ekle.
+  // Demo işletme (97) için tüp ürünleri — işletme mevcutsa ve halihazırda tüp ürünü yoksa ekle.
+  const [restaurant97] = await conn.query<mysql.RowDataPacket[]>(
+    "SELECT id FROM restaurants WHERE id = 97",
+  );
   const [rows] = await conn.query<mysql.RowDataPacket[]>(
     "SELECT COUNT(*) n FROM water_products WHERE restaurant_id = 97 AND kind = 'tup'",
   );
-  if (Number((rows[0] as { n: number }).n) === 0) {
+  if (restaurant97.length > 0 && Number((rows[0] as { n: number }).n) === 0) {
     await conn.query(`
       INSERT INTO water_products (restaurant_id, name, kind, price, deposit_fee, is_active) VALUES
         (97, '12,5 kg Tüp Dolum', 'tup', 350.00, 150.00, 1),

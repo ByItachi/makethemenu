@@ -124,8 +124,12 @@ app.use((req, res, next) => {
     }
 
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-httpServer.listen(port, '127.0.0.1', () => {
-  log(`serving on port ${port}`);
+    // Docker/konteyner ortamında dışarıdan erişim için HOST=0.0.0.0 gerekir (host port
+    // mapping container'ın localhost'una değil, konteynerin kendi arayüzüne ulaşır).
+    // cPanel/doğrudan çalıştırmada varsayılan 127.0.0.1 korunur.
+    const host = process.env.HOST || '127.0.0.1';
+httpServer.listen(port, host, () => {
+  log(`serving on port ${port} (host ${host})`);
 });
 
     // Handle graceful shutdown

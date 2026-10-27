@@ -45,7 +45,8 @@
     "db:seed-demos": "tsx server/migrations/seed-demos.ts",
     "db:clean-demo": "tsx server/migrations/clean-demo-data.ts",
     "test:e2e": "playwright test",
-    "test:all": "playwright test && tsx --test tests/unit.test.ts tests/email.test.ts tests/billing.test.ts tests/billing-http.test.ts tests/orders-analytics.test.ts tests/integration.test.ts"
+    "test:all": "playwright test && tsx --test tests/unit.test.ts tests/email.test.ts tests/billing.test.ts tests/billing-http.test.ts tests/orders-analytics.test.ts tests/integration.test.ts",
+    "promote-admin": "tsx script/promote-platform-admin.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

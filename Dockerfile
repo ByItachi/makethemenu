@@ -13,7 +13,11 @@ RUN npx tsx script/build.ts
 FROM base AS runtime
 COPY --from=build /app/dist ./dist
 COPY --from=deps /app/node_modules ./node_modules
-COPY package.json ./
+COPY package.json tsconfig.json drizzle.config.ts docker-entrypoint.sh ./
+COPY --from=build /app/server ./server
+COPY --from=build /app/shared ./shared
+COPY --from=build /app/script ./script
+RUN chmod +x docker-entrypoint.sh
 ENV NODE_ENV=production
 EXPOSE 3000
-CMD ["node", "dist/index.cjs"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

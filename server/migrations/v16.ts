@@ -186,11 +186,16 @@ async function main() {
     console.log("v16: vehicle_locations oluşturuldu.");
   }
 
-  // Demo işletme (id 97) için su ürün kataloğu + 2 araç seed'i (yoksa).
+  // Demo işletme (id 97) için su ürün kataloğu + 2 araç seed'i (yoksa, ve işletme mevcutsa).
+  const [restaurant97] = await conn.query<mysql.RowDataPacket[]>(
+    "SELECT id FROM restaurants WHERE id = 97",
+  );
+  const hasRestaurant97 = restaurant97.length > 0;
+
   const [prodCount] = await conn.query<mysql.RowDataPacket[]>(
     "SELECT COUNT(*) n FROM water_products WHERE restaurant_id = 97",
   );
-  if (Number((prodCount[0] as { n: number }).n) === 0) {
+  if (hasRestaurant97 && Number((prodCount[0] as { n: number }).n) === 0) {
     await conn.query(`
       INSERT INTO water_products (restaurant_id, name, kind, price, deposit_fee) VALUES
         (97, '19 L Damacana', 'damacana', 60.00, 45.00),
@@ -204,7 +209,7 @@ async function main() {
   const [vehCount] = await conn.query<mysql.RowDataPacket[]>(
     "SELECT COUNT(*) n FROM vehicles WHERE restaurant_id = 97",
   );
-  if (Number((vehCount[0] as { n: number }).n) === 0) {
+  if (hasRestaurant97 && Number((vehCount[0] as { n: number }).n) === 0) {
     await conn.query(`
       INSERT INTO vehicles (restaurant_id, internal_code, plate, name, capacity, driver_name, gps_method) VALUES
         (97, 'MMT-VEH-001', '34 ABC 123', 'Su Dağıtım Aracı 1', 60, 'Mehmet K.', 'driver_app'),

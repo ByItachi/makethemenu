@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:8.0
+    # Üretimde kullanılan sunucu (cPanel/CloudLinux) MariaDB tabanlıdır; migration
+    # dosyalarındaki "ADD COLUMN IF NOT EXISTS" sözdizimi yalnızca MariaDB'de
+    # desteklenir (standart MySQL 8'de desteklenmez) — bu yüzden mariadb kullanıyoruz.
+    image: mariadb:10.11
     container_name: makethemenu-mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-makethemenu_root}
@@ -14,7 +17,6 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     command: >
-      --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
     healthcheck:
@@ -34,6 +36,7 @@ services:
     environment:
       DATABASE_URL: mysql://${MYSQL_USER:-restopos}:${MYSQL_PASSWORD:-restopos_dev_pw}@mysql:3306/${MYSQL_DATABASE:-makethemenu}
       NODE_ENV: production
+      HOST: 0.0.0.0
       SESSION_SECRET: ${SESSION_SECRET:-}
       SMS_PROVIDER: ${SMS_PROVIDER:-makethemenu}
       MTM_SMS_UPSTREAM: ${MTM_SMS_UPSTREAM:-mock}

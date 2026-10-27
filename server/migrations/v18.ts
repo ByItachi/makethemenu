@@ -45,11 +45,14 @@ async function main() {
     }
   }
 
-  // Demo işletme (97): her sektörde 2 sürücü — havuzlar sektör bazında ayrıdır.
+  // Demo işletme (97): her sektörde 2 sürücü — işletme mevcutsa, havuzlar sektör bazında ayrıdır.
+  const [restaurant97] = await conn.query<mysql.RowDataPacket[]>(
+    "SELECT id FROM restaurants WHERE id = 97",
+  );
   const [rows] = await conn.query<mysql.RowDataPacket[]>(
     "SELECT COUNT(*) n FROM sector_drivers WHERE restaurant_id = 97",
   );
-  if (Number((rows[0] as { n: number }).n) === 0) {
+  if (restaurant97.length > 0 && Number((rows[0] as { n: number }).n) === 0) {
     await conn.query(`
       INSERT INTO sector_drivers (restaurant_id, sector, name, phone, is_active) VALUES
         (97, 'carpet', 'Mehmet Yılmaz', '0532 111 22 33', 1),
