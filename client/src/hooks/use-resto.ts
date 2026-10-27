@@ -41,10 +41,10 @@ export function useCreateTable() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.tables.list.path] });
-      toast({ title: "Success", description: "Table created successfully" });
+      toast({ title: "Başarılı", description: "Masa oluşturuldu" });
     },
     onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
     }
   });
 }
@@ -67,7 +67,7 @@ export function useUpdateTable() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.tables.list.path] });
-      toast({ title: "Success", description: "Table updated successfully" });
+      toast({ title: "Başarılı", description: "Masa güncellendi" });
     },
   });
 }
@@ -84,7 +84,7 @@ export function useDeleteTable() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.tables.list.path] });
-      toast({ title: "Success", description: "Table deleted successfully" });
+      toast({ title: "Başarılı", description: "Masa silindi" });
     },
   });
 }
@@ -121,7 +121,7 @@ export function useCreateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.categories.list.path] });
-      toast({ title: "Success", description: "Category created successfully" });
+      toast({ title: "Başarılı", description: "Kategori oluşturuldu" });
     },
   });
 }
@@ -138,7 +138,7 @@ export function useDeleteCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.categories.list.path] });
-      toast({ title: "Success", description: "Category deleted successfully" });
+      toast({ title: "Başarılı", description: "Kategori silindi" });
     },
   });
 }
@@ -181,7 +181,7 @@ export function useCreateProduct() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
-      toast({ title: "Success", description: "Product created successfully" });
+      toast({ title: "Başarılı", description: "Ürün oluşturuldu" });
     },
   });
 }
@@ -207,7 +207,7 @@ export function useUpdateProduct() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
-      toast({ title: "Success", description: "Product updated successfully" });
+      toast({ title: "Başarılı", description: "Ürün güncellendi" });
     },
   });
 }
@@ -224,7 +224,7 @@ export function useDeleteProduct() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
-      toast({ title: "Success", description: "Product deleted successfully" });
+      toast({ title: "Başarılı", description: "Ürün silindi" });
     },
   });
 }
@@ -293,7 +293,7 @@ export function useUpdateOrderStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.orders.list.path] });
       queryClient.invalidateQueries({ queryKey: [api.tables.list.path] }); // If order paid, table free?
-      toast({ title: "Updated", description: "Order status updated" });
+      toast({ title: "Güncellendi", description: "Sipariş durumu güncellendi" });
     },
   });
 }
