@@ -6,8 +6,9 @@ import { z } from "zod";
 import { db } from "./db";
 import { smsOutbox, smsInbound, smsBalanceLedger, restaurants } from "@shared/schema";
 import { requireRestaurant, requirePlatformAdmin, tenantId } from "./auth/middleware";
-import { getSmsTransport } from "./sms";
+import { getSmsTransport, resetSmsTransportCache } from "./sms";
 import { enqueueSms } from "./sms/outbox";
+import { setDynamicSmsConfig, getDynamicSmsConfig, type SmsProviderConfig } from "./sms/transport";
 import { verifyIletimerkeziWebhook, verifyNetgsmWebhook, processSmsWebhook } from "./sms/webhook";
 import { createApiKey, listApiKeys, revokeApiKey } from "./sms/apiKey";
 import { getBalance, getLedgerHistory, applyLedgerEntry } from "./sms/balance";
@@ -418,5 +419,79 @@ export function registerSmsRoutes(app: Express) {
     const ids = parsed.data.ids;
     await db.delete(smsOutbox).where(sql`${smsOutbox.id} in (${sql.join(ids, sql`, `)})`);
     res.json({ success: true, deleted: ids.length });
+  });
+
+  // --- MakeTheMenu kendi SMS sağlayıcısı: admin panelinden upstream yapılandırma ---
+  app.get("/api/admin/sms/provider", requirePlatformAdmin, async (_req: Request, res: Response) => {
+    const config = getDynamicSmsConfig();
+    const transport = getSmsTransport();
+    res.json({
+      active: Boolean(transport),
+      name: transport?.name ?? null,
+      config: config ? {
+        provider: config.provider,
+        iletimerkezi: config.iletimerkezi ? { apiKey: "***", sender: config.iletimerkezi.sender, sandbox: config.iletimerkezi.sandbox } : undefined,
+        netgsm: config.netgsm ? { usercode: config.netgsm.usercode, sender: config.netgsm.sender } : undefined,
+        twilio: config.twilio ? { accountSid: config.twilio.accountSid, fromNumber: config.twilio.fromNumber } : undefined,
+      } : null,
+      envProvider: process.env.SMS_PROVIDER ?? null,
+    });
+  });
+
+  const providerConfigSchema = z.object({
+    provider: z.enum(["mock", "iletimerkezi", "netgsm", "twilio"]),
+    iletimerkezi: z.object({
+      apiKey: z.string().min(1),
+      apiHash: z.string().min(1),
+      sender: z.string().min(1).max(11),
+      iysConsent: z.boolean().optional(),
+      sandbox: z.boolean().optional(),
+    }).optional(),
+    netgsm: z.object({
+      usercode: z.string().min(1),
+      password: z.string().min(1),
+      sender: z.string().min(1).max(11),
+    }).optional(),
+    twilio: z.object({
+      accountSid: z.string().min(1),
+      authToken: z.string().min(1),
+      fromNumber: z.string().min(1),
+    }).optional(),
+  });
+
+  app.put("/api/admin/sms/provider", requirePlatformAdmin, async (req: Request, res: Response) => {
+    const parsed = providerConfigSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz yapılandırma.", issues: parsed.error.issues });
+    const config = parsed.data as SmsProviderConfig;
+    if (config.provider === "iletimerkezi" && !config.iletimerkezi) {
+      return res.status(400).json({ message: "İletiMerkezi yapılandırması eksik." });
+    }
+    if (config.provider === "netgsm" && !config.netgsm) {
+      return res.status(400).json({ message: "NetGSM yapılandırması eksik." });
+    }
+    if (config.provider === "twilio" && !config.twilio) {
+      return res.status(400).json({ message: "Twilio yapılandırması eksik." });
+    }
+    setDynamicSmsConfig(config);
+    resetSmsTransportCache();
+    const transport = getSmsTransport();
+    res.json({
+      success: true,
+      active: Boolean(transport),
+      name: transport?.name ?? null,
+    });
+  });
+
+  app.post("/api/admin/sms/provider/test", requirePlatformAdmin, async (req: Request, res: Response) => {
+    const parsed = z.object({ phone: z.string().min(10).max(32) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz telefon numarası." });
+    const transport = getSmsTransport();
+    if (!transport) return res.status(400).json({ message: "SMS sağlayıcısı yapılandırılmamış." });
+    try {
+      await transport.send({ to: parsed.data.phone, text: "MakeTheMenu SMS test mesajı. Bu mesajı aldıysanız, SMS sağlayıcınız doğru yapılandırılmıştır." });
+      res.json({ success: true, provider: transport.name });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err?.message ?? "Bilinmeyen hata") });
+    }
   });
 }

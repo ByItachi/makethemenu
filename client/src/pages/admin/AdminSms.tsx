@@ -7,10 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { MessageSquare, RefreshCw, AlertTriangle, CheckCircle2, Clock, Trash2, BarChart3 } from "lucide-react";
+import { MessageSquare, RefreshCw, AlertTriangle, CheckCircle2, Clock, Trash2, BarChart3, Settings, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface TenantRow {
   restaurantId: number;
@@ -42,6 +43,187 @@ const STATUS_LABELS: Record<string, string> = {
   queued: "Kuyrukta", sending: "Gönderiliyor", sent: "Gönderildi",
   failed: "Başarısız", retry: "Yeniden Denenecek", scheduled: "Zamanlanmış",
 };
+
+interface ProviderInfo {
+  active: boolean;
+  name: string | null;
+  config: {
+    provider: string;
+    iletimerkezi?: { apiKey: string; sender: string; sandbox?: boolean };
+    netgsm?: { usercode: string; sender: string };
+    twilio?: { accountSid: string; fromNumber: string };
+  } | null;
+  envProvider: string | null;
+}
+
+function ProviderConfigCard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [upstreamProvider, setUpstreamProvider] = useState("mock");
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [testPhone, setTestPhone] = useState("");
+  const [testing, setTesting] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const { data: providerInfo } = useQuery<ProviderInfo>({
+    queryKey: ["/api/admin/sms/provider"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/sms/provider");
+      return res.json();
+    },
+  });
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const body: Record<string, any> = { provider: upstreamProvider };
+      if (upstreamProvider === "iletimerkezi") {
+        body.iletimerkezi = {
+          apiKey: formData.imApiKey || "",
+          apiHash: formData.imApiHash || "",
+          sender: formData.imSender || "",
+          sandbox: formData.imSandbox === "true",
+        };
+      } else if (upstreamProvider === "netgsm") {
+        body.netgsm = {
+          usercode: formData.ngUsercode || "",
+          password: formData.ngPassword || "",
+          sender: formData.ngSender || "",
+        };
+      } else if (upstreamProvider === "twilio") {
+        body.twilio = {
+          accountSid: formData.twSid || "",
+          authToken: formData.twToken || "",
+          fromNumber: formData.twFrom || "",
+        };
+      }
+      await apiRequest("PUT", "/api/admin/sms/provider", body);
+      toast({ title: "SMS sağlayıcısı güncellendi." });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/provider"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/overview"] });
+    } catch {
+      toast({ title: "Yapılandırma kaydedilemedi.", variant: "destructive" });
+    }
+    setSaving(false);
+  };
+
+  const handleTest = async () => {
+    if (!testPhone) { toast({ title: "Telefon numarası girin.", variant: "destructive" }); return; }
+    setTesting(true);
+    try {
+      const res = await apiRequest("POST", "/api/admin/sms/provider/test", { phone: testPhone });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Test SMS gönderildi." });
+      } else {
+        toast({ title: `Test başarısız: ${data.error}`, variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Test SMS gönderilemedi.", variant: "destructive" });
+    }
+    setTesting(false);
+  };
+
+  const updateField = (key: string, value: string) => setFormData((prev) => ({ ...prev, [key]: value }));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2"><Settings className="h-4 w-4" /> MakeTheMenu SMS Sağlayıcısı</CardTitle>
+        <CardDescription>
+          Platformunuz kendi SMS sağlayıcınızdır. Upstream bağlantıyı burada yapılandırın.
+          {providerInfo && (
+            <span className="ml-2">
+              Durum: <Badge variant={providerInfo.active ? "default" : "secondary"}>{providerInfo.active ? providerInfo.name : "Pasif"}</Badge>
+            </span>
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Upstream Sağlayıcı</Label>
+            <Select value={upstreamProvider} onValueChange={setUpstreamProvider}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mock">Test Modu (Gerçek SMS gönderme)</SelectItem>
+                <SelectItem value="iletimerkezi">İletiMerkezi</SelectItem>
+                <SelectItem value="netgsm">NetGSM</SelectItem>
+                <SelectItem value="twilio">Twilio</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {upstreamProvider === "iletimerkezi" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-md">
+            <div>
+              <Label>API Key</Label>
+              <Input className="mt-1" value={formData.imApiKey || ""} onChange={(e) => updateField("imApiKey", e.target.value)} placeholder="İletiMerkezi API Key" />
+            </div>
+            <div>
+              <Label>API Hash</Label>
+              <Input className="mt-1" type="password" value={formData.imApiHash || ""} onChange={(e) => updateField("imApiHash", e.target.value)} placeholder="İletiMerkezi API Hash" />
+            </div>
+            <div>
+              <Label>Gönderici Adı</Label>
+              <Input className="mt-1" value={formData.imSender || ""} onChange={(e) => updateField("imSender", e.target.value)} placeholder="MAKETHEMENU" maxLength={11} />
+            </div>
+            <div className="flex items-end gap-2">
+              <Label className="flex items-center gap-2">
+                <input type="checkbox" checked={formData.imSandbox === "true"} onChange={(e) => updateField("imSandbox", e.target.checked ? "true" : "false")} />
+                Sandbox (Test) Modu
+              </Label>
+            </div>
+          </div>
+        )}
+
+        {upstreamProvider === "netgsm" && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-md">
+            <div>
+              <Label>Kullanıcı Kodu</Label>
+              <Input className="mt-1" value={formData.ngUsercode || ""} onChange={(e) => updateField("ngUsercode", e.target.value)} placeholder="NetGSM kullanıcı kodu" />
+            </div>
+            <div>
+              <Label>Şifre</Label>
+              <Input className="mt-1" type="password" value={formData.ngPassword || ""} onChange={(e) => updateField("ngPassword", e.target.value)} placeholder="NetGSM şifre" />
+            </div>
+            <div>
+              <Label>Gönderici Adı</Label>
+              <Input className="mt-1" value={formData.ngSender || ""} onChange={(e) => updateField("ngSender", e.target.value)} placeholder="MAKETHEMENU" maxLength={11} />
+            </div>
+          </div>
+        )}
+
+        {upstreamProvider === "twilio" && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-md">
+            <div>
+              <Label>Account SID</Label>
+              <Input className="mt-1" value={formData.twSid || ""} onChange={(e) => updateField("twSid", e.target.value)} placeholder="Twilio Account SID" />
+            </div>
+            <div>
+              <Label>Auth Token</Label>
+              <Input className="mt-1" type="password" value={formData.twToken || ""} onChange={(e) => updateField("twToken", e.target.value)} placeholder="Twilio Auth Token" />
+            </div>
+            <div>
+              <Label>Gönderen Numara</Label>
+              <Input className="mt-1" value={formData.twFrom || ""} onChange={(e) => updateField("twFrom", e.target.value)} placeholder="+1234567890" />
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-3">
+          <Button onClick={handleSave} disabled={saving}>{saving ? "Kaydediliyor..." : "Kaydet"}</Button>
+          <div className="flex-1" />
+          <Input value={testPhone} onChange={(e) => setTestPhone(e.target.value)} placeholder="+905551234567" className="max-w-[200px]" />
+          <Button variant="outline" onClick={handleTest} disabled={testing}>
+            <Send className="h-3.5 w-3.5 mr-1" /> {testing ? "Gönderiliyor..." : "Test SMS"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function AdminSms() {
   const { toast } = useToast();
@@ -146,14 +328,16 @@ export default function AdminSms() {
         </div>
 
         {!loadingOverview && overview && (
-          <Card className={overview.configured && overview.provider !== "mock" ? "border-emerald-200" : "border-amber-300"}>
+          <Card className={overview.configured && overview.provider === "makethemenu" ? "border-emerald-200" : overview.configured ? "border-blue-200" : "border-amber-300"}>
             <CardContent className="p-4 flex items-center gap-3">
               {overview.configured && overview.provider !== "mock" ? <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" /> : <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />}
               <div className="text-sm">
                 {!overview.configured ? (
-                  <>Henüz bir SMS sağlayıcısı (İletiMerkezi / NetGSM / Twilio) yapılandırılmadı. Mesajlar kuyrukta bekliyor, gerçek telefona ulaşmıyor. <code>.env</code> içindeki <code>SMS_PROVIDER</code> ve ilgili API anahtarını tanımlayın.</>
+                  <>Henüz bir SMS sağlayıcısı yapılandırılmadı. Mesajlar kuyrukta bekliyor, gerçek telefona ulaşmıyor. Aşağıdan upstream sağlayıcıyı yapılandırın.</>
+                ) : overview.provider === "makethemenu" ? (
+                  <><strong>MakeTheMenu SMS</strong> aktif. Kendi SMS sağlayıcınız olarak hizmet veriyorsunuz. Upstream bağlantı aşağıdan yönetilir.</>
                 ) : overview.provider === "mock" ? (
-                  <>Sağlayıcı test/mock modunda (<strong>SMS_PROVIDER=mock</strong>). Kuyruk, kontör ve API tamamen gerçek ve kendi altyapımız; yalnızca gerçek telefona gönderim simüle ediliyor. Gerçek SMS için <code>.env</code> içinde İletiMerkezi/NetGSM/Twilio anahtarını tanımlayıp <code>SMS_PROVIDER</code> değerini değiştirin.</>
+                  <>Test/mock modunda. Kuyruk, kontör ve API tamamen gerçek; yalnızca gerçek telefona gönderim simüle ediliyor.</>
                 ) : (
                   <>Aktif sağlayıcı: <strong>{overview.provider}</strong>. Mesajlar gerçekten şebekeye iletiliyor.</>
                 )}
@@ -161,6 +345,8 @@ export default function AdminSms() {
             </CardContent>
           </Card>
         )}
+
+        <ProviderConfigCard />
 
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           {(["queued", "sending", "sent", "failed", "retry", "scheduled"] as const).map((key) => (
