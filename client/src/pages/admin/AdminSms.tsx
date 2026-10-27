@@ -521,12 +521,12 @@ export default function AdminSms() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
               <div>
                 <label className="text-xs font-medium text-muted-foreground">İşletme</label>
-                <Select value={restaurantFilter} onValueChange={(v) => { setRestaurantFilter(v); setPage(1); }}>
+                <Select value={restaurantFilter || "all"} onValueChange={(v) => { setRestaurantFilter(v === "all" ? "" : v); setPage(1); }}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Tümü" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tümü</SelectItem>
+                    <SelectItem value="all">Tümü</SelectItem>
                     {overview?.tenants.map((t) => (
                       <SelectItem key={t.restaurantId} value={t.restaurantId.toString()}>
                         {t.name}
