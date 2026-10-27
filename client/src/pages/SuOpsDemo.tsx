@@ -9,6 +9,7 @@ import {
   Sun, Moon, ChevronRight, Home, Receipt, Users,
   Wallet, BookUser, BarChart3, MessageSquare, Car, Settings, Menu,
   UserRound, Plus, TrendingUp, Image as ImageIcon, Landmark, Star, CreditCard,
+  KeyRound, Copy, Trash2, Coins,
 } from "lucide-react";
 
 interface WaterOrder {
@@ -22,6 +23,9 @@ interface CustomerRow {
   paid: number; due: number; lastDate: string | null;
 }
 interface KasaEntry { id: number; type: "gelir" | "gider"; amount: number; note: string; method: string; date: string }
+interface ApiKeyRow { id: number; label: string; keyPrefix: string; revokedAt: string | null; createdAt: string; lastUsedAt: string | null }
+interface LedgerRow { id: number; delta: number; balanceAfter: number; reason: string; note: string | null; createdAt: string }
+interface BalanceState { balance: number; history: LedgerRow[] }
 
 const GROUPS = [
   { key: "yeni", label: "Yeni", icon: ClipboardList, stages: ["new"], color: "#e11d48", soft: "bg-rose-50" },
@@ -39,7 +43,7 @@ const STATUS_LABEL: Record<string, string> = {
   delivered: "Teslim Edildi", failed: "Başarısız", cancelled: "İptal",
 };
 
-type View = "ana" | "siparisler" | "teslim" | "musteriler" | "kasa" | "veresiye" | "suruculer" | "raporlar" | "sms" | "ayarlar";
+type View = "ana" | "siparisler" | "teslim" | "musteriler" | "kasa" | "veresiye" | "suruculer" | "raporlar" | "sms" | "api" | "ayarlar";
 
 const MENU_MAIN: { label: string; icon: typeof Home; view: View }[] = [
   { label: "Ana Sayfa", icon: Home, view: "ana" },
@@ -53,6 +57,7 @@ const MENU_MGMT: { label: string; icon: typeof Home; view?: View; href?: string 
   { label: "Sürücüler", icon: UserRound, view: "suruculer" },
   { label: "Raporlar", icon: BarChart3, view: "raporlar" },
   { label: "Toplu SMS", icon: MessageSquare, view: "sms" },
+  { label: "API ve Bakiye", icon: KeyRound, view: "api" },
   { label: "Araç Takip", icon: Car, href: "/dashboard/fleet" },
 ];
 
@@ -83,6 +88,13 @@ export default function SuOpsDemo() {
   const [smsText, setSmsText] = useState(SMS_TEMPLATES[0].text);
   const [smsStatus, setSmsStatus] = useState<{ configured: boolean; provider: string | null } | null>(null);
   const [smsSending, setSmsSending] = useState(false);
+  const [apiKeys, setApiKeys] = useState<ApiKeyRow[]>([]);
+  const [balance, setBalance] = useState<BalanceState | null>(null);
+  const [newKeyLabel, setNewKeyLabel] = useState("");
+  const [newKeyPlain, setNewKeyPlain] = useState<string | null>(null);
+  const [keyBusy, setKeyBusy] = useState(false);
+  const [topupAmount, setTopupAmount] = useState(1000);
+  const [topupBusy, setTopupBusy] = useState(false);
 
   const [, navigate] = useLocation();
 
@@ -98,6 +110,56 @@ export default function SuOpsDemo() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const loadApiData = async () => {
+    const kr = await fetch("/api/ops/sms/api-keys");
+    if (kr.ok) setApiKeys(await kr.json());
+    const br = await fetch("/api/ops/sms/balance");
+    if (br.ok) setBalance(await br.json());
+  };
+
+  useEffect(() => { if (view === "api") loadApiData(); }, [view]);
+
+  const createKey = async () => {
+    if (!newKeyLabel.trim()) return showToast("Anahtar için bir isim girin");
+    setKeyBusy(true);
+    try {
+      const r = await fetch("/api/ops/sms/api-keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: newKeyLabel.trim() }),
+      });
+      const d = await r.json();
+      if (!r.ok) return showToast(d.message ?? "Anahtar oluşturulamadı");
+      setNewKeyPlain(d.key);
+      setNewKeyLabel("");
+      loadApiData();
+    } finally {
+      setKeyBusy(false);
+    }
+  };
+
+  const revokeKey = async (id: number) => {
+    const r = await fetch(`/api/ops/sms/api-keys/${id}`, { method: "DELETE" });
+    if (r.ok) { showToast("Anahtar iptal edildi"); loadApiData(); }
+  };
+
+  const topupTest = async () => {
+    setTopupBusy(true);
+    try {
+      const r = await fetch("/api/ops/sms/balance/topup-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: topupAmount }),
+      });
+      const d = await r.json();
+      if (!r.ok) return showToast(d.message ?? "Yükleme yapılamadı");
+      showToast(`${topupAmount} kontör yüklendi (test modu, gerçek ödeme değil)`);
+      loadApiData();
+    } finally {
+      setTopupBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -875,6 +937,122 @@ export default function SuOpsDemo() {
     </div>
   );
 
+  // API anahtarları ve kontör/bakiye
+  const renderApi = () => (
+    <div className="space-y-6">
+      {pageHeader("API ve Bakiye", "SMS API anahtarlarınızı ve kontör bakiyenizi yönetin")}
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <span className="w-11 h-11 rounded-xl bg-primary/10 text-primary grid place-items-center"><Coins className="w-5 h-5" /></span>
+            <div>
+              <p className="text-xs text-slate-400">Kontör Bakiyesi</p>
+              <p className="text-2xl font-bold text-slate-900">{balance ? balance.balance.toLocaleString("tr-TR") : "—"} kontör</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="number" min={1} max={100000}
+              value={topupAmount}
+              onChange={(e) => setTopupAmount(Math.max(1, Number(e.target.value) || 0))}
+              className="w-28 px-3 py-2 rounded-lg border border-slate-200 text-sm"
+            />
+            <Button variant="outline" disabled={topupBusy} onClick={topupTest}>
+              {topupBusy ? "Yükleniyor..." : "Test Yükle"}
+            </Button>
+          </div>
+        </div>
+        <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+          "Test Yükle" gerçek bir ödeme işlemi değildir; ödeme sağlayıcısı bağlanana kadar yalnızca demo/test amaçlıdır.
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <header className="px-4 sm:px-5 py-4 border-b border-slate-100">
+          <h3 className="font-semibold text-slate-900">Bakiye Hareketleri</h3>
+        </header>
+        {!balance?.history.length ? (
+          emptyState(<Coins className="w-6 h-6" />, "Henüz bakiye hareketi yok")
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {balance.history.slice(0, 15).map((h) => (
+              <div key={h.id} className="flex items-center justify-between px-4 sm:px-5 py-3 text-sm">
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-800">{h.note || h.reason}</p>
+                  <p className="text-xs text-slate-400">{new Date(h.createdAt).toLocaleString("tr-TR")}</p>
+                </div>
+                <span className={"font-semibold " + (h.delta >= 0 ? "text-emerald-600" : "text-rose-600")}>
+                  {h.delta >= 0 ? "+" : ""}{h.delta}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <header className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-slate-100">
+          <h3 className="font-semibold text-slate-900">API Anahtarları</h3>
+          <span className="text-xs text-slate-400">/api/v1 uçlarında Authorization: Bearer ile kullanılır</span>
+        </header>
+        <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-2">
+          <input
+            placeholder="Anahtar ismi (ör. Web Sitesi, Mobil Uygulama)"
+            value={newKeyLabel}
+            onChange={(e) => setNewKeyLabel(e.target.value)}
+            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm"
+          />
+          <Button disabled={keyBusy} onClick={createKey}>
+            <KeyRound className="w-4 h-4 mr-1.5" /> {keyBusy ? "Oluşturuluyor..." : "Yeni Anahtar"}
+          </Button>
+        </div>
+
+        {newKeyPlain && (
+          <div className="mx-4 sm:mx-5 mb-4 rounded-lg bg-emerald-50 border border-emerald-200 p-3">
+            <p className="text-xs font-semibold text-emerald-800 mb-1">Anahtarınız (yalnızca şimdi gösterilir, bir daha görüntülenemez):</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 text-xs bg-white border border-emerald-200 rounded px-2 py-1.5 overflow-x-auto">{newKeyPlain}</code>
+              <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(newKeyPlain); showToast("Kopyalandı"); }}>
+                <Copy className="w-3.5 h-3.5" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setNewKeyPlain(null)}>Kapat</Button>
+            </div>
+          </div>
+        )}
+
+        {!apiKeys.length ? (
+          emptyState(<KeyRound className="w-6 h-6" />, "Henüz API anahtarı yok", "Kendi web sitenizden veya uygulamanızdan SMS göndermek için bir anahtar oluşturun")
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {apiKeys.map((k) => (
+              <div key={k.id} className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3">
+                <div className="min-w-0 flex items-center gap-3">
+                  <span className={"w-9 h-9 rounded-lg grid place-items-center " + (k.revokedAt ? "bg-slate-100 text-slate-400" : "bg-primary/10 text-primary")}>
+                    <KeyRound className="w-4 h-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-800 truncate">{k.label}</p>
+                    <p className="text-xs text-slate-400 font-mono">{k.keyPrefix}••••••••</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {k.revokedAt ? (
+                    <Badge variant="outline">İptal edildi</Badge>
+                  ) : (
+                    <Button size="sm" variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50" onClick={() => revokeKey(k.id)}>
+                      <Trash2 className="w-3.5 h-3.5 mr-1" /> İptal Et
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   // Ayarlar
   const setupItems = [
     { l: "Logo", v: "Yüklenmedi", icon: ImageIcon, ok: false },
@@ -943,6 +1121,7 @@ export default function SuOpsDemo() {
       case "suruculer": return renderSuruculer();
       case "raporlar": return renderRaporlar();
       case "sms": return renderSms();
+      case "api": return renderApi();
       case "ayarlar": return renderAyarlar();
       default: return null;
     }
