@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, CreditCard, Receipt, Settings, MapPin, Building2, FileText, LogOut, Bell, Menu, Ticket, Palette, Sparkles, Globe, BarChart3, Blocks, Puzzle } from "lucide-react";
+import { LayoutDashboard, CreditCard, Receipt, Settings, MapPin, Building2, FileText, LogOut, Bell, Menu, Ticket, Palette, Sparkles, Globe, BarChart3, Blocks, Puzzle, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -21,6 +21,7 @@ const items = [
   { href: "/admin/settings/analytics", label: "Ölçümleme ve SEO", icon: BarChart3 },
   { href: "/admin/sectors", label: "Sektörler", icon: Blocks },
   { href: "/admin/integrations", label: "Entegrasyonlar", icon: Puzzle },
+  { href: "/admin/sms", label: "SMS Sistemi", icon: MessageSquare },
   { href: "/admin/settings", label: "Ayarlar", icon: Settings },
 ];
 

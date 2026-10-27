@@ -1,11 +1,11 @@
 // Toplu SMS altyapısı: her işletme kendi kuyruğuna mesaj ekler (requireRestaurant ile izole).
 // Sağlayıcı (SMS_PROVIDER) yapılandırılmamışsa mesajlar yalnızca kuyrukta bekler; "gönderildi" iddiası yapılmaz.
 import type { Express, Request, Response } from "express";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
-import { smsOutbox, smsInbound } from "@shared/schema";
-import { requireRestaurant, tenantId } from "./auth/middleware";
+import { smsOutbox, smsInbound, smsBalanceLedger, restaurants } from "@shared/schema";
+import { requireRestaurant, requirePlatformAdmin, tenantId } from "./auth/middleware";
 import { getSmsTransport } from "./sms";
 import { enqueueSms } from "./sms/outbox";
 import { verifyIletimerkeziWebhook, verifyNetgsmWebhook, processSmsWebhook } from "./sms/webhook";
@@ -278,6 +278,95 @@ export function registerSmsRoutes(app: Express) {
       return res.status(500).json({ message: "Webhook işleme hatası." });
     }
 
+    res.json({ success: true });
+  });
+
+  // --- Platform yönetici görünümü: tüm işletmelerin SMS kullanımı tek ekranda ---
+  app.get("/api/admin/sms/overview", requirePlatformAdmin, async (_req: Request, res: Response) => {
+    const transport = getSmsTransport();
+
+    const queueRows = await db
+      .select({ restaurantId: smsOutbox.restaurantId, status: smsOutbox.status, count: sql<number>`count(*)` })
+      .from(smsOutbox)
+      .groupBy(smsOutbox.restaurantId, smsOutbox.status);
+
+    const balanceRows = await db
+      .select({ restaurantId: smsBalanceLedger.restaurantId, balanceAfter: smsBalanceLedger.balanceAfter, id: smsBalanceLedger.id })
+      .from(smsBalanceLedger)
+      .orderBy(desc(smsBalanceLedger.id));
+    const latestBalanceByTenant = new Map<number, number>();
+    for (const row of balanceRows) {
+      if (!latestBalanceByTenant.has(row.restaurantId)) latestBalanceByTenant.set(row.restaurantId, row.balanceAfter);
+    }
+
+    const tenantIdList = Array.from(
+      new Set<number>([
+        ...queueRows.map((r) => r.restaurantId).filter((id): id is number => id != null),
+        ...Array.from(latestBalanceByTenant.keys()),
+      ])
+    );
+    const tenantRows = tenantIdList.length
+      ? await db.select({ id: restaurants.id, name: restaurants.name }).from(restaurants).where(sql`${restaurants.id} in (${sql.join(tenantIdList, sql`, `)})`)
+      : [];
+    const nameById = new Map(tenantRows.map((r) => [r.id, r.name]));
+
+    const byTenant = new Map<number, { restaurantId: number; name: string; balance: number; queue: Record<string, number> }>();
+    for (const id of tenantIdList) {
+      byTenant.set(id, {
+        restaurantId: id,
+        name: nameById.get(id) ?? `#${id}`,
+        balance: latestBalanceByTenant.get(id) ?? 0,
+        queue: { queued: 0, sending: 0, sent: 0, failed: 0, retry: 0, scheduled: 0 },
+      });
+    }
+    for (const row of queueRows) {
+      if (row.restaurantId == null) continue;
+      const entry = byTenant.get(row.restaurantId);
+      if (entry && row.status in entry.queue) entry.queue[row.status] = Number(row.count);
+    }
+
+    const totals = { queued: 0, sending: 0, sent: 0, failed: 0, retry: 0, scheduled: 0 };
+    for (const entry of Array.from(byTenant.values())) {
+      for (const key of Object.keys(totals) as (keyof typeof totals)[]) totals[key] += entry.queue[key] ?? 0;
+    }
+
+    res.json({
+      configured: Boolean(transport),
+      provider: transport?.name ?? null,
+      totals,
+      tenants: Array.from(byTenant.values()).sort((a, b) => b.queue.failed - a.queue.failed || b.queue.queued - a.queue.queued),
+    });
+  });
+
+  // En son başarısız/kuyruktaki mesajları (tüm tenant'lar) platform yöneticisi görebilsin.
+  app.get("/api/admin/sms/outbox", requirePlatformAdmin, async (req: Request, res: Response) => {
+    const statusFilter = typeof req.query.status === "string" ? req.query.status : undefined;
+    const rows = await db
+      .select({
+        id: smsOutbox.id,
+        restaurantId: smsOutbox.restaurantId,
+        toPhone: smsOutbox.toPhone,
+        status: smsOutbox.status,
+        attempts: smsOutbox.attempts,
+        lastError: smsOutbox.lastError,
+        createdAt: smsOutbox.createdAt,
+        scheduledAt: smsOutbox.scheduledAt,
+        sentAt: smsOutbox.sentAt,
+      })
+      .from(smsOutbox)
+      .where(statusFilter ? eq(smsOutbox.status, statusFilter) : undefined)
+      .orderBy(desc(smsOutbox.id))
+      .limit(200);
+    res.json(rows);
+  });
+
+  // Takılı kalmış (retry) mesajları manuel olarak yeniden kuyruğa alır.
+  app.post("/api/admin/sms/outbox/:id/retry", requirePlatformAdmin, async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ message: "Geçersiz kimlik." });
+    const [row] = await db.select().from(smsOutbox).where(eq(smsOutbox.id, id));
+    if (!row) return res.status(404).json({ message: "Bulunamadı." });
+    await db.update(smsOutbox).set({ status: "queued", lastError: null }).where(eq(smsOutbox.id, id));
     res.json({ success: true });
   });
 }

@@ -57,6 +57,7 @@ import LegalPage from "@/pages/LegalPage";
 import AdminAnalyticsSettings from "@/pages/admin/AdminAnalyticsSettings";
 import AdminSectors from "@/pages/admin/AdminSectors";
 import AdminIntegrations from "@/pages/admin/AdminIntegrations";
+import AdminSms from "@/pages/admin/AdminSms";
 import SuccessStoriesPage from "@/pages/SuccessStoriesPage";
 import Purchase from "@/pages/Purchase";
 import IntegrationPurchase from "@/pages/IntegrationPurchase";
@@ -239,6 +240,9 @@ function Router() {
       </Route>
       <Route path="/admin/integrations">
         {() => <AdminRoute component={AdminIntegrations} />}
+      </Route>
+      <Route path="/admin/sms">
+        {() => <AdminRoute component={AdminSms} />}
       </Route>
 
       <Route path="/desktop">
