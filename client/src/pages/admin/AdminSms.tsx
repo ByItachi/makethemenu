@@ -225,6 +225,56 @@ function ProviderConfigCard() {
   );
 }
 
+interface DailyStat { day: string; total: number; sent: number; failed: number; queued: number; retry: number }
+
+function DailyStatsChart() {
+  const { data: stats } = useQuery<DailyStat[]>({
+    queryKey: ["/api/admin/sms/stats"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/sms/stats");
+      return res.json();
+    },
+  });
+
+  if (!stats || stats.length === 0) return null;
+
+  const maxVal = Math.max(...stats.map((s) => Number(s.total)), 1);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Günlük SMS Trendi</CardTitle>
+        <CardDescription>Son 30 gün gönderim istatistikleri</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-end gap-1 h-40 overflow-x-auto">
+          {stats.map((s) => {
+            const pctSent = (Number(s.sent) / maxVal) * 100;
+            const pctFailed = (Number(s.failed) / maxVal) * 100;
+            const pctOther = ((Number(s.total) - Number(s.sent) - Number(s.failed)) / maxVal) * 100;
+            const label = s.day.slice(5);
+            return (
+              <div key={s.day} className="flex flex-col items-center gap-1 min-w-[24px]" title={`${s.day}\nToplam: ${s.total}\nGönderildi: ${s.sent}\nBaşarısız: ${s.failed}`}>
+                <div className="flex flex-col-reverse w-5 rounded-t overflow-hidden" style={{ height: "120px" }}>
+                  <div style={{ height: `${pctSent}%` }} className="bg-emerald-500" />
+                  <div style={{ height: `${pctFailed}%` }} className="bg-red-500" />
+                  <div style={{ height: `${pctOther}%` }} className="bg-indigo-400" />
+                </div>
+                <span className="text-[9px] text-muted-foreground rotate-[-45deg] origin-top-left whitespace-nowrap">{label}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500 inline-block" /> Gönderildi</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500 inline-block" /> Başarısız</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-indigo-400 inline-block" /> Diğer</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function AdminSms() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -408,6 +458,8 @@ export default function AdminSms() {
             </Card>
           );
         })()}
+
+        <DailyStatsChart />
 
         <Card>
           <CardHeader>

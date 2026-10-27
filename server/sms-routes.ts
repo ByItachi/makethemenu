@@ -494,4 +494,22 @@ export function registerSmsRoutes(app: Express) {
       res.status(500).json({ success: false, error: String(err?.message ?? "Bilinmeyen hata") });
     }
   });
+
+  // --- SMS İstatistik API: son 30 gün günlük gönderim istatistikleri ---
+  app.get("/api/admin/sms/stats", requirePlatformAdmin, async (_req: Request, res: Response) => {
+    const rows = await db.execute(sql`
+      SELECT 
+        DATE(created_at) as day,
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) as sent,
+        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+        SUM(CASE WHEN status = 'queued' THEN 1 ELSE 0 END) as queued,
+        SUM(CASE WHEN status = 'retry' THEN 1 ELSE 0 END) as retry
+      FROM sms_outbox
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      GROUP BY DATE(created_at)
+      ORDER BY day ASC
+    `);
+    res.json(rows[0] ?? []);
+  });
 }
