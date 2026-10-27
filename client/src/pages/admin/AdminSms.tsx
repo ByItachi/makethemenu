@@ -361,6 +361,54 @@ export default function AdminSms() {
           ))}
         </div>
 
+        {!loadingOverview && overview && (() => {
+          const t = overview.totals;
+          const total = t.queued + t.sending + t.sent + t.failed + t.retry + t.scheduled;
+          if (total === 0) return null;
+          const items = [
+            { key: "sent", label: "Gönderildi", value: t.sent, color: "#10b981" },
+            { key: "queued", label: "Kuyrukta", value: t.queued, color: "#6366f1" },
+            { key: "failed", label: "Başarısız", value: t.failed, color: "#ef4444" },
+            { key: "retry", label: "Yeniden Denenecek", value: t.retry, color: "#f59e0b" },
+            { key: "sending", label: "Gönderiliyor", value: t.sending, color: "#3b82f6" },
+            { key: "scheduled", label: "Zamanlanmış", value: t.scheduled, color: "#8b5cf6" },
+          ].filter((i) => i.value > 0);
+          let cumDeg = 0;
+          const gradientStops = items.map((item) => {
+            const startDeg = cumDeg;
+            const sliceDeg = (item.value / total) * 360;
+            cumDeg += sliceDeg;
+            return `${item.color} ${startDeg}deg ${cumDeg}deg`;
+          });
+          const gradient = `conic-gradient(${gradientStops.join(", ")})`;
+          return (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Mesaj Dağılımı</CardTitle>
+                <CardDescription>Toplam {total.toLocaleString("tr-TR")} mesaj</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-8">
+                  <div
+                    className="w-40 h-40 rounded-full shrink-0"
+                    style={{ background: gradient }}
+                  />
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                    {items.map((item) => (
+                      <div key={item.key} className="flex items-center gap-2 text-sm">
+                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="text-muted-foreground">{item.label}:</span>
+                        <span className="font-medium">{item.value.toLocaleString("tr-TR")}</span>
+                        <span className="text-muted-foreground text-xs">({((item.value / total) * 100).toFixed(1)}%)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base">İşletme Başına Kullanım</CardTitle>
