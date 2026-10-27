@@ -368,6 +368,32 @@ export const smsWebhookLog = mysqlTable("sms_webhook_log", {
   processedAt: timestamp("processed_at").defaultNow(),
 });
 
+// SMS API anahtarları: /api/v1/sms/* uçlarına erişim için. Anahtarın kendisi yalnızca oluşturma
+// anında bir kez gösterilir; veritabanında sadece SHA-256 hash'i ve ilk 8 karakterlik önizlemesi tutulur.
+export const smsApiKeys = mysqlTable("sms_api_keys", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  label: varchar("label", { length: 100 }).notNull(),
+  keyPrefix: varchar("key_prefix", { length: 16 }).notNull(),
+  keyHash: varchar("key_hash", { length: 64 }).notNull().unique(),
+  lastUsedAt: timestamp("last_used_at"),
+  revokedAt: timestamp("revoked_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_sms_api_keys_restaurant").on(t.restaurantId)]);
+
+// Kontör/bakiye hareket defteri: her satır değiştirilemez (immutable ledger). Güncel bakiye
+// = ilgili restaurantId için tüm delta değerlerinin toplamı (balanceAfter alanı denetim/okuma kolaylığı içindir).
+export const smsBalanceLedger = mysqlTable("sms_balance_ledger", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  delta: int("delta").notNull(), // + yükleme, - kullanım (kontör)
+  balanceAfter: int("balance_after").notNull(),
+  reason: varchar("reason", { length: 32 }).notNull(), // topup | sms_send | sms_refund | adjustment
+  referenceId: int("reference_id"), // ör. smsOutbox.id
+  note: varchar("note", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_sms_ledger_restaurant").on(t.restaurantId)]);
+
 // ---- Billing (subscriptions, payments, coupons, webhooks). Card data is never stored here;
 // only provider references, brand and last4 as reported by the provider.
 export const subscriptions = mysqlTable("subscriptions", {

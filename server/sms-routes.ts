@@ -9,6 +9,8 @@ import { requireRestaurant, tenantId } from "./auth/middleware";
 import { getSmsTransport } from "./sms";
 import { enqueueSms } from "./sms/outbox";
 import { verifyIletimerkeziWebhook, verifyNetgsmWebhook, processSmsWebhook } from "./sms/webhook";
+import { createApiKey, listApiKeys, revokeApiKey } from "./sms/apiKey";
+import { getBalance, getLedgerHistory, applyLedgerEntry } from "./sms/balance";
 
 const bulkSchema = z.object({
   messages: z.array(z.object({
@@ -85,6 +87,50 @@ export function registerSmsRoutes(app: Express) {
       .orderBy(desc(smsInbound.id))
       .limit(100);
     res.json(rows);
+  });
+
+  // --- SMS API anahtarları (müşteri panelinden yönetim; /api/v1/sms/* uçları bu anahtarlarla korunur) ---
+  app.get("/api/ops/sms/api-keys", requireRestaurant, async (req: Request, res: Response) => {
+    const rid = tenantId(req);
+    res.json(await listApiKeys(rid));
+  });
+
+  app.post("/api/ops/sms/api-keys", requireRestaurant, async (req: Request, res: Response) => {
+    const parsed = z.object({ label: z.string().min(1).max(100) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz istek.", issues: parsed.error.issues });
+    const rid = tenantId(req);
+    const created = await createApiKey(rid, parsed.data.label);
+    // Anahtar yalnızca bu yanıtta bir kez tam olarak gösterilir; sonrasında yalnızca önizlemesi (keyPrefix) görünür.
+    res.status(201).json(created);
+  });
+
+  app.delete("/api/ops/sms/api-keys/:id", requireRestaurant, async (req: Request, res: Response) => {
+    const rid = tenantId(req);
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ message: "Geçersiz kimlik." });
+    await revokeApiKey(rid, id);
+    res.json({ success: true });
+  });
+
+  // --- Kontör / bakiye ---
+  app.get("/api/ops/sms/balance", requireRestaurant, async (req: Request, res: Response) => {
+    const rid = tenantId(req);
+    const balance = await getBalance(rid);
+    const history = await getLedgerHistory(rid, 50);
+    res.json({ balance, history });
+  });
+
+  // Not: Gerçek bir ödeme sağlayıcısı bağlanana kadar bu uç yalnızca test/demo amaçlıdır ve
+  // "test modu" olarak işaretlenir; gerçek bir ödeme alındığını iddia etmez.
+  app.post("/api/ops/sms/balance/topup-test", requireRestaurant, async (req: Request, res: Response) => {
+    const parsed = z.object({ amount: z.number().int().positive().max(100000) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz istek.", issues: parsed.error.issues });
+    if (process.env.NODE_ENV === "production" && process.env.SMS_ALLOW_TEST_TOPUP !== "true") {
+      return res.status(403).json({ message: "Test yükleme üretimde devre dışı." });
+    }
+    const rid = tenantId(req);
+    const result = await applyLedgerEntry(rid, parsed.data.amount, "topup", { note: "Test modu yükleme (gerçek ödeme değil)" });
+    res.json({ testMode: true, balance: result.balance });
   });
 
   // İletiMerkezi webhook: gelen SMS ve durum güncellemeleri
