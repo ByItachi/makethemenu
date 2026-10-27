@@ -951,7 +951,7 @@ export default function SuOpsDemo() {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar — Desktop */}
-      <div className="hidden lg:flex w-64 bg-white border-r border-slate-200 flex-col">
+      <div className="hidden lg:flex w-60 bg-white border-r border-slate-200 flex-col">
         {sidebarContent()}
       </div>
 
@@ -986,7 +986,7 @@ export default function SuOpsDemo() {
 
         {/* Content */}
         <div className="flex-1 overflow-auto">
-          <div className="p-4 sm:p-6 max-w-6xl">
+          <div className="p-4 sm:p-6">
             {renderContent()}
           </div>
         </div>
