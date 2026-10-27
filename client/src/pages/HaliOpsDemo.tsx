@@ -127,6 +127,9 @@ export default function HaliOpsDemo() {
   const [smsText, setSmsText] = useState(SMS_TEMPLATES[0].text);
   const [smsStatus, setSmsStatus] = useState<{ configured: boolean; provider: string | null } | null>(null);
   const [smsSending, setSmsSending] = useState(false);
+  const [csvRecipients, setCsvRecipients] = useState<{ name: string; phone: string }[]>([]);
+  const [csvFileName, setCsvFileName] = useState<string | null>(null);
+  const [csvError, setCsvError] = useState<string | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKeyRow[]>([]);
   const [balance, setBalance] = useState<BalanceState | null>(null);
   const [newKeyLabel, setNewKeyLabel] = useState("");
@@ -376,7 +379,8 @@ export default function HaliOpsDemo() {
   const dateLabel = new Date().toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" });
 
   // SMS alıcıları
-  const smsRecipients = useMemo(() => {
+  const smsRecipients = useMemo<{ name: string; phone: string; due: number }[]>(() => {
+    if (smsSeg === "csv") return csvRecipients.map((c) => ({ name: c.name, phone: c.phone, due: 0 }));
     const days = 90;
     const far = (d: string | null) => !d || (Date.now() - new Date(d).getTime()) > days * 864e5;
     switch (smsSeg) {
@@ -386,7 +390,36 @@ export default function HaliOpsDemo() {
       case "hic": return customers.filter((c) => c.count === 0);
       default: return customers;
     }
-  }, [customers, smsSeg]);
+  }, [customers, smsSeg, csvRecipients]);
+
+  const handleCsvUpload = async (file: File) => {
+    setCsvError(null);
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) { setCsvError("CSV dosyası boş"); setCsvRecipients([]); return; }
+    const splitLine = (l: string) => l.split(/[,;\t]/).map((c) => c.trim().replace(/^"|"$/g, ""));
+    const rows = lines.map(splitLine);
+    const header = rows[0].map((h) => h.toLowerCase());
+    const headerPhoneIdx = header.findIndex((h) => /telefon|phone|gsm|numara/.test(h));
+    const hasHeader = headerPhoneIdx !== -1;
+    const phoneIdx = hasHeader ? headerPhoneIdx : 0;
+    const nameIdx = hasHeader
+      ? header.findIndex((h) => /ad|isim|name/.test(h))
+      : (rows[0].length > 1 ? 1 : -1);
+    const dataRows = hasHeader ? rows.slice(1) : rows;
+    const normalizePhone = (p: string) => p.replace(/[^\d+]/g, "");
+    const seen = new Set<string>();
+    const out: { name: string; phone: string }[] = [];
+    for (const r of dataRows) {
+      const phone = normalizePhone(r[phoneIdx] ?? "");
+      if (phone.length < 10 || seen.has(phone)) continue;
+      seen.add(phone);
+      out.push({ phone, name: nameIdx >= 0 ? (r[nameIdx] ?? "") : "" });
+    }
+    if (!out.length) { setCsvError("Geçerli telefon numarası bulunamadı"); setCsvRecipients([]); return; }
+    setCsvRecipients(out);
+    setCsvFileName(file.name);
+  };
   const smsPreview = smsText
     .replaceAll("{adı}", "Ahmet").replaceAll("{firma}", "Demo")
     .replaceAll("{firmaTelefon}", "0555 000 00 00").replaceAll("{borç}", `${fmtTL(250)} ₺`);
@@ -1218,12 +1251,14 @@ export default function HaliOpsDemo() {
               { k: "borclu", l: "Ödemesi kalanlar", d: "250 ₺+ borcu olanlar" },
               { k: "hic", l: "Hiç sipariş vermeyenler", d: "Henüz siparişi olmayanlar" },
               { k: "tumu", l: "Tüm müşteriler", d: "Genel duyurular" },
+              { k: "csv", l: "CSV dosyasından yükle", d: "Telefon listesi içe aktar" },
             ].map((s) => {
               const n =
                 s.k === "uzun" ? customers.filter((c) => !c.lastDate || Date.now() - new Date(c.lastDate).getTime() > 90 * 864e5).length :
                 s.k === "sadik" ? customers.filter((c) => c.count >= 3).length :
                 s.k === "borclu" ? customers.filter((c) => c.due >= 250).length :
                 s.k === "hic" ? customers.filter((c) => c.count === 0).length :
+                s.k === "csv" ? csvRecipients.length :
                 customers.length;
               return (
                 <button key={s.k}
@@ -1237,6 +1272,24 @@ export default function HaliOpsDemo() {
               );
             })}
           </div>
+          {smsSeg === "csv" && (
+            <div className="mt-3 rounded-xl border border-dashed border-orange-200 p-3 space-y-2">
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleCsvUpload(f);
+                }}
+                className="text-xs w-full"
+              />
+              <p className="text-[11px] text-slate-400">
+                Başlıklı (telefon,ad) veya başlıksız, satır başına bir kişi. Örn: 05551234567,Ahmet Yılmaz
+              </p>
+              {csvFileName && <p className="text-[11px] text-emerald-600">{csvFileName}: {csvRecipients.length} geçerli numara</p>}
+              {csvError && <p className="text-[11px] text-red-600">{csvError}</p>}
+            </div>
+          )}
         </section>
 
         <section className="bg-white/95 rounded-2xl border border-orange-100 shadow-sm p-4">

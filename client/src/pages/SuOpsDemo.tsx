@@ -97,6 +97,9 @@ export default function SuOpsDemo() {
   const [smsText, setSmsText] = useState(SMS_TEMPLATES[0].text);
   const [smsStatus, setSmsStatus] = useState<{ configured: boolean; provider: string | null } | null>(null);
   const [smsSending, setSmsSending] = useState(false);
+  const [csvRecipients, setCsvRecipients] = useState<{ name: string; phone: string }[]>([]);
+  const [csvFileName, setCsvFileName] = useState<string | null>(null);
+  const [csvError, setCsvError] = useState<string | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKeyRow[]>([]);
   const [balance, setBalance] = useState<BalanceState | null>(null);
   const [newKeyLabel, setNewKeyLabel] = useState("");
@@ -307,7 +310,8 @@ export default function SuOpsDemo() {
   }, []);
   const dateLabel = new Date().toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" });
 
-  const smsRecipients = useMemo(() => {
+  const smsRecipients = useMemo<{ name: string; phone: string; due: number }[]>(() => {
+    if (smsSeg === "csv") return csvRecipients.map((c) => ({ name: c.name, phone: c.phone, due: 0 }));
     const days = 90;
     const far = (d: string | null) => !d || (Date.now() - new Date(d).getTime()) > days * 864e5;
     switch (smsSeg) {
@@ -317,7 +321,36 @@ export default function SuOpsDemo() {
       case "hic": return customers.filter((c) => c.count === 0);
       default: return customers;
     }
-  }, [customers, smsSeg]);
+  }, [customers, smsSeg, csvRecipients]);
+
+  const handleCsvUpload = async (file: File) => {
+    setCsvError(null);
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) { setCsvError("CSV dosyası boş"); setCsvRecipients([]); return; }
+    const splitLine = (l: string) => l.split(/[,;\t]/).map((c) => c.trim().replace(/^"|"$/g, ""));
+    const rows = lines.map(splitLine);
+    const header = rows[0].map((h) => h.toLowerCase());
+    const headerPhoneIdx = header.findIndex((h) => /telefon|phone|gsm|numara/.test(h));
+    const hasHeader = headerPhoneIdx !== -1;
+    const phoneIdx = hasHeader ? headerPhoneIdx : 0;
+    const nameIdx = hasHeader
+      ? header.findIndex((h) => /ad|isim|name/.test(h))
+      : (rows[0].length > 1 ? 1 : -1);
+    const dataRows = hasHeader ? rows.slice(1) : rows;
+    const normalizePhone = (p: string) => p.replace(/[^\d+]/g, "");
+    const seen = new Set<string>();
+    const out: { name: string; phone: string }[] = [];
+    for (const r of dataRows) {
+      const phone = normalizePhone(r[phoneIdx] ?? "");
+      if (phone.length < 10 || seen.has(phone)) continue;
+      seen.add(phone);
+      out.push({ phone, name: nameIdx >= 0 ? (r[nameIdx] ?? "") : "" });
+    }
+    if (!out.length) { setCsvError("Geçerli telefon numarası bulunamadı"); setCsvRecipients([]); return; }
+    setCsvRecipients(out);
+    setCsvFileName(file.name);
+  };
   const smsPreview = smsText
     .replaceAll("{adı}", "Ahmet").replaceAll("{firma}", "Demo")
     .replaceAll("{firmaTelefon}", "0555 000 00 00").replaceAll("{borç}", `${fmtTL(250)} ₺`);
@@ -942,8 +975,28 @@ export default function SuOpsDemo() {
             <option value="sadik">3+ Sipariş Verenler</option>
             <option value="borclu">250+ ₺ Borçlular</option>
             <option value="hic">Hiç Sipariş Vermeyenler</option>
+            <option value="csv">CSV Dosyasından Yükle</option>
           </select>
         </div>
+        {smsSeg === "csv" && (
+          <div className="rounded-lg border border-dashed border-slate-300 p-4 space-y-2">
+            <label className="text-sm font-medium text-slate-900 block">CSV Dosyası (telefon, ad)</label>
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleCsvUpload(f);
+              }}
+              className="text-sm"
+            />
+            <p className="text-xs text-slate-500">
+              Başlıklı (telefon,ad) veya başlıksız, satır başına bir kişi. Örn: 05551234567,Ahmet Yılmaz
+            </p>
+            {csvFileName && <p className="text-xs text-emerald-600">{csvFileName}: {csvRecipients.length} geçerli numara bulundu</p>}
+            {csvError && <p className="text-xs text-red-600">{csvError}</p>}
+          </div>
+        )}
         <div>
           <label className="text-sm font-medium text-slate-900 block mb-2">Şablon</label>
           <select
