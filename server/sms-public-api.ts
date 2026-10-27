@@ -10,6 +10,7 @@ import { getBalance, applyLedgerEntry, SMS_COST_PER_MESSAGE } from "./sms/balanc
 import { enqueueSms } from "./sms/outbox";
 import { getSmsTransport } from "./sms";
 import { rateLimit } from "./auth/middleware";
+import { requestOtp, verifyOtp } from "./sms/otp";
 
 declare global {
   namespace Express {
@@ -42,6 +43,18 @@ const sendSchema = z.object({
 
 const bulkSchema = z.object({
   messages: z.array(sendSchema).min(1).max(1000),
+});
+
+const otpRequestSchema = z.object({
+  phone: z.string().min(10).max(32),
+  purpose: z.string().min(1).max(32).default("generic"),
+  template: z.string().min(1).max(300).optional(),
+});
+
+const otpVerifySchema = z.object({
+  phone: z.string().min(10).max(32),
+  purpose: z.string().min(1).max(32).default("generic"),
+  code: z.string().min(4).max(10),
 });
 
 export function registerSmsPublicApi(app: Express) {
@@ -108,6 +121,34 @@ export function registerSmsPublicApi(app: Express) {
     const limit = Math.min(Number(req.query.limit) || 50, 200);
     const rows = await db.select().from(smsInbound).where(eq(smsInbound.restaurantId, rid)).orderBy(desc(smsInbound.id)).limit(limit);
     res.json({ data: rows });
+  });
+
+  app.post("/api/v1/otp/request", async (req: Request, res: Response) => {
+    const parsed = otpRequestSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
+    const rid = req.smsApiRestaurantId!;
+    const ledger = await applyLedgerEntry(rid, -SMS_COST_PER_MESSAGE, "sms_send", { note: `API: OTP (${parsed.data.purpose})` });
+    if (!ledger.ok) {
+      return res.status(402).json({ error: "insufficient_balance", message: "Yetersiz kontör bakiyesi.", balance: ledger.balance });
+    }
+    const template = (code: string) => (parsed.data.template ? parsed.data.template.replace(/\{\{\s*verification_code\s*\}\}/g, code) : `Doğrulama kodunuz: ${code}. 5 dakika geçerlidir.`);
+    const result = await requestOtp(rid, parsed.data.phone, parsed.data.purpose, template);
+    if (!result.ok) {
+      await applyLedgerEntry(rid, SMS_COST_PER_MESSAGE, "sms_refund", { note: "API: OTP cooldown nedeniyle gönderilmedi" });
+      return res.status(429).json({ error: "cooldown", message: "Çok sık istek.", resendAvailableInSeconds: result.resendAvailableInSeconds });
+    }
+    res.status(202).json({ status: "queued", expiresInSeconds: result.expiresInSeconds, balance: ledger.balance });
+  });
+
+  app.post("/api/v1/otp/verify", async (req: Request, res: Response) => {
+    const parsed = otpVerifySchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
+    const rid = req.smsApiRestaurantId!;
+    const result = await verifyOtp(rid, parsed.data.phone, parsed.data.purpose, parsed.data.code);
+    if (!result.ok) {
+      return res.status(400).json({ error: result.reason, verified: false });
+    }
+    res.json({ verified: true });
   });
 
   app.get("/api/v1/account/balance", async (req: Request, res: Response) => {

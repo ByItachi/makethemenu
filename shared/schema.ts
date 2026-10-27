@@ -394,6 +394,24 @@ export const smsBalanceLedger = mysqlTable("sms_balance_ledger", {
   createdAt: timestamp("created_at").defaultNow(),
 }, (t) => [index("idx_sms_ledger_restaurant").on(t.restaurantId)]);
 
+// OTP doğrulama kodları: kod açık metin saklanmaz, yalnızca SHA-256 hash'i tutulur.
+// Süresi dolan/doğrulanmış kayıtlar otomatik temizlenir (server/sms/otp.ts).
+export const smsOtp = mysqlTable("sms_otp", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  purpose: varchar("purpose", { length: 32 }).notNull().default("generic"),
+  codeHash: varchar("code_hash", { length: 64 }).notNull(),
+  attempts: int("attempts").notNull().default(0),
+  maxAttempts: int("max_attempts").notNull().default(5),
+  consumedAt: timestamp("consumed_at"),
+  expiresAt: timestamp("expires_at").notNull(),
+  lastSentAt: timestamp("last_sent_at").defaultNow(),
+  sendCount: int("send_count").notNull().default(1),
+  outboxId: int("outbox_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_sms_otp_phone").on(t.restaurantId, t.phone, t.purpose)]);
+
 // ---- Billing (subscriptions, payments, coupons, webhooks). Card data is never stored here;
 // only provider references, brand and last4 as reported by the provider.
 export const subscriptions = mysqlTable("subscriptions", {

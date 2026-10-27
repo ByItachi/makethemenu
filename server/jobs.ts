@@ -2,6 +2,7 @@ import { processOutbox } from "./email/worker";
 import { getMailTransport } from "./email";
 import { processSmsOutbox } from "./sms/outbox";
 import { getSmsTransport } from "./sms";
+import { cleanupExpiredOtp } from "./sms/otp";
 import { loadPaymentConfig } from "./payments/config";
 import { runBillingCycle } from "./payments/billing";
 
@@ -41,4 +42,7 @@ export function startBackgroundJobs(): void {
     setInterval(smsTick, 15_000).unref();
     void smsTick();
   }
+
+  const otpCleanupTick = () => cleanupExpiredOtp().catch((e) => console.error("[otp] temizlik hatası:", e?.code ?? e?.message));
+  setInterval(otpCleanupTick, 5 * 60_000).unref();
 }

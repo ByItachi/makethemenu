@@ -9,8 +9,9 @@ const lockFor = (seconds: number) => sql`DATE_ADD(NOW(), INTERVAL ${seconds} SEC
 export type SmsOutboxResult = { sent: number; retried: number; failed: number };
 
 /** Queues an outgoing SMS. Until an adapter is configured, messages stay 'queued' — nothing is claimed as sent. */
-export async function enqueueSms(restaurantId: number | null, toPhone: string, body: string): Promise<void> {
-  await db.insert(smsOutbox).values({ restaurantId, toPhone, body });
+export async function enqueueSms(restaurantId: number | null, toPhone: string, body: string): Promise<number> {
+  const [result] = await db.insert(smsOutbox).values({ restaurantId, toPhone, body });
+  return (result as any).insertId as number;
 }
 
 /**

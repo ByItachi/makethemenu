@@ -11,6 +11,8 @@ import { enqueueSms } from "./sms/outbox";
 import { verifyIletimerkeziWebhook, verifyNetgsmWebhook, processSmsWebhook } from "./sms/webhook";
 import { createApiKey, listApiKeys, revokeApiKey } from "./sms/apiKey";
 import { getBalance, getLedgerHistory, applyLedgerEntry } from "./sms/balance";
+import { requestOtp, verifyOtp } from "./sms/otp";
+import { rateLimit } from "./auth/middleware";
 
 const bulkSchema = z.object({
   messages: z.array(z.object({
@@ -18,6 +20,21 @@ const bulkSchema = z.object({
     text: z.string().min(1).max(600),
   })).min(1).max(500),
 });
+
+const otpRequestSchema = z.object({
+  phone: z.string().min(10).max(32),
+  purpose: z.string().min(1).max(32).default("generic"),
+});
+
+const otpVerifySchema = z.object({
+  phone: z.string().min(10).max(32),
+  purpose: z.string().min(1).max(32).default("generic"),
+  code: z.string().min(4).max(10),
+});
+
+// IP bazlı hız sınırı: OTP isteği/doğrulaması kaba kuvvet veya SMS israfı için kötüye kullanılabilir.
+const otpRequestLimit = rateLimit({ windowMs: 60_000, max: 10, keyPrefix: "otp-request" });
+const otpVerifyLimit = rateLimit({ windowMs: 60_000, max: 20, keyPrefix: "otp-verify" });
 
 export function registerSmsRoutes(app: Express) {
   app.get("/api/ops/sms/status", requireRestaurant, async (req: Request, res: Response) => {
@@ -131,6 +148,41 @@ export function registerSmsRoutes(app: Express) {
     const rid = tenantId(req);
     const result = await applyLedgerEntry(rid, parsed.data.amount, "topup", { note: "Test modu yükleme (gerçek ödeme değil)" });
     res.json({ testMode: true, balance: result.balance });
+  });
+
+  // --- OTP (tek kullanımlık doğrulama kodu) — işletmenin kendi müşterilerine, oturum üzerinden ---
+  app.post("/api/ops/sms/otp/request", requireRestaurant, otpRequestLimit, async (req: Request, res: Response) => {
+    const parsed = otpRequestSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz istek.", issues: parsed.error.issues });
+    const rid = tenantId(req);
+    const ledger = await applyLedgerEntry(rid, -1, "sms_send", { note: `OTP gönderimi (${parsed.data.purpose})` });
+    if (!ledger.ok) {
+      return res.status(402).json({ message: "Yetersiz kontör bakiyesi.", balance: ledger.balance });
+    }
+    const result = await requestOtp(rid, parsed.data.phone, parsed.data.purpose, (code) => `Doğrulama kodunuz: ${code}. 5 dakika geçerlidir. Kimseyle paylaşmayın.`);
+    if (!result.ok) {
+      // Kod gönderilmedi; kontör iadesi yap.
+      await applyLedgerEntry(rid, 1, "sms_refund", { note: "OTP cooldown nedeniyle gönderilmedi" });
+      return res.status(429).json({ message: "Çok sık istek. Lütfen bekleyin.", resendAvailableInSeconds: result.resendAvailableInSeconds });
+    }
+    res.json({ success: true, expiresInSeconds: result.expiresInSeconds, resendAvailableInSeconds: result.resendAvailableInSeconds });
+  });
+
+  app.post("/api/ops/sms/otp/verify", requireRestaurant, otpVerifyLimit, async (req: Request, res: Response) => {
+    const parsed = otpVerifySchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Geçersiz istek.", issues: parsed.error.issues });
+    const rid = tenantId(req);
+    const result = await verifyOtp(rid, parsed.data.phone, parsed.data.purpose, parsed.data.code);
+    if (!result.ok) {
+      const messages: Record<string, string> = {
+        not_found: "Önce bir doğrulama kodu isteyin.",
+        expired: "Kodun süresi dolmuş. Yeni kod isteyin.",
+        too_many_attempts: "Çok fazla yanlış deneme. Yeni kod isteyin.",
+        invalid_code: "Kod hatalı.",
+      };
+      return res.status(400).json({ success: false, message: messages[result.reason] });
+    }
+    res.json({ success: true });
   });
 
   // İletiMerkezi webhook: gelen SMS ve durum güncellemeleri
