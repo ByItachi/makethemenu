@@ -48,6 +48,18 @@ export const CATALOG: Record<string, IntegrationAdapter> = {
     ["getCapabilities"],
     "Zaten canlı: yapay zeka destekli menü taslağı üretimi (/api/restaurant/ai/generate-menu). Gerçek bir AI sağlayıcı anahtarı (AI_API_KEY/ABACUS_API_KEY) tanımlı değilse yerleşik Türkçe şablonlarla üretir; anahtar eklenince gerçek LLM kullanır."
   ),
+  "stok-maliyet": nativeFeature(
+    ["getCapabilities"],
+    "Zaten canlı: hammadde/ürün stoğu, giriş-çıkış-düzeltme hareketleri ve reçete bazlı maliyet hesaplama (/api/ops/stock/*)."
+  ),
+  "personel-vardiya": nativeFeature(
+    ["getCapabilities"],
+    "Zaten canlı: personel kaydı, vardiya planlama ve giriş-çıkış (check-in/check-out) takibi (/api/ops/staff/*)."
+  ),
+  "musteri-cari": nativeFeature(
+    ["getCapabilities"],
+    "Zaten canlı: müşteri kaydı, borç/alacak ve sadakat puanı defteri (/api/ops/crm/*)."
+  ),
   "veri-aktarimi": {
     implemented: true,
     capabilities: ["testConnection", "getCapabilities", "fetchOrders", "healthCheck", "receiveWebhook"],

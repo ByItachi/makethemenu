@@ -883,3 +883,84 @@ export const vehicleLocations = mysqlTable("vehicle_locations", {
   source: varchar("source", { length: 24 }).notNull().default("driver_app"), // driver_app | gps_device
   recordedAt: timestamp("recorded_at").notNull().defaultNow(),
 }, (t) => [index("idx_vl_vehicle_time").on(t.vehicleId, t.recordedAt)]);
+
+// ─── Stok ve Maliyet (native, üçüncü taraf gerektirmez) ───────────────────────
+export const stockItems = mysqlTable("stock_items", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  name: varchar("name", { length: 128 }).notNull(),
+  unit: varchar("unit", { length: 16 }).notNull().default("adet"), // adet | kg | lt | gr | ml
+  quantity: decimal("quantity", { precision: 12, scale: 3 }).notNull().default("0"),
+  minQuantity: decimal("min_quantity", { precision: 12, scale: 3 }).notNull().default("0"),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 4 }).notNull().default("0"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_stock_items_restaurant").on(t.restaurantId)]);
+
+export const stockMovements = mysqlTable("stock_movements", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  stockItemId: int("stock_item_id").notNull().references(() => stockItems.id),
+  type: varchar("type", { length: 16 }).notNull(), // in | out | adjust
+  quantity: decimal("quantity", { precision: 12, scale: 3 }).notNull(),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 4 }),
+  reason: varchar("reason", { length: 255 }),
+  createdBy: int("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_stock_mov_item").on(t.stockItemId), index("idx_stock_mov_restaurant").on(t.restaurantId)]);
+
+export const productRecipes = mysqlTable("product_recipes", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  productId: int("product_id").notNull().references(() => products.id),
+  stockItemId: int("stock_item_id").notNull().references(() => stockItems.id),
+  quantityPerUnit: decimal("quantity_per_unit", { precision: 12, scale: 4 }).notNull(),
+}, (t) => [index("idx_recipe_product").on(t.productId), uniqueIndex("uq_recipe_product_stock").on(t.productId, t.stockItemId)]);
+
+// ─── Personel ve Vardiya (native) ──────────────────────────────────────────────
+export const staffMembers = mysqlTable("staff_members", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  name: varchar("name", { length: 128 }).notNull(),
+  phone: varchar("phone", { length: 32 }),
+  role: varchar("role", { length: 48 }).notNull().default("garson"), // garson | asci | kurye | kasiyer | yonetici
+  hourlyWage: decimal("hourly_wage", { precision: 10, scale: 2 }),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_staff_restaurant").on(t.restaurantId)]);
+
+export const staffShifts = mysqlTable("staff_shifts", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  staffId: int("staff_id").notNull().references(() => staffMembers.id),
+  startsAt: timestamp("starts_at").notNull(),
+  endsAt: timestamp("ends_at").notNull(),
+  note: varchar("note", { length: 255 }),
+  checkedInAt: timestamp("checked_in_at"),
+  checkedOutAt: timestamp("checked_out_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_shift_staff").on(t.staffId), index("idx_shift_restaurant_time").on(t.restaurantId, t.startsAt)]);
+
+// ─── Cari Müşteri (native) ──────────────────────────────────────────────────────
+export const crmCustomers = mysqlTable("crm_customers", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  name: varchar("name", { length: 128 }).notNull(),
+  phone: varchar("phone", { length: 32 }),
+  email: varchar("email", { length: 160 }),
+  balance: decimal("balance", { precision: 12, scale: 2 }).notNull().default("0"), // + alacaklı, - borçlu
+  loyaltyPoints: int("loyalty_points").notNull().default(0),
+  note: varchar("note", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_crm_customers_restaurant").on(t.restaurantId), index("idx_crm_customers_phone").on(t.phone)]);
+
+export const crmLedgerEntries = mysqlTable("crm_ledger_entries", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  customerId: int("customer_id").notNull().references(() => crmCustomers.id),
+  type: varchar("type", { length: 16 }).notNull(), // borc | odeme | puan
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  note: varchar("note", { length: 255 }),
+  createdBy: int("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_crm_ledger_customer").on(t.customerId)]);
