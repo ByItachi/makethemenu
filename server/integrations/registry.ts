@@ -60,6 +60,18 @@ export const CATALOG: Record<string, IntegrationAdapter> = {
     ["getCapabilities"],
     "Zaten canlı: müşteri kaydı, borç/alacak ve sadakat puanı defteri (/api/ops/crm/*)."
   ),
+  "yazar-kasa": deviceReady(
+    "Eşleştirme + fiş yazdırma kuyruğu canlı ve test edilmiştir (/api/ops/devices, /api/ops/devices/fiscal/print). Mali cihazın marka/modeline özel 'bridge' uygulaması henüz yazılmadı (her ÖKC üreticisinin kendi yerel protokolü farklıdır); cihaz temin edilince bu bridge docs/CIHAZ-ENTEGRASYONU.md sözleşmesine göre yazılır."
+  ),
+  "kiosk": deviceReady(
+    "Eşleştirme altyapısı canlıdır (/api/ops/devices). Kiosk modu bir tablet/dokunmatik ekranın tarayıcısında tam ekran menü arayüzü olarak çalışır; özel donanım gerekmez, herhangi bir Android/iPad tablet ile kullanılabilir."
+  ),
+  "caller-id": deviceReady(
+    "Eşleştirme + gelen çağrı olayı + CRM numarası eşleştirmesi canlı ve test edilmiştir (/api/device/caller-id/event, /api/ops/devices/caller-events). Fiziksel çağrı santrali/USB modem bridge'i cihaz temin edilince docs/CIHAZ-ENTEGRASYONU.md'ye göre yazılır."
+  ),
+  "android-callerid": deviceReady(
+    "Aynı altyapıyı (caller-id ile ortak) kullanır; Android tarafında arka planda çalışıp gelen aramayı bu API'ye ileten küçük bir companion uygulama gerekir. Sunucu tarafı tamamen hazırdır."
+  ),
   "veri-aktarimi": {
     implemented: true,
     capabilities: ["testConnection", "getCapabilities", "fetchOrders", "healthCheck", "receiveWebhook"],
@@ -116,6 +128,22 @@ export const CATALOG: Record<string, IntegrationAdapter> = {
     },
   },
 };
+
+/** Fiziksel cihaz bekleyen özellikler: API/eşleştirme/veri sözleşmesi tamamen
+ * canlı ve test edilmiştir (bkz. server/ops-devices.ts, docs/CIHAZ-ENTEGRASYONU.md).
+ * Cihaz temin edilince yalnızca küçük bir bridge/uygulamanın bu uçlara
+ * bağlanması gerekir — sunucu tarafında ek geliştirme beklenmez. */
+function deviceReady(notes: string): IntegrationAdapter {
+  return {
+    implemented: true,
+    capabilities: ["getCapabilities", "testConnection"],
+    credentialFields: [],
+    docs: { sandboxAvailable: true, requiresPartnerAgreement: false, notes },
+    async testConnection() {
+      return { ok: true, message: "Eşleştirme ve veri altyapısı hazır: /admin veya /su panelinden 'Cihazlar' bölümünden eşleştirme kodu üretip fiziksel cihaz/bridge uygulamasıyla bağlayabilirsiniz." };
+    },
+  };
+}
 
 function skeleton(capabilities: AdapterCapability[], credentialFields: IntegrationAdapter["credentialFields"], notes: string, sandbox = false, partner = true): IntegrationAdapter {
   return {

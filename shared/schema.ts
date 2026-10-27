@@ -964,3 +964,44 @@ export const crmLedgerEntries = mysqlTable("crm_ledger_entries", {
   createdBy: int("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 }, (t) => [index("idx_crm_ledger_customer").on(t.customerId)]);
+
+// ─── Cihaz eşleştirme altyapısı (Yazar Kasa / Kiosk / Caller ID) ───────────────
+// Cihazlar henüz temin edilmemiş olsa da API, eşleştirme ve veri sözleşmesi
+// burada hazırdır; fiziksel cihaz/bridge uygulaması bağlanınca ek kod gerekmez.
+export const devices = mysqlTable("devices", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  type: varchar("type", { length: 32 }).notNull(), // yazar-kasa | kiosk | caller-id | android-callerid
+  name: varchar("name", { length: 128 }).notNull(),
+  pairingCode: varchar("pairing_code", { length: 16 }).unique(), // eşleştirme sırasında tek seferlik kod
+  pairingCodeExpiresAt: timestamp("pairing_code_expires_at"),
+  tokenHash: varchar("token_hash", { length: 128 }), // eşleştirme sonrası kalıcı erişim anahtarının sha256'sı
+  status: varchar("status", { length: 16 }).notNull().default("pending"), // pending | active | revoked
+  meta: text("meta"), // cihaza özel ayarlar (JSON)
+  lastSeenAt: timestamp("last_seen_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_devices_restaurant").on(t.restaurantId), index("idx_devices_type").on(t.type)]);
+
+export const fiscalPrintJobs = mysqlTable("fiscal_print_jobs", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  deviceId: int("device_id").notNull().references(() => devices.id),
+  orderId: int("order_id"),
+  payload: text("payload").notNull(), // ÖKC fiş JSON sözleşmesi (kalemler, KDV, toplam)
+  status: varchar("status", { length: 16 }).notNull().default("queued"), // queued | printing | printed | failed
+  resultMessage: varchar("result_message", { length: 255 }),
+  fiscalNo: varchar("fiscal_no", { length: 64 }), // cihazın döndürdüğü mali fiş numarası
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+}, (t) => [index("idx_fiscal_jobs_device").on(t.deviceId, t.status), index("idx_fiscal_jobs_restaurant").on(t.restaurantId)]);
+
+export const callerIdEvents = mysqlTable("caller_id_events", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").notNull().references(() => restaurants.id),
+  deviceId: int("device_id").notNull().references(() => devices.id),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  direction: varchar("direction", { length: 16 }).notNull().default("incoming"), // incoming | missed
+  customerId: int("customer_id").references(() => crmCustomers.id), // CRM eşleşmesi varsa
+  acknowledgedAt: timestamp("acknowledged_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [index("idx_caller_events_restaurant_time").on(t.restaurantId, t.createdAt)]);
