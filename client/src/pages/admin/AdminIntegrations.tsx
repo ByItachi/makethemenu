@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import AdminLayout from "./AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -69,7 +70,8 @@ export default function AdminIntegrations() {
   const connectedCount = connections.filter((c) => c.lastTestOk === true).length;
 
   return (
-    <div className="space-y-6" data-testid="admin-integrations">
+    <AdminLayout>
+    <div className="p-4 sm:p-6 md:p-8 space-y-6" data-testid="admin-integrations">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2"><Puzzle className="h-6 w-6 text-primary" /> Entegrasyon Merkezi</h1>
         <p className="text-sm text-muted-foreground mt-1">Sistem genelindeki sağlayıcı kataloğu, adapter durumları, bağlantı sağlığı ve API anahtarı yönetimi.</p>
@@ -164,5 +166,6 @@ export default function AdminIntegrations() {
         </CardContent>
       </Card>
     </div>
+    </AdminLayout>
   );
 }
