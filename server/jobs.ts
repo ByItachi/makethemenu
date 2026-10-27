@@ -1,5 +1,7 @@
 import { processOutbox } from "./email/worker";
 import { getMailTransport } from "./email";
+import { processSmsOutbox } from "./sms/outbox";
+import { getSmsTransport } from "./sms";
 import { loadPaymentConfig } from "./payments/config";
 import { runBillingCycle } from "./payments/billing";
 
@@ -26,5 +28,17 @@ export function startBackgroundJobs(): void {
         .catch((e) => console.error("[email] işçi hatası:", e?.code ?? e?.message));
     setInterval(tick, 15_000).unref();
     void tick();
+  }
+
+  const smsTransport = getSmsTransport();
+  if (smsTransport) {
+    const smsTick = () =>
+      processSmsOutbox(smsTransport)
+        .then((r) => {
+          if (r.sent || r.retried || r.failed) console.log(`[sms] gönderildi=${r.sent} yeniden=${r.retried} hatalı=${r.failed}`);
+        })
+        .catch((e) => console.error("[sms] işçi hatası:", e?.code ?? e?.message));
+    setInterval(smsTick, 15_000).unref();
+    void smsTick();
   }
 }

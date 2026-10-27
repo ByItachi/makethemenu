@@ -2,10 +2,12 @@ import type { Express, Request, Response } from "express";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
-import { plans, emailOutbox, restaurants } from "@shared/schema";
+import { plans, emailOutbox, smsOutbox, restaurants } from "@shared/schema";
 import { writeAudit } from "./audit";
 import { processOutbox } from "./email/worker";
 import { getMailTransport } from "./email";
+import { processSmsOutbox } from "./sms/outbox";
+import { getSmsTransport } from "./sms";
 
 const planUpdateSchema = z
   .object({
@@ -92,6 +94,32 @@ export function registerAdminPlanRoutes(app: Express) {
     if (!transport) return res.status(409).json({ message: "E-posta sağlayıcısı yapılandırılmadı (EMAIL_PROVIDER=smtp ve SMTP_* ayarları gerekli).", code: "MAIL_NOT_CONFIGURED" });
     const result = await processOutbox(transport, 50);
     await writeAudit({ restaurantId: null, actorUserId: req.auth!.userId, action: "admin.email_process", entity: "email_outbox", entityId: "batch", req, meta: result });
+    res.json(result);
+  });
+
+  app.get("/api/admin/sms-outbox", async (_req: Request, res: Response) => {
+    const rows = await db
+      .select({
+        id: smsOutbox.id,
+        restaurantId: smsOutbox.restaurantId,
+        toPhone: smsOutbox.toPhone,
+        status: smsOutbox.status,
+        attempts: smsOutbox.attempts,
+        lastError: smsOutbox.lastError,
+        createdAt: smsOutbox.createdAt,
+        sentAt: smsOutbox.sentAt,
+      })
+      .from(smsOutbox)
+      .orderBy(desc(smsOutbox.id))
+      .limit(200);
+    res.json(rows);
+  });
+
+  app.post("/api/admin/sms-outbox/process", async (req: Request, res: Response) => {
+    const transport = getSmsTransport();
+    if (!transport) return res.status(409).json({ message: "SMS sağlayıcısı yapılandırılmadı (SMS_PROVIDER ve ilgili kimlik bilgileri gerekli).", code: "SMS_NOT_CONFIGURED" });
+    const result = await processSmsOutbox(transport, 50);
+    await writeAudit({ restaurantId: null, actorUserId: req.auth!.userId, action: "admin.sms_process", entity: "sms_outbox", entityId: "batch", req, meta: result });
     res.json(result);
   });
 

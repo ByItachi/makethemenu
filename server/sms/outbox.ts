@@ -1,0 +1,57 @@
+import { and, asc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
+import { db } from "../db";
+import { smsOutbox } from "@shared/schema";
+import { sanitizeError, type SmsTransport } from "./transport";
+
+export const MAX_SMS_ATTEMPTS = 5;
+const lockFor = (seconds: number) => sql`DATE_ADD(NOW(), INTERVAL ${seconds} SECOND)`;
+
+export type SmsOutboxResult = { sent: number; retried: number; failed: number };
+
+/** Queues an outgoing SMS. Until an adapter is configured, messages stay 'queued' — nothing is claimed as sent. */
+export async function enqueueSms(restaurantId: number | null, toPhone: string, body: string): Promise<void> {
+  await db.insert(smsOutbox).values({ restaurantId, toPhone, body });
+}
+
+/**
+ * Sends queued SMS messages. Each row is claimed with a time lock before sending, so two workers
+ * never send the same message twice. Failed attempts retry with growing delay until MAX_SMS_ATTEMPTS.
+ */
+export async function processSmsOutbox(transport: SmsTransport, limit = 20): Promise<SmsOutboxResult> {
+  const result: SmsOutboxResult = { sent: 0, retried: 0, failed: 0 };
+  const due = await db
+    .select({ id: smsOutbox.id })
+    .from(smsOutbox)
+    .where(and(inArray(smsOutbox.status, ["queued", "retry", "sending"]), or(isNull(smsOutbox.lockedUntil), lte(smsOutbox.lockedUntil, sql`NOW()`))))
+    .orderBy(asc(smsOutbox.id))
+    .limit(limit);
+
+  for (const { id } of due) {
+    const [claim] = await db
+      .update(smsOutbox)
+      .set({ status: "sending", attempts: sql`${smsOutbox.attempts} + 1`, lockedUntil: lockFor(60) })
+      .where(and(eq(smsOutbox.id, id), or(isNull(smsOutbox.lockedUntil), lte(smsOutbox.lockedUntil, sql`NOW()`))));
+    if (!claim.affectedRows) continue;
+
+    const [row] = await db.select().from(smsOutbox).where(eq(smsOutbox.id, id));
+    try {
+      await transport.send({ to: row.toPhone, text: row.body });
+      await db
+        .update(smsOutbox)
+        .set({ status: "sent", sentAt: new Date(), lastError: null, lockedUntil: null })
+        .where(eq(smsOutbox.id, id));
+      result.sent++;
+    } catch (err: any) {
+      const message = sanitizeError(String(err?.message ?? "Bilinmeyen hata"));
+      if (row.attempts >= MAX_SMS_ATTEMPTS) {
+        await db.update(smsOutbox).set({ status: "failed", lastError: message, lockedUntil: null }).where(eq(smsOutbox.id, id));
+        result.failed++;
+      } else {
+        const backoffSec = row.attempts * 60;
+        await db.update(smsOutbox).set({ status: "retry", lastError: message, lockedUntil: lockFor(backoffSec) }).where(eq(smsOutbox.id, id));
+        result.retried++;
+      }
+    }
+  }
+  return result;
+}

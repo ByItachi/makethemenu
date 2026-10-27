@@ -111,6 +111,8 @@ export default function HaliOpsDemo() {
   const [smsSeg, setSmsSeg] = useState("tumu");
   const [smsTpl, setSmsTpl] = useState("geri");
   const [smsText, setSmsText] = useState(SMS_TEMPLATES[0].text);
+  const [smsStatus, setSmsStatus] = useState<{ configured: boolean; provider: string | null } | null>(null);
+  const [smsSending, setSmsSending] = useState(false);
   const [fasonModalOpen, setFasonModalOpen] = useState(false);
   const [fasonForm, setFasonForm] = useState({ kind: "yikayan" as "yikayan" | "yikatan", name: "", phone: "", address: "", discountPercent: "" });
   const [fasonError, setFasonError] = useState("");
@@ -127,6 +129,8 @@ export default function HaliOpsDemo() {
     if (dr.ok) setDrivers((await dr.json()).drivers ?? []);
     const fs = await fetch("/api/ops/fason");
     if (fs.ok) setFasonFirms((await fs.json()).firms ?? []);
+    const sr = await fetch("/api/ops/sms/status");
+    if (sr.ok) setSmsStatus(await sr.json());
   };
   useEffect(() => { load(); }, []);
 
@@ -274,6 +278,36 @@ export default function HaliOpsDemo() {
   const smsPreview = smsText
     .replaceAll("{adı}", "Ahmet").replaceAll("{firma}", "Demo")
     .replaceAll("{firmaTelefon}", "0555 000 00 00").replaceAll("{borç}", `${fmtTL(250)} ₺`);
+
+  const sendBulkSms = async () => {
+    const messages = smsRecipients
+      .filter((c) => c.phone)
+      .map((c) => ({
+        phone: c.phone,
+        text: smsText
+          .replaceAll("{adı}", c.name || "Değerli Müşteri").replaceAll("{firma}", "İşletmeniz")
+          .replaceAll("{firmaTelefon}", "").replaceAll("{borç}", `${fmtTL(c.due)} ₺`),
+      }));
+    if (!messages.length) return showToast("Telefon numarası olan alıcı yok");
+    setSmsSending(true);
+    try {
+      const r = await fetch("/api/ops/sms/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
+      });
+      const d = await r.json();
+      if (!r.ok) return showToast(d.message ?? "Gönderim kuyruğa eklenemedi");
+      setSmsStatus({ configured: d.configured, provider: d.provider });
+      showToast(
+        d.configured
+          ? `${d.queued} mesaj kuyruğa alındı, ${d.provider} ile gönderiliyor`
+          : `${d.queued} mesaj kuyruğa alındı — gönderim için SMS sağlayıcı gerekli (Ayarlar: .env → SMS_PROVIDER)`,
+      );
+    } finally {
+      setSmsSending(false);
+    }
+  };
 
   // Randevu takvimi
   const calCells = useMemo(() => {
@@ -1058,10 +1092,9 @@ export default function HaliOpsDemo() {
     <>
       {pageHeader("Toplu SMS", "Kime gönderilsin?",
         <div className="flex items-center gap-2">
-          <span className="px-3 py-2 rounded-xl bg-white border border-orange-100 text-sm font-semibold text-slate-700">💬 5 SMS</span>
-          <Button variant="outline" className="border-orange-100 bg-white text-slate-600" onClick={() => showToast("Kredi yükleme demo sürümde pasif")}>
-            <Plus className="w-4 h-4" /> Kredi Yükle
-          </Button>
+          <span className={"px-3 py-2 rounded-xl bg-white border text-sm font-semibold " + (smsStatus?.configured ? "border-emerald-200 text-emerald-700" : "border-orange-100 text-slate-700")}>
+            💬 {smsStatus?.configured ? (smsStatus.provider ?? "Sağlayıcı aktif") : "Sağlayıcı yok"}
+          </span>
         </div>)}
       <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_300px] gap-4 lg:gap-5 items-start">
         <section className="bg-white/95 rounded-2xl border border-orange-100 shadow-sm p-4">
@@ -1130,13 +1163,17 @@ export default function HaliOpsDemo() {
           </div>
           <div className="mt-3 pt-3 border-t border-orange-50 text-xs space-y-1">
             <p className="flex justify-between"><span className="text-slate-500">Alıcı</span><b className="text-slate-700">{smsRecipients.length}</b></p>
-            <p className="flex justify-between"><span className="text-slate-500">Kullanılacak kredi</span><b className="text-slate-700">{smsRecipients.length} kredi</b></p>
-            <p className="flex justify-between"><span className="text-slate-500">Gönderim sonrası kalan</span><b className="text-slate-700">{Math.max(0, 5 - smsRecipients.length)} kredi</b></p>
+            <p className="flex justify-between"><span className="text-slate-500">Durum</span><b className={smsStatus?.configured ? "text-emerald-600" : "text-amber-600"}>{smsStatus?.configured ? "Sağlayıcı aktif" : "Yapılandırılmadı"}</b></p>
           </div>
+          {smsStatus && !smsStatus.configured && (
+            <p className="mt-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
+              Mesajlar kuyruğa alınır, gerçekten gönderilmez. `.env` içinde SMS_PROVIDER tanımlanmalı.
+            </p>
+          )}
           <Button className="mt-3 w-full bg-primary text-primary-foreground hover:brightness-105 disabled:opacity-50"
-            disabled={!smsRecipients.length}
-            onClick={() => showToast("Demo: SMS gönderimi bu panelde pasif (kredi/SMS sağlayıcı gerekir)")}>
-            {smsRecipients.length ? `Gönder (${smsRecipients.length})` : "Alıcı yok"}
+            disabled={!smsRecipients.length || smsSending}
+            onClick={sendBulkSms}>
+            {smsSending ? "Kuyruğa alınıyor..." : smsRecipients.length ? `Gönder (${smsRecipients.length})` : "Alıcı yok"}
           </Button>
         </aside>
       </div>
@@ -1300,7 +1337,7 @@ export default function HaliOpsDemo() {
     { l: "Logo", v: "Yüklenmedi", icon: ImageIcon, ok: false },
     { l: "IBAN", v: "Eksik", icon: Landmark, ok: false },
     { l: "Google yorum linki", v: "Eksik", icon: Star, ok: false },
-    { l: "SMS kredisi", v: "5 kredi var", icon: CreditCard, ok: true },
+    { l: "SMS sağlayıcı", v: smsStatus?.configured ? smsStatus.provider ?? "aktif" : "Yapılandırılmadı", icon: CreditCard, ok: Boolean(smsStatus?.configured) },
     { l: "Otomatik mesajlar", v: "4 / 15 açık", icon: MessageSquare, ok: true },
     { l: "Personel", v: `${customers.length} müşteri kayıtlı`, icon: UserRound, ok: customers.length > 0 },
   ];

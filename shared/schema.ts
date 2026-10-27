@@ -335,6 +335,21 @@ export const emailOutbox = mysqlTable("email_outbox", {
   sentAt: timestamp("sent_at"),
 });
 
+// Outgoing SMS queue (toplu SMS / bildirim). Delivery adapters (İletiMerkezi, NetGSM, Twilio)
+// read 'queued' rows and set status. Scoped per restaurant so her işletme yalnızca kendi kuyruğunu görür.
+export const smsOutbox = mysqlTable("sms_outbox", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").references(() => restaurants.id),
+  toPhone: varchar("to_phone", { length: 32 }).notNull(),
+  body: varchar("body", { length: 640 }).notNull(),
+  status: varchar("status", { length: 16 }).notNull().default("queued"),
+  attempts: int("attempts").notNull().default(0),
+  lastError: varchar("last_error", { length: 255 }),
+  lockedUntil: timestamp("locked_until"),
+  createdAt: timestamp("created_at").defaultNow(),
+  sentAt: timestamp("sent_at"),
+});
+
 // ---- Billing (subscriptions, payments, coupons, webhooks). Card data is never stored here;
 // only provider references, brand and last4 as reported by the provider.
 export const subscriptions = mysqlTable("subscriptions", {
@@ -616,6 +631,7 @@ export const sectorProfiles = mysqlTable("sector_profiles", {
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type Plan = typeof plans.$inferSelect;export type AuthToken = typeof authTokens.$inferSelect;
 export type EmailOutbox = typeof emailOutbox.$inferSelect;
+export type SmsOutbox = typeof smsOutbox.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 
 export type OrderWithItems = Order & {

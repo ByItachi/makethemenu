@@ -81,6 +81,8 @@ export default function SuOpsDemo() {
   const [smsSeg, setSmsSeg] = useState("tumu");
   const [smsTpl, setSmsTpl] = useState("geri");
   const [smsText, setSmsText] = useState(SMS_TEMPLATES[0].text);
+  const [smsStatus, setSmsStatus] = useState<{ configured: boolean; provider: string | null } | null>(null);
+  const [smsSending, setSmsSending] = useState(false);
 
   const [, navigate] = useLocation();
 
@@ -91,6 +93,8 @@ export default function SuOpsDemo() {
     setAuthed(true);
     const dr = await fetch("/api/ops/drivers?sector=water");
     if (dr.ok) setDrivers((await dr.json()).drivers ?? []);
+    const sr = await fetch("/api/ops/sms/status");
+    if (sr.ok) setSmsStatus(await sr.json());
   };
 
   useEffect(() => { load(); }, []);
@@ -205,6 +209,36 @@ export default function SuOpsDemo() {
   const smsPreview = smsText
     .replaceAll("{adı}", "Ahmet").replaceAll("{firma}", "Demo")
     .replaceAll("{firmaTelefon}", "0555 000 00 00").replaceAll("{borç}", `${fmtTL(250)} ₺`);
+
+  const sendBulkSms = async () => {
+    const messages = smsRecipients
+      .filter((c) => c.phone)
+      .map((c) => ({
+        phone: c.phone,
+        text: smsText
+          .replaceAll("{adı}", c.name || "Değerli Müşteri").replaceAll("{firma}", "İşletmeniz")
+          .replaceAll("{firmaTelefon}", "").replaceAll("{borç}", `${fmtTL(c.due)} ₺`),
+      }));
+    if (!messages.length) return showToast("Telefon numarası olan alıcı yok");
+    setSmsSending(true);
+    try {
+      const r = await fetch("/api/ops/sms/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
+      });
+      const d = await r.json();
+      if (!r.ok) return showToast(d.message ?? "Gönderim kuyruğa eklenemedi");
+      setSmsStatus({ configured: d.configured, provider: d.provider });
+      showToast(
+        d.configured
+          ? `${d.queued} mesaj kuyruğa alındı, ${d.provider} ile gönderiliyor`
+          : `${d.queued} mesaj kuyruğa alındı — gönderim için SMS sağlayıcı gerekli (Ayarlar: .env → SMS_PROVIDER)`,
+      );
+    } finally {
+      setSmsSending(false);
+    }
+  };
 
   if (authed === "loading") return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Yükleniyor...</div>;
   if (!authed) {
@@ -740,12 +774,17 @@ export default function SuOpsDemo() {
           <p className="text-xs text-slate-500 mb-2">Ön İzleme</p>
           <p className="text-sm text-slate-900">{smsPreview}</p>
         </div>
+        {smsStatus && !smsStatus.configured && (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+            SMS sağlayıcı yapılandırılmamış: mesajlar kuyruğa alınır ama gerçekten gönderilmez. Ayarlar için `.env` dosyasında SMS_PROVIDER tanımlanmalı.
+          </div>
+        )}
         <Button
           className="w-full disabled:opacity-50"
-          disabled={!smsRecipients.length}
-          onClick={() => showToast("Demo: SMS gönderimi bu panelde pasif (kredi/SMS sağlayıcı gerekir)")}
+          disabled={!smsRecipients.length || smsSending}
+          onClick={sendBulkSms}
         >
-          {smsRecipients.length ? `Gönder (${smsRecipients.length})` : "Alıcı yok"}
+          {smsSending ? "Kuyruğa alınıyor..." : smsRecipients.length ? `Gönder (${smsRecipients.length})` : "Alıcı yok"}
         </Button>
       </div>
     </div>
@@ -755,7 +794,7 @@ export default function SuOpsDemo() {
   const setupItems = [
     { l: "Logo", v: "Yüklenmedi", icon: ImageIcon, ok: false },
     { l: "IBAN", v: "Eksik", icon: Landmark, ok: false },
-    { l: "SMS kredisi", v: "0 kredi", icon: CreditCard, ok: false },
+    { l: "SMS sağlayıcı", v: smsStatus?.configured ? smsStatus.provider ?? "aktif" : "Yapılandırılmadı", icon: CreditCard, ok: Boolean(smsStatus?.configured) },
     { l: "Sürücü havuzu", v: `${drivers.length} sürücü`, icon: UserRound, ok: drivers.length > 0 },
     { l: "Müşteri kaydı", v: `${customers.length} müşteri`, icon: Users, ok: customers.length > 0 },
   ];

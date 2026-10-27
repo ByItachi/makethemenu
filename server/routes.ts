@@ -25,6 +25,7 @@ import { registerAiMenuRoutes } from "./ai/routes";
 import { registerAdminTemplateRoutes, registerPublicTemplateRoutes } from "./admin-templates";
 import { registerPluginRoutes } from "./plugins";
 import { registerSectorOpsRoutes } from "./sector-ops";
+import { registerSmsRoutes } from "./sms-routes";
 import { registerSectorDrivers } from "./sector-drivers";
 import { registerFasonRoutes } from "./fason";
 import { registerDeliveryService } from "./delivery-service";
@@ -95,6 +96,7 @@ export async function registerRoutes(
   registerAiMenuRoutes(app);
   registerPluginRoutes(app);
   registerSectorOpsRoutes(app);
+  registerSmsRoutes(app);
   registerSectorDrivers(app);
   registerFasonRoutes(app);
   registerDeliveryService(app);
