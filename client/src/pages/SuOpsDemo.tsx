@@ -8,7 +8,7 @@ import {
   ClipboardList, Droplets, CheckCircle2, Truck, Package, Search,
   Sun, Moon, ChevronRight, Home, Receipt, Users,
   Wallet, BookUser, BarChart3, MessageSquare, Car, Settings, Menu,
-  UserRound,
+  UserRound, Plus, TrendingUp, Image as ImageIcon, Landmark, Star, CreditCard,
 } from "lucide-react";
 
 interface WaterOrder {
@@ -164,6 +164,12 @@ export default function SuOpsDemo() {
     const veresiye = customers.reduce((s, c) => s + c.due, 0);
     return { ciro, tahsil, veresiye };
   }, [orders, customers]);
+
+  const gelir = useMemo(
+    () => orders.reduce((s, o) => s + Number(o.paidAmount), 0) + kasa.filter((k) => k.type === "gelir").reduce((s, k) => s + k.amount, 0),
+    [orders, kasa],
+  );
+  const gider = useMemo(() => kasa.filter((k) => k.type === "gider").reduce((s, k) => s + k.amount, 0), [kasa]);
 
   const groupOrders = (groupKey: string) => {
     const stages = GROUP_STAGES[groupKey];
@@ -493,8 +499,70 @@ export default function SuOpsDemo() {
   // Kasa
   const renderKasa = () => (
     <div className="space-y-6">
-      {pageHeader("Kasa", "Gelir ve gider kaydı")}
-      {emptyState(<Wallet className="w-6 h-6" />, "Kasa modülü demo verilerle çalışır", "Gerçek kayıtlar sunucuda tutulur")}
+      {pageHeader("Kasa", dateLabel,
+        <div className="flex items-center gap-2">
+          <Button variant="destructive" onClick={() => {
+            const n = Number(window.prompt("Gider tutarı (₺)"));
+            if (n > 0) setKasa([{ id: Date.now(), type: "gider", amount: n, note: "Gider", method: "Nakit", date: new Date().toISOString().slice(0, 10) }, ...kasa]);
+          }}>Gider Ekle</Button>
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => {
+            const n = Number(window.prompt("Gelir tutarı (₺)"));
+            if (n > 0) setKasa([{ id: Date.now(), type: "gelir", amount: n, note: "Gelir", method: "Nakit", date: new Date().toISOString().slice(0, 10) }, ...kasa]);
+          }}>Gelir Ekle</Button>
+        </div>)}
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4 items-start">
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[280px] flex flex-col">
+          <div className="p-4 sm:p-5 flex-1">
+            {!kasa.length && !orders.length ? (
+              emptyState(<Wallet className="w-6 h-6" />, "Bu dönemde kasa hareketi yok", "Sipariş tahsilatları otomatik gelir olarak işlenir")
+            ) : (
+              <div className="space-y-2">
+                {orders.map((o) => (
+                  <div key={"o" + o.id} className="rounded-xl border border-slate-100 bg-white px-4 py-2.5 flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 grid place-items-center"><TrendingUp className="w-4 h-4" /></span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-700">Sipariş tahsilatı · {o.orderNo}</p>
+                      <p className="text-xs text-slate-400">{o.customerName} · Nakit (yöntem takibi demo)</p>
+                    </div>
+                    <span className="text-sm font-semibold text-emerald-600">+{fmtTL(Number(o.paidAmount))} ₺</span>
+                  </div>
+                ))}
+                {kasa.map((k) => (
+                  <div key={k.id} className="rounded-xl border border-slate-100 bg-white px-4 py-2.5 flex items-center gap-3">
+                    <span className={"w-8 h-8 rounded-lg grid place-items-center " + (k.type === "gelir" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600")}>
+                      <TrendingUp className="w-4 h-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-700">{k.note}</p>
+                      <p className="text-xs text-slate-400">{k.date} · {k.method} · demo kayıt (oturum)</p>
+                    </div>
+                    <span className={"text-sm font-semibold " + (k.type === "gelir" ? "text-emerald-600" : "text-rose-600")}>
+                      {k.type === "gelir" ? "+" : "−"}{fmtTL(k.amount)} ₺
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <footer className="flex flex-wrap items-center gap-x-4 px-4 sm:px-5 py-3 border-t border-slate-100 text-xs text-slate-500 bg-slate-50/60">
+            <span>Gelir <b className="text-emerald-600">+{fmtTL(gelir)} ₺</b></span>
+            <span>Gider <b className="text-rose-600">−{fmtTL(gider)} ₺</b></span>
+            <span className="ml-auto">Dönem neti <b className="text-slate-700">{fmtTL(gelir - gider)} ₺</b></span>
+          </footer>
+        </section>
+        <aside className="space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+            <p className="text-sm font-semibold text-primary mb-1">Kasadaki para</p>
+            <p className="text-3xl font-bold text-slate-900">{fmtTL(gelir - gider)} ₺</p>
+            <div className="mt-3 pt-3 border-t border-dashed border-slate-100 space-y-1.5 text-sm">
+              <p className="flex justify-between"><span className="text-slate-500">Devreden</span><span className="font-medium">0,00 ₺</span></p>
+              <p className="flex justify-between"><span className="text-slate-500">Gelir</span><span className="font-medium text-emerald-600">+{fmtTL(gelir)} ₺</span></p>
+              <p className="flex justify-between"><span className="text-slate-500">Gider</span><span className="font-medium text-rose-600">−{fmtTL(gider)} ₺</span></p>
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-400 px-1">Kasa kayıtları bu oturumda tutulur; sayfa yenilenince sıfırlanır. Sipariş tahsilatları her zaman sunucudaki gerçek verilerden gelir.</p>
+        </aside>
+      </div>
     </div>
   );
 
@@ -529,32 +597,100 @@ export default function SuOpsDemo() {
   // Sürücüler
   const renderSuruculer = () => (
     <div className="space-y-6">
-      {pageHeader("Sürücüler", `${drivers.length} sürücü`)}
-      {drivers.length === 0 ? (
-        emptyState(<UserRound className="w-6 h-6" />, "Henüz sürücü yok")
-      ) : (
-        <div className="space-y-3">
-          {drivers.map((d) => (
-            <div key={d.id} className="rounded-lg border border-slate-200 bg-white p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium text-slate-900">{d.name}</p>
-                  <p className="text-xs text-slate-500">{d.phone}</p>
+      {pageHeader("Sürücüler", "Su servisi sektörüne ait sürücü havuzu — halı ve tüp servislerinin havuzu ayrıdır",
+        <Button className="bg-primary text-primary-foreground hover:brightness-105" onClick={async () => {
+          const name = window.prompt("Sürücü adı soyadı");
+          if (!name || name.trim().length < 2) return;
+          const phone = window.prompt("Telefon (opsiyonel)") ?? "";
+          const r = await fetch("/api/ops/drivers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sector: "water", name: name.trim(), phone }),
+          });
+          if (r.ok) { showToast("Sürücü eklendi"); load(); } else showToast((await r.json()).message ?? "Eklenemedi");
+        }}><Plus className="w-4 h-4" /> Sürücü Ekle</Button>)}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 min-h-[280px]">
+        <p className="text-xs text-slate-500 mb-3">
+          Yeni siparişler <b>otomatik olarak en az yüklü aktif sürücüye</b> atanır; isterseniz sipariş kartından manuel atayın.
+        </p>
+        {drivers.length === 0 ? (
+          emptyState(<UserRound className="w-6 h-6" />, "Sürücü yok", "Sürücü Ekle ile havuza sürücü ekleyin")
+        ) : (
+          <div className="space-y-2">
+            {drivers.map((d) => (
+              <div key={d.id} className="rounded-xl border border-slate-100 bg-white px-4 py-3 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-bold">{d.name.slice(0, 1)}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-slate-800">{d.name} {!d.isActive && <span className="text-xs text-slate-400">(pasif)</span>}</p>
+                  <p className="text-xs text-slate-400">{d.phone || "telefon yok"}</p>
                 </div>
-                <Badge variant={d.isActive ? "default" : "secondary"}>{d.isActive ? "Aktif" : "Pasif"}</Badge>
+                <button className="text-[11px] px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50"
+                  onClick={async () => {
+                    await fetch(`/api/ops/drivers/${d.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !d.isActive }) });
+                    load();
+                  }}>
+                  {d.isActive ? "Pasife Al" : "Aktife Al"}
+                </button>
+                <button className="text-[11px] px-2 py-1 rounded-lg border border-rose-100 text-rose-600 hover:bg-rose-50"
+                  onClick={async () => {
+                    if (!window.confirm(`${d.name} silinsin mi?`)) return;
+                    await fetch(`/api/ops/drivers/${d.id}`, { method: "DELETE" });
+                    load();
+                  }}>Sil</button>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 
   // Raporlar
   const renderRaporlar = () => (
     <div className="space-y-6">
-      {pageHeader("Raporlar", "İstatistikler ve analizler")}
-      {emptyState(<BarChart3 className="w-6 h-6" />, "Raporlar modülü geliştiriliyor")}
+      {pageHeader("Raporlar", dateLabel)}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {[
+          ["Dönem cirosu", `${fmtTL(kpi.ciro)} ₺`],
+          ["Sipariş", `${orders.length}`],
+          ["Müşteri", `${customers.length}`],
+          ["Ort. sipariş", `${fmtTL(orders.length ? kpi.ciro / orders.length : 0)} ₺`],
+          ["Tahsilat", `${fmtTL(kpi.tahsil)} ₺`],
+        ].map(([l, v]) => (
+          <div key={l} className="rounded-xl bg-white border border-slate-200 px-4 py-3">
+            <p className="text-[11px] text-slate-400">{l}</p>
+            <p className="text-lg font-bold text-slate-800 truncate">{v}</p>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4 items-start">
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 min-h-[260px]">
+          <h3 className="font-semibold text-slate-900 mb-3">Durum dağılımı</h3>
+          <div className="space-y-2">
+            {GROUPS.map((g) => {
+              const n = counts[g.key] ?? 0;
+              const pct = orders.length ? Math.round((n / orders.length) * 100) : 0;
+              return (
+                <div key={g.key}>
+                  <div className="flex justify-between text-xs text-slate-500 mb-1">
+                    <span>{g.label}</span><span>{n} · %{pct}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: g.color }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+        <aside className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+          <h3 className="font-semibold text-slate-900 mb-3">Kasa</h3>
+          <p className="flex justify-between text-sm py-1"><span className="text-slate-500">Tahsil edilen</span><span className="font-medium text-emerald-600">{fmtTL(kpi.tahsil)} ₺</span></p>
+          <p className="flex justify-between text-sm py-1"><span className="text-slate-500">Gider</span><span className="font-medium text-rose-600">{fmtTL(gider)} ₺</span></p>
+          <p className="flex justify-between text-sm py-2 border-t border-slate-100 mt-1"><span className="font-semibold text-slate-700">Net kasa</span><span className="font-bold">{fmtTL(kpi.tahsil - gider)} ₺</span></p>
+          <p className="flex justify-between text-xs text-slate-400 border-t border-slate-100 mt-2 pt-2"><span>Veresiye alacak</span><span>{fmtTL(kpi.veresiye)} ₺</span></p>
+        </aside>
+      </div>
     </div>
   );
 
@@ -604,16 +740,71 @@ export default function SuOpsDemo() {
           <p className="text-xs text-slate-500 mb-2">Ön İzleme</p>
           <p className="text-sm text-slate-900">{smsPreview}</p>
         </div>
-        <Button className="w-full">Gönder ({smsRecipients.length} alıcı)</Button>
+        <Button
+          className="w-full disabled:opacity-50"
+          disabled={!smsRecipients.length}
+          onClick={() => showToast("Demo: SMS gönderimi bu panelde pasif (kredi/SMS sağlayıcı gerekir)")}
+        >
+          {smsRecipients.length ? `Gönder (${smsRecipients.length})` : "Alıcı yok"}
+        </Button>
       </div>
     </div>
   );
 
   // Ayarlar
+  const setupItems = [
+    { l: "Logo", v: "Yüklenmedi", icon: ImageIcon, ok: false },
+    { l: "IBAN", v: "Eksik", icon: Landmark, ok: false },
+    { l: "SMS kredisi", v: "0 kredi", icon: CreditCard, ok: false },
+    { l: "Sürücü havuzu", v: `${drivers.length} sürücü`, icon: UserRound, ok: drivers.length > 0 },
+    { l: "Müşteri kaydı", v: `${customers.length} müşteri`, icon: Users, ok: customers.length > 0 },
+  ];
+  const doneCount = setupItems.filter((i) => i.ok).length;
   const renderAyarlar = () => (
     <div className="space-y-6">
-      {pageHeader("Ayarlar", "Panel ayarları")}
-      {emptyState(<Settings className="w-6 h-6" />, "Ayarlar modülü geliştiriliyor")}
+      {pageHeader("Ayarlar", undefined,
+        <Button variant="outline" onClick={() => showToast("Firma bilgileri düzenleme demo sürümde pasif")}>
+          Firma bilgilerini düzenle
+        </Button>)}
+      <p className="text-xs font-semibold tracking-wider text-slate-400">HESAP DURUMU</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {setupItems.map((i) => (
+          <div key={i.l} className={"rounded-2xl border px-4 py-4 bg-white flex items-center gap-3 " + (i.ok ? "border-emerald-100" : "border-slate-200")}>
+            <span className={"w-10 h-10 rounded-xl grid place-items-center " + (i.ok ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-primary")}>
+              <i.icon className="w-5 h-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-slate-400">{i.l}</p>
+              <p className="text-sm font-semibold text-slate-800">{i.v}</p>
+            </div>
+            {!i.ok && <span className="text-rose-500 text-lg">!</span>}
+            {i.ok && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+          </div>
+        ))}
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+        <div className="flex items-center justify-between text-sm mb-2">
+          <span className="text-slate-600">{doneCount} / {setupItems.length} tamamlandı</span>
+          <span className="font-bold text-primary">%{Math.round((doneCount / setupItems.length) * 100)}</span>
+        </div>
+        <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(doneCount / setupItems.length) * 100}%` }} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        {[
+          { l: "Siparişler", d: "Tüm su siparişlerini görüntüle", v: "siparisler" as View },
+          { l: "SMS Şablonları", d: "Müşteriye giden mesaj metinleri", v: "sms" as View },
+          { l: "Sürücüler", d: "Sürücü havuzunu yönet", v: "suruculer" as View },
+          { l: "Araç Takip", d: "Filo / GPS takibi", v: null },
+        ].map((c) => (
+          <button key={c.l} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left hover:border-primary/40"
+            onClick={() => (c.v ? go(c.v) : navigate("/dashboard/fleet"))}>
+            <p className="text-sm font-semibold text-slate-800">{c.l}</p>
+            <p className="text-xs text-slate-400 mt-0.5">{c.d}</p>
+          </button>
+        ))}
+      </div>
     </div>
   );
 
