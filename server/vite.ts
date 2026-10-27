@@ -31,10 +31,21 @@ export async function setupVite(server: Server, app: Express) {
     appType: "custom",
   });
 
-  app.use(vite.middlewares);
+  // Skip Vite middleware for API routes
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api/")) {
+      return next();
+    }
+    vite.middlewares(req, res, next);
+  });
 
   // Middleware to handle SPA fallback - match all requests not handled by previous middleware
   app.use(async (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith("/api/")) {
+      return next();
+    }
+
     const url = req.originalUrl;
 
     try {

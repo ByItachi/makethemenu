@@ -28,19 +28,27 @@ export function loadSmsConfig(env: NodeJS.ProcessEnv = process.env): SmsTranspor
     const user = env.ILETIMERKEZI_API_KEY;
     const pass = env.ILETIMERKEZI_API_HASH;
     const sender = env.SMS_SENDER_TITLE;
+    const iysConsent = env.ILETIMERKEZI_IYS_CONSENT === "true"; // İYS onayı (ticari ileti için gerekli)
     if (!user || !pass || !sender) {
       throw new Error("SMS_PROVIDER=iletimerkezi için ILETIMERKEZI_API_KEY, ILETIMERKEZI_API_HASH ve SMS_SENDER_TITLE tanımlanmalı.");
     }
     return {
       name: "iletimerkezi",
       async send(message) {
-        const xml = `<?xml version="1.0" encoding="UTF-8"?><request><authentication><key>${escapeXml(user)}</key><hash>${escapeXml(pass)}</hash></authentication><order><sender>${escapeXml(sender)}</sender><sendDateTime></sendDateTime><message><text>${escapeXml(message.text)}</text><receipents><number>${escapeXml(message.to)}</number></receipents></message></order></request>`;
+        // İletiMerkezi XML API: https://www.iletimerkezi.com/api-dokumantasyon/
+        // iys="1" → ticari ileti (İYS onayı gerekli); iys="0" → hizmet mesajı (OTP, sipariş, güvenlik)
+        const iysAttr = iysConsent ? ' iys="1"' : ' iys="0"';
+        const xml = `<?xml version="1.0" encoding="UTF-8"?><request><authentication><key>${escapeXml(user)}</key><hash>${escapeXml(pass)}</hash></authentication><order><sender>${escapeXml(sender)}</sender><sendDateTime></sendDateTime><message${iysAttr}><text>${escapeXml(message.text)}</text><receipents><number>${escapeXml(message.to)}</number></receipents></message></order></request>`;
         const resp = await fetch("https://api.iletimerkezi.com/v1/send-sms/xml", {
           method: "POST",
-          headers: { "Content-Type": "application/xml" },
+          headers: { 
+            "Content-Type": "application/xml",
+            "APITEST": env.ILETIMERKEZI_SANDBOX === "true" ? "1" : "0", // Sandbox modu (test kredileri)
+          },
           body: xml,
         });
         const body = await resp.text();
+        // İletiMerkezi başarı: <code>200</code>
         if (!resp.ok || /<code>(?!200)\d+<\/code>/.test(body)) {
           throw new Error(redact(`İletiMerkezi hata: ${body.slice(0, 200)}`, [pass]));
         }

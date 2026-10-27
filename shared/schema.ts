@@ -350,6 +350,24 @@ export const smsOutbox = mysqlTable("sms_outbox", {
   sentAt: timestamp("sent_at"),
 });
 
+export const smsInbound = mysqlTable("sms_inbound", {
+  id: int("id").autoincrement().primaryKey(),
+  restaurantId: int("restaurant_id").references(() => restaurants.id),
+  fromPhone: varchar("from_phone", { length: 32 }).notNull(),
+  body: varchar("body", { length: 640 }).notNull(),
+  externalId: varchar("external_id", { length: 64 }),
+  receivedAt: timestamp("received_at").defaultNow(),
+});
+
+export const smsWebhookLog = mysqlTable("sms_webhook_log", {
+  id: int("id").autoincrement().primaryKey(),
+  provider: varchar("provider", { length: 32 }).notNull(),
+  signatureValid: boolean("signature_valid").notNull().default(false),
+  payloadHash: varchar("payload_hash", { length: 64 }),
+  errorMessage: varchar("error_message", { length: 255 }),
+  processedAt: timestamp("processed_at").defaultNow(),
+});
+
 // ---- Billing (subscriptions, payments, coupons, webhooks). Card data is never stored here;
 // only provider references, brand and last4 as reported by the provider.
 export const subscriptions = mysqlTable("subscriptions", {

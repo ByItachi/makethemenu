@@ -4,10 +4,11 @@ import type { Express, Request, Response } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
-import { smsOutbox } from "@shared/schema";
+import { smsOutbox, smsInbound } from "@shared/schema";
 import { requireRestaurant, tenantId } from "./auth/middleware";
 import { getSmsTransport } from "./sms";
 import { enqueueSms } from "./sms/outbox";
+import { verifyIletimerkeziWebhook, verifyNetgsmWebhook, processSmsWebhook } from "./sms/webhook";
 
 const bulkSchema = z.object({
   messages: z.array(z.object({
@@ -57,5 +58,68 @@ export function registerSmsRoutes(app: Express) {
       .orderBy(desc(smsOutbox.id))
       .limit(100);
     res.json(rows);
+  });
+
+  // Gelen SMS'leri listele (webhook'tan işlenen)
+  app.get("/api/ops/sms/inbound", requireRestaurant, async (req: Request, res: Response) => {
+    const rid = tenantId(req);
+    const rows = await db
+      .select({
+        id: smsInbound.id,
+        fromPhone: smsInbound.fromPhone,
+        body: smsInbound.body,
+        receivedAt: smsInbound.receivedAt,
+      })
+      .from(smsInbound)
+      .where(eq(smsInbound.restaurantId, rid))
+      .orderBy(desc(smsInbound.id))
+      .limit(100);
+    res.json(rows);
+  });
+
+  // İletiMerkezi webhook: gelen SMS ve durum güncellemeleri
+  app.post("/api/ops/sms/webhook/iletimerkezi", async (req: Request, res: Response) => {
+    const secret = process.env.ILETIMERKEZI_WEBHOOK_SECRET;
+    if (!secret) {
+      console.warn("[sms] İletiMerkezi webhook secret tanımlanmadı; webhook işlenmedi.");
+      return res.status(501).json({ message: "Webhook secret tanımlanmadı." });
+    }
+
+    const { valid, error } = await verifyIletimerkeziWebhook(req.body, secret);
+    if (!valid) {
+      console.warn(`[sms] İletiMerkezi webhook imza doğrulama başarısız: ${error}`);
+      return res.status(401).json({ message: "İmza doğrulama başarısız." });
+    }
+
+    const result = await processSmsWebhook("iletimerkezi", req.body);
+    if (!result.success) {
+      console.error(`[sms] İletiMerkezi webhook işleme hatası: ${result.error}`);
+      return res.status(500).json({ message: "Webhook işleme hatası." });
+    }
+
+    res.json({ success: true });
+  });
+
+  // NetGSM webhook: gelen SMS ve durum güncellemeleri
+  app.post("/api/ops/sms/webhook/netgsm", async (req: Request, res: Response) => {
+    const secret = process.env.NETGSM_WEBHOOK_SECRET;
+    if (!secret) {
+      console.warn("[sms] NetGSM webhook secret tanımlanmadı; webhook işlenmedi.");
+      return res.status(501).json({ message: "Webhook secret tanımlanmadı." });
+    }
+
+    const { valid, error } = await verifyNetgsmWebhook(req.body, secret);
+    if (!valid) {
+      console.warn(`[sms] NetGSM webhook imza doğrulama başarısız: ${error}`);
+      return res.status(401).json({ message: "İmza doğrulama başarısız." });
+    }
+
+    const result = await processSmsWebhook("netgsm", req.body);
+    if (!result.success) {
+      console.error(`[sms] NetGSM webhook işleme hatası: ${result.error}`);
+      return res.status(500).json({ message: "Webhook işleme hatası." });
+    }
+
+    res.json({ success: true });
   });
 }
