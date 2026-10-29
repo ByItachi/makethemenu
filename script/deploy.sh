@@ -17,9 +17,14 @@ SSH_TARGET="${MTM_SSH_TARGET:-root@185.17.139.100}"
 SSH_PORT="${MTM_SSH_PORT:-2222}"
 APP_DIR="${MTM_APP_DIR:-/home/makethemenu/restopos}"
 HEALTH_URL="${MTM_HEALTH_URL:-https://www.makethemenu.com/api/health}"
-mkdir -p "$HOME/.ssh"
-CTL="$HOME/.ssh/mtm-deploy-%C"
-SSH_OPTS=(-o ControlMaster=auto -o ControlPath="$CTL" -o ControlPersist=300 -o ServerAliveInterval=30)
+SSH_OPTS=(-o ServerAliveInterval=30)
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*) ;;
+  *)
+    mkdir -p "$HOME/.ssh"
+    SSH_OPTS+=(-o ControlMaster=auto -o ControlPath="$HOME/.ssh/mtm-deploy-%C" -o ControlPersist=300)
+    ;;
+esac
 
 if [ -n "$(git status --porcelain)" ] && [ "${MTM_ALLOW_DIRTY:-0}" != "1" ]; then
   echo "!! Commit edilmemiş değişiklikler var. Paket HEAD'den üretilir; önce commit edin ya da MTM_ALLOW_DIRTY=1 verin." >&2
@@ -47,5 +52,7 @@ echo "==> Sunucuda dağıtım"
 ssh -p "$SSH_PORT" "${SSH_OPTS[@]}" "$SSH_TARGET" \
   "APP_DIR='$APP_DIR' HEALTH_URL='$HEALTH_URL' bash /root/mtm-deploy-remote.sh"
 
-ssh -p "$SSH_PORT" "${SSH_OPTS[@]}" -O exit "$SSH_TARGET" 2>/dev/null || true
+case " ${SSH_OPTS[*]} " in
+  *ControlMaster*) ssh -p "$SSH_PORT" "${SSH_OPTS[@]}" -O exit "$SSH_TARGET" 2>/dev/null || true ;;
+esac
 echo "==> Bitti."
