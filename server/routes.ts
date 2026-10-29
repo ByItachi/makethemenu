@@ -33,6 +33,7 @@ import { registerStockRoutes } from "./ops-stock";
 import { registerStaffRoutes } from "./ops-staff";
 import { registerCrmRoutes } from "./ops-crm";
 import { registerDeviceRoutes } from "./ops-devices";
+import { registerSmsGatewayRoutes } from "./sms-gateway-routes";
 import { registerDeliveryService } from "./delivery-service";
 import { registerIntegrationCenterRoutes } from "./integration-center";
 import { registerSubscriptionCheckoutRoutes } from "./subscription";
@@ -109,6 +110,7 @@ export async function registerRoutes(
   registerStaffRoutes(app);
   registerCrmRoutes(app);
   registerDeviceRoutes(app);
+  registerSmsGatewayRoutes(app);
   registerDeliveryService(app);
   registerIntegrationCenterRoutes(app);
   registerSubscriptionCheckoutRoutes(app);

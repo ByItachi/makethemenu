@@ -7,7 +7,19 @@ export interface SmsMessage {
 
 export interface SmsTransport {
   name: string;
+  /** "pull": mesajlar kendi gateway cihazlarımız tarafından kuyruktan çekilir (send kullanılmaz). */
+  mode?: "push" | "pull";
   send(message: SmsMessage): Promise<void>;
+}
+
+export function buildGatewayTransport(): SmsTransport {
+  return {
+    name: "makethemenu",
+    mode: "pull",
+    async send() {
+      throw new Error("Gateway modunda mesajlar doğrudan gönderilmez; kuyruğa alınır ve SIM cihazları tarafından çekilir.");
+    },
+  };
 }
 
 export { sanitizeError };
@@ -54,6 +66,7 @@ export function loadSmsConfig(env: NodeJS.ProcessEnv = process.env): SmsTranspor
 
 function buildMakeTheMenuTransport(env: NodeJS.ProcessEnv): SmsTransport {
   const upstream = (env.MTM_SMS_UPSTREAM ?? "").toLowerCase();
+  if (upstream === "gateway") return buildGatewayTransport();
   if (!upstream || upstream === "mock") {
     return {
       name: "makethemenu",
@@ -75,6 +88,8 @@ function buildMakeTheMenuTransport(env: NodeJS.ProcessEnv): SmsTransport {
 
 export function buildTransportFromConfig(config: SmsProviderConfig, env: NodeJS.ProcessEnv = process.env): SmsTransport {
   const provider = config.provider.toLowerCase();
+
+  if (provider === "gateway") return buildGatewayTransport();
 
   if (provider === "mock") {
     return {

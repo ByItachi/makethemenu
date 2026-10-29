@@ -1,0 +1,12 @@
+{
+  "name": "mtm-sms-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MakeTheMenu kendi SMS gateway'i için cihaz bridge'i (USB GSM modem / Android Termux)",
+  "bin": { "mtm-sms-bridge": "mtm-sms-bridge.mjs" },
+  "engines": { "node": ">=18" },
+  "optionalDependencies": {
+    "serialport": "^12.0.0"
+  }
+}

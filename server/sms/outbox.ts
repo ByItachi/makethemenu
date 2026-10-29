@@ -66,6 +66,7 @@ async function sendOne(transport: SmsTransport, id: number, result: SmsOutboxRes
  */
 export async function processSmsOutbox(transport: SmsTransport, limit = 200, concurrency = 10): Promise<SmsOutboxResult> {
   const result: SmsOutboxResult = { sent: 0, retried: 0, failed: 0 };
+  if (transport.mode === "pull") return result;
   const due = await db
     .select({ id: smsOutbox.id })
     .from(smsOutbox)

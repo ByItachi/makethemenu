@@ -349,6 +349,41 @@ export const smsOutbox = mysqlTable("sms_outbox", {
   scheduledAt: timestamp("scheduled_at"),
   createdAt: timestamp("created_at").defaultNow(),
   sentAt: timestamp("sent_at"),
+  gatewayDeviceId: int("gateway_device_id"),
+  gatewayClaim: varchar("gateway_claim", { length: 32 }),
+  deliveredAt: timestamp("delivered_at"),
+}, (t) => [
+  index("idx_sms_outbox_status_lock").on(t.status, t.lockedUntil),
+  index("idx_sms_outbox_gateway_sent").on(t.gatewayDeviceId, t.sentAt),
+]);
+
+// MakeTheMenu kendi SMS gateway motoru: SIM kartlı Android telefonlar / USB GSM modemler.
+// Cihazlar platform düzeyindedir (tek işletmeye bağlı değildir); kuyruktan iş çeker, SIM ile gönderir.
+export const smsGatewayDevices = mysqlTable("sms_gateway_devices", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  kind: varchar("kind", { length: 16 }).notNull().default("android"),
+  pairingCode: varchar("pairing_code", { length: 16 }).unique(),
+  pairingCodeExpiresAt: timestamp("pairing_code_expires_at"),
+  tokenHash: varchar("token_hash", { length: 128 }),
+  status: varchar("status", { length: 16 }).notNull().default("pending"),
+  simNumber: varchar("sim_number", { length: 32 }),
+  operator: varchar("operator", { length: 64 }),
+  dailyLimit: int("daily_limit").notNull().default(300),
+  perMinuteLimit: int("per_minute_limit").notNull().default(20),
+  enabled: boolean("enabled").notNull().default(true),
+  battery: int("battery"),
+  signal: int("signal"),
+  appVersion: varchar("app_version", { length: 32 }),
+  lastSeenAt: timestamp("last_seen_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Platform düzeyinde anahtar/değer ayarları (ör. şifreli SMS sağlayıcı yapılandırması).
+export const platformSettings = mysqlTable("platform_settings", {
+  settingKey: varchar("setting_key", { length: 64 }).primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const smsInbound = mysqlTable("sms_inbound", {

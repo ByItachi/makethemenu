@@ -8,7 +8,8 @@ import { smsOutbox, smsInbound, smsBalanceLedger, restaurants } from "@shared/sc
 import { requireRestaurant, requirePlatformAdmin, tenantId } from "./auth/middleware";
 import { getSmsTransport, resetSmsTransportCache } from "./sms";
 import { enqueueSms } from "./sms/outbox";
-import { setDynamicSmsConfig, getDynamicSmsConfig, type SmsProviderConfig } from "./sms/transport";
+import { getDynamicSmsConfig, type SmsProviderConfig } from "./sms/transport";
+import { persistSmsConfig } from "./sms/settings";
 import { verifyIletimerkeziWebhook, verifyNetgsmWebhook, processSmsWebhook } from "./sms/webhook";
 import { createApiKey, listApiKeys, revokeApiKey } from "./sms/apiKey";
 import { getBalance, getLedgerHistory, applyLedgerEntry } from "./sms/balance";
@@ -428,6 +429,7 @@ export function registerSmsRoutes(app: Express) {
     res.json({
       active: Boolean(transport),
       name: transport?.name ?? null,
+      mode: transport?.mode ?? (transport ? "push" : null),
       config: config ? {
         provider: config.provider,
         iletimerkezi: config.iletimerkezi ? { apiKey: "***", sender: config.iletimerkezi.sender, sandbox: config.iletimerkezi.sandbox } : undefined,
@@ -439,7 +441,7 @@ export function registerSmsRoutes(app: Express) {
   });
 
   const providerConfigSchema = z.object({
-    provider: z.enum(["mock", "iletimerkezi", "netgsm", "twilio"]),
+    provider: z.enum(["gateway", "mock", "iletimerkezi", "netgsm", "twilio"]),
     iletimerkezi: z.object({
       apiKey: z.string().min(1),
       apiHash: z.string().min(1),
@@ -472,8 +474,7 @@ export function registerSmsRoutes(app: Express) {
     if (config.provider === "twilio" && !config.twilio) {
       return res.status(400).json({ message: "Twilio yapılandırması eksik." });
     }
-    setDynamicSmsConfig(config);
-    resetSmsTransportCache();
+    await persistSmsConfig(config);
     const transport = getSmsTransport();
     res.json({
       success: true,
@@ -487,6 +488,10 @@ export function registerSmsRoutes(app: Express) {
     if (!parsed.success) return res.status(400).json({ message: "Geçersiz telefon numarası." });
     const transport = getSmsTransport();
     if (!transport) return res.status(400).json({ message: "SMS sağlayıcısı yapılandırılmamış." });
+    if (transport.mode === "pull") {
+      const id = await enqueueSms(null, parsed.data.phone, "MakeTheMenu SMS test mesajı. Bu mesajı aldıysanız, kendi SMS gateway'iniz çalışıyor.");
+      return res.json({ success: true, provider: transport.name, queued: true, id });
+    }
     try {
       await transport.send({ to: parsed.data.phone, text: "MakeTheMenu SMS test mesajı. Bu mesajı aldıysanız, SMS sağlayıcınız doğru yapılandırılmıştır." });
       res.json({ success: true, provider: transport.name });

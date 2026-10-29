@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AdminLayout from "./AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { MessageSquare, RefreshCw, AlertTriangle, CheckCircle2, Clock, Trash2, BarChart3, Settings, Send } from "lucide-react";
+import { MessageSquare, RefreshCw, AlertTriangle, CheckCircle2, Clock, Trash2, BarChart3, Settings, Send, Smartphone, Plus, KeyRound, Ban, Wifi, WifiOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -41,7 +41,7 @@ interface OutboxRow {
 
 const STATUS_LABELS: Record<string, string> = {
   queued: "Kuyrukta", sending: "Gönderiliyor", sent: "Gönderildi",
-  failed: "Başarısız", retry: "Yeniden Denenecek", scheduled: "Zamanlanmış",
+  failed: "Başarısız", retry: "Yeniden Denenecek", scheduled: "Zamanlanmış", dispatched: "Cihaza İletildi",
 };
 
 interface ProviderInfo {
@@ -59,7 +59,7 @@ interface ProviderInfo {
 function ProviderConfigCard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [upstreamProvider, setUpstreamProvider] = useState("mock");
+  const [upstreamProvider, setUpstreamProvider] = useState("gateway");
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [testPhone, setTestPhone] = useState("");
   const [testing, setTesting] = useState(false);
@@ -72,6 +72,10 @@ function ProviderConfigCard() {
       return res.json();
     },
   });
+
+  useEffect(() => {
+    if (providerInfo?.config?.provider) setUpstreamProvider(providerInfo.config.provider);
+  }, [providerInfo?.config?.provider]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -101,6 +105,7 @@ function ProviderConfigCard() {
       toast({ title: "SMS sağlayıcısı güncellendi." });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/provider"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/overview"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/gateway"] });
     } catch {
       toast({ title: "Yapılandırma kaydedilemedi.", variant: "destructive" });
     }
@@ -113,7 +118,9 @@ function ProviderConfigCard() {
     try {
       const res = await apiRequest("POST", "/api/admin/sms/provider/test", { phone: testPhone });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.queued) {
+        toast({ title: `Test SMS kuyruğa alındı (#${data.id}). Çevrimiçi gateway cihazı alıp gönderecek.` });
+      } else if (data.success) {
         toast({ title: "Test SMS gönderildi." });
       } else {
         toast({ title: `Test başarısız: ${data.error}`, variant: "destructive" });
@@ -146,6 +153,7 @@ function ProviderConfigCard() {
             <Select value={upstreamProvider} onValueChange={setUpstreamProvider}>
               <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="gateway">Kendi Gateway'imiz (SIM kartlı cihazlar)</SelectItem>
                 <SelectItem value="mock">Test Modu (Gerçek SMS gönderme)</SelectItem>
                 <SelectItem value="iletimerkezi">İletiMerkezi</SelectItem>
                 <SelectItem value="netgsm">NetGSM</SelectItem>
@@ -154,6 +162,13 @@ function ProviderConfigCard() {
             </Select>
           </div>
         </div>
+
+        {upstreamProvider === "gateway" && (
+          <div className="p-4 border rounded-md text-sm text-muted-foreground space-y-1">
+            <p>Mesajlar aracı firma olmadan, eşleştirdiğiniz SIM kartlı Android telefonlar veya USB GSM modemler üzerinden gönderilir. Cihazları aşağıdaki "SMS Gateway Cihazları" bölümünden ekleyin.</p>
+            <p>Not: Gönderici olarak SIM numarası görünür (alfanümerik başlık kullanılamaz). Operatör paket limitleri ve İYS/BTK kuralları geçerlidir.</p>
+          </div>
+        )}
 
         {upstreamProvider === "iletimerkezi" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-md">
@@ -220,6 +235,169 @@ function ProviderConfigCard() {
             <Send className="h-3.5 w-3.5 mr-1" /> {testing ? "Gönderiliyor..." : "Test SMS"}
           </Button>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface GatewayDevice {
+  id: number;
+  name: string;
+  kind: string;
+  status: string;
+  enabled: boolean;
+  pairingCode: string | null;
+  simNumber: string | null;
+  operator: string | null;
+  battery: number | null;
+  signal: number | null;
+  dailyLimit: number;
+  perMinuteLimit: number;
+  lastSeenAt: string | null;
+  online: boolean;
+  usage: { sentToday: number; inFlight: number; failedToday: number; deliveredToday: number } | null;
+}
+
+interface GatewayInfo {
+  gatewayActive: boolean;
+  queue: { waiting: number; scheduled: number; dispatched: number; sentToday: number; failedToday: number };
+  devices: GatewayDevice[];
+}
+
+function GatewayDevicesCard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [name, setName] = useState("");
+  const [kind, setKind] = useState("android");
+  const [dailyLimit, setDailyLimit] = useState("300");
+  const [busy, setBusy] = useState(false);
+
+  const { data, isLoading } = useQuery<GatewayInfo>({
+    queryKey: ["/api/admin/sms/gateway"],
+    queryFn: async () => (await apiRequest("GET", "/api/admin/sms/gateway")).json(),
+    refetchInterval: 10_000,
+  });
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ["/api/admin/sms/gateway"] });
+
+  const addDevice = async () => {
+    if (name.trim().length < 2) { toast({ title: "Cihaz adı girin.", variant: "destructive" }); return; }
+    setBusy(true);
+    try {
+      const res = await apiRequest("POST", "/api/admin/sms/gateway/devices", { name: name.trim(), kind, dailyLimit: Number(dailyLimit) || 300 });
+      const out = await res.json();
+      toast({ title: `Cihaz eklendi. Eşleştirme kodu: ${out.device.pairingCode}` });
+      setName("");
+      refresh();
+    } catch {
+      toast({ title: "Cihaz eklenemedi.", variant: "destructive" });
+    }
+    setBusy(false);
+  };
+
+  const action = async (method: string, url: string, body?: unknown, okMsg?: string) => {
+    try {
+      await apiRequest(method, url, body);
+      if (okMsg) toast({ title: okMsg });
+      refresh();
+    } catch {
+      toast({ title: "İşlem başarısız.", variant: "destructive" });
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2"><Smartphone className="h-4 w-4" /> SMS Gateway Cihazları</CardTitle>
+        <CardDescription>
+          SIM kartlı Android telefon veya USB GSM modemleri eşleştirin; kuyruktaki mesajları sırayla çekip SIM üzerinden gönderirler.
+          {data && (
+            <span className="ml-2">
+              <Badge variant={data.gatewayActive ? "default" : "secondary"}>{data.gatewayActive ? "Gateway modu aktif" : "Gateway modu kapalı"}</Badge>
+            </span>
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {data && (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-center">
+            {([["Bekleyen", data.queue.waiting], ["Zamanlanmış", data.queue.scheduled], ["Cihazda", data.queue.dispatched], ["Bugün gönderilen", data.queue.sentToday], ["Bugün başarısız", data.queue.failedToday]] as const).map(([label, value]) => (
+              <div key={label} className="rounded-md border p-2">
+                <div className="text-lg font-semibold">{value}</div>
+                <div className="text-xs text-muted-foreground">{label}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+          <div className="md:col-span-2">
+            <Label>Cihaz adı</Label>
+            <Input className="mt-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ofis Android - Turkcell" />
+          </div>
+          <div>
+            <Label>Tür</Label>
+            <Select value={kind} onValueChange={setKind}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="android">Android telefon</SelectItem>
+                <SelectItem value="modem">USB GSM modem</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Label>Günlük limit</Label>
+              <Input className="mt-1" type="number" min={1} value={dailyLimit} onChange={(e) => setDailyLimit(e.target.value)} />
+            </div>
+            <Button onClick={addDevice} disabled={busy}><Plus className="h-4 w-4 mr-1" /> Ekle</Button>
+          </div>
+        </div>
+
+        {isLoading ? <Skeleton className="h-20 w-full" /> : !data?.devices.length ? (
+          <p className="text-sm text-muted-foreground">Henüz gateway cihazı yok. Bir cihaz ekleyin ve verilen 6 haneli kodu cihaz uygulamasına/bridge'e girin.</p>
+        ) : (
+          <div className="space-y-2">
+            {data.devices.map((d) => (
+              <div key={d.id} className="flex flex-col md:flex-row md:items-center gap-2 rounded-md border p-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {d.online ? <Wifi className="h-4 w-4 text-green-600" /> : <WifiOff className="h-4 w-4 text-muted-foreground" />}
+                    <span className="font-medium">{d.name}</span>
+                    <Badge variant="outline">{d.kind === "modem" ? "GSM modem" : "Android"}</Badge>
+                    <Badge variant={d.status === "active" ? "default" : d.status === "revoked" ? "destructive" : "secondary"}>
+                      {d.status === "active" ? (d.online ? "Çevrimiçi" : "Çevrimdışı") : d.status === "pending" ? "Eşleştirme bekliyor" : "İptal edildi"}
+                    </Badge>
+                    {d.status === "active" && !d.enabled && <Badge variant="secondary">Durduruldu</Badge>}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {d.pairingCode && <span className="mr-3">Kod: <span className="font-mono font-semibold text-foreground">{d.pairingCode}</span></span>}
+                    {d.simNumber && <span className="mr-3">SIM: {d.simNumber}</span>}
+                    {d.operator && <span className="mr-3">{d.operator}</span>}
+                    {d.battery != null && <span className="mr-3">Pil %{d.battery}</span>}
+                    {d.signal != null && <span className="mr-3">Sinyal %{d.signal}</span>}
+                    {d.usage && <span className="mr-3">Bugün {d.usage.sentToday}/{d.dailyLimit} · cihazda {d.usage.inFlight} · başarısız {d.usage.failedToday}</span>}
+                    {d.lastSeenAt && <span>Son görülme: {new Date(d.lastSeenAt).toLocaleString("tr-TR")}</span>}
+                  </div>
+                </div>
+                {d.status !== "revoked" && (
+                  <div className="flex gap-2 flex-wrap">
+                    {d.status === "active" && (
+                      <Button size="sm" variant="outline" onClick={() => action("PATCH", `/api/admin/sms/gateway/devices/${d.id}`, { enabled: !d.enabled }, d.enabled ? "Cihaz durduruldu." : "Cihaz etkinleştirildi.")}>
+                        {d.enabled ? "Durdur" : "Başlat"}
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => action("POST", `/api/admin/sms/gateway/devices/${d.id}/pairing-code`, undefined, "Yeni eşleştirme kodu oluşturuldu.")}>
+                      <KeyRound className="h-3.5 w-3.5 mr-1" /> Yeni kod
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => action("DELETE", `/api/admin/sms/gateway/devices/${d.id}`, undefined, "Cihaz iptal edildi.")}>
+                      <Ban className="h-3.5 w-3.5 mr-1" /> İptal
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -397,6 +575,7 @@ export default function AdminSms() {
         )}
 
         <ProviderConfigCard />
+        <GatewayDevicesCard />
 
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           {(["queued", "sending", "sent", "failed", "retry", "scheduled"] as const).map((key) => (
