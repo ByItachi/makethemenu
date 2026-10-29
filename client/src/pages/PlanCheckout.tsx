@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, CreditCard, Landmark, Loader2, Lock, Minus, Plus, ShieldCheck, ShoppingBag, Trash2 } from "lucide-react";
+import { CheckCircle2, ChevronDown, CreditCard, Landmark, Loader2, Lock, Minus, Plus, ShieldCheck, ShoppingBag, Trash2 } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +29,7 @@ export default function PlanCheckout() {
   const [step, setStep] = useState(1); // 1 Sepet · 2 Fatura · 3 Ödeme · 4 Başarı
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const [order, setOrder] = useState<{ orderNo: string; invoiceNo: string; total: number } | null>(null);
 
   // Kurumsal gibi satın alınamayan planlar iletişime yönlendirilir.
@@ -124,33 +127,45 @@ export default function PlanCheckout() {
   const steps = ["Sepet", "Fatura Bilgileri", paymentMethod === "transfer" ? "Havale/EFT" : "Ödeme", "Onay"];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-6xl mx-auto px-4 pt-28 pb-20">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl md:text-4xl font-display font-bold">
+    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden">
+      <Navbar />
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 pt-40 sm:pt-48 pb-12 sm:pb-20">
+        <div className="mb-6 sm:mb-10 text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold">
             Plan <span className="text-primary">Satın Al</span>
           </h1>
-          <p className="text-muted-foreground mt-2">Sepetinizi gözden geçirin, fatura ve ödeme adımlarını tamamlayın.</p>
+          <p className="text-sm sm:text-base text-muted-foreground mt-2">Sepetinizi gözden geçirin, fatura ve ödeme adımlarını tamamlayın.</p>
         </div>
 
-        {/* Adım göstergesi */}
-        <ol className="flex items-center justify-center gap-2 sm:gap-4 mb-10 text-xs sm:text-sm" aria-label="Ödeme adımları">
+        {/* Adım göstergesi: mobil */}
+        <div className="sm:hidden mb-6" aria-label="Ödeme adımları">
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="font-semibold">{steps[step - 1]}</span>
+            <span className="text-muted-foreground">Adım {step} / {steps.length}</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-border overflow-hidden" role="progressbar" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={step}>
+            <div className="h-full bg-primary transition-all" style={{ width: `${(step / steps.length) * 100}%` }} />
+          </div>
+        </div>
+
+        {/* Adım göstergesi: tablet / masaüstü */}
+        <ol className="hidden sm:flex items-center justify-center gap-4 mb-10 text-sm" aria-label="Ödeme adımları">
           {steps.map((label, i) => (
             <li key={label} className="flex items-center gap-2">
               <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border ${step > i + 1 ? "bg-primary text-primary-foreground border-primary" : step === i + 1 ? "border-primary text-primary" : "border-border text-muted-foreground"}`}>
                 {step > i + 1 ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
               </span>
-              <span className={step === i + 1 ? "font-semibold" : "text-muted-foreground hidden sm:inline"}>{label}</span>
-              {i < steps.length - 1 && <span className="w-6 sm:w-10 h-px bg-border" aria-hidden="true" />}
+              <span className={step === i + 1 ? "font-semibold" : "text-muted-foreground"}>{label}</span>
+              {i < steps.length - 1 && <span className="w-6 lg:w-10 h-px bg-border" aria-hidden="true" />}
             </li>
           ))}
         </ol>
 
-        <div className="grid lg:grid-cols-5 gap-8">
+        <div className="grid lg:grid-cols-5 gap-6 lg:gap-8 items-start">
           {/* Sol: adım içeriği */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 order-2 lg:order-1 min-w-0">
             {step === 1 && (
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+              <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-sm">
                 <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><ShoppingBag className="w-5 h-5 text-primary" /> Sepetiniz</h2>
                 {/* Plan seçimi */}
                 <div className="space-y-3 mb-6">
@@ -165,8 +180,8 @@ export default function PlanCheckout() {
                         aria-pressed={active}
                         className={`w-full text-left rounded-xl border p-4 transition-colors ${active ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
                       >
-                        <div className="flex items-center justify-between gap-4">
-                          <div>
+                        <div className="flex items-center justify-between gap-3 sm:gap-4">
+                          <div className="min-w-0">
                             <p className="font-semibold">{p.name}</p>
                             <p className="text-sm text-muted-foreground">{p.desc}</p>
                           </div>
@@ -177,19 +192,19 @@ export default function PlanCheckout() {
                   })}
                 </div>
                 {/* Periyot */}
-                <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-xl border border-border p-4">
                   <div>
                     <Label htmlFor="cycle">Faturalandırma Periyodu</Label>
                     <p className="text-sm text-muted-foreground">Yıllık ödemede %20 indirim uygulanır.</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="grid grid-cols-2 sm:flex items-center gap-2">
                     <Button type="button" size="sm" variant={cycle === "monthly" ? "default" : "outline"} onClick={() => setCycle("monthly")}>Aylık</Button>
                     <Button type="button" size="sm" variant={cycle === "annual" ? "default" : "outline"} onClick={() => setCycle("annual")}>Yıllık</Button>
                   </div>
                 </div>
                 {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
                 <div className="mt-6 flex justify-end">
-                  <Button onClick={() => { const e = validateStep1(); if (e) setError(e); else { setError(null); setStep(2); window.scrollTo(0, 0); } }}>
+                  <Button className="w-full sm:w-auto" onClick={() => { const e = validateStep1(); if (e) setError(e); else { setError(null); setStep(2); window.scrollTo(0, 0); } }}>
                     Devam Et
                   </Button>
                 </div>
@@ -197,7 +212,7 @@ export default function PlanCheckout() {
             )}
 
             {step === 2 && (
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+              <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-sm">
                 <h2 className="text-lg font-bold mb-4">Fatura Bilgileri</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
@@ -226,9 +241,9 @@ export default function PlanCheckout() {
                   </div>
                 </div>
                 {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
-                <div className="mt-6 flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(1)}>Geri</Button>
-                  <Button onClick={() => { const e = validateStep2(); if (e) setError(e); else { setError(null); setStep(3); window.scrollTo(0, 0); } }}>
+                <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-between gap-3">
+                  <Button variant="outline" className="w-full sm:w-auto" onClick={() => setStep(1)}>Geri</Button>
+                  <Button className="w-full sm:w-auto" onClick={() => { const e = validateStep2(); if (e) setError(e); else { setError(null); setStep(3); window.scrollTo(0, 0); } }}>
                     Devam Et
                   </Button>
                 </div>
@@ -236,15 +251,15 @@ export default function PlanCheckout() {
             )}
 
             {step === 3 && (
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+              <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-sm">
                 <h2 className="text-lg font-bold mb-4">{paymentMethod === "transfer" ? "Havale / EFT" : "Kart ile Ödeme"}</h2>
-                <div className="flex gap-2 mb-6" role="tablist" aria-label="Ödeme yöntemi">
+                <div className="grid grid-cols-2 gap-2 mb-6" role="tablist" aria-label="Ödeme yöntemi">
                   <button type="button" role="tab" aria-selected={paymentMethod === "card"} onClick={() => setPaymentMethod("card")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm ${paymentMethod === "card" ? "border-primary bg-primary/5 font-semibold" : "border-border"}`}>
+                    className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 sm:py-2 rounded-lg border text-sm ${paymentMethod === "card" ? "border-primary bg-primary/5 font-semibold" : "border-border"}`}>
                     <CreditCard className="w-4 h-4" /> Kredi Kartı
                   </button>
                   <button type="button" role="tab" aria-selected={paymentMethod === "transfer"} onClick={() => setPaymentMethod("transfer")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm ${paymentMethod === "transfer" ? "border-primary bg-primary/5 font-semibold" : "border-border"}`}>
+                    className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 sm:py-2 rounded-lg border text-sm ${paymentMethod === "transfer" ? "border-primary bg-primary/5 font-semibold" : "border-border"}`}>
                     <Landmark className="w-4 h-4" /> Havale / EFT
                   </button>
                 </div>
@@ -279,9 +294,9 @@ export default function PlanCheckout() {
                   </div>
                 )}
                 {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
-                <div className="mt-6 flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(2)}>Geri</Button>
-                  <Button onClick={submit} disabled={submitting}>
+                <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-between gap-3">
+                  <Button variant="outline" className="w-full sm:w-auto" onClick={() => setStep(2)}>Geri</Button>
+                  <Button className="w-full sm:w-auto" onClick={submit} disabled={submitting}>
                     {submitting ? (<><Loader2 className="w-4 h-4 animate-spin" /> İşleniyor…</>) : paymentMethod === "card" ? `₺${fmt(totals.total)} Öde` : "Siparişi Tamamla"}
                   </Button>
                 </div>
@@ -289,13 +304,13 @@ export default function PlanCheckout() {
             )}
 
             {step === 4 && order && (
-              <div className="bg-card border border-border rounded-2xl p-8 shadow-sm text-center">
+              <div className="bg-card border border-border rounded-2xl p-5 sm:p-8 shadow-sm text-center">
                 <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-950 text-green-600 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <h2 className="text-2xl font-bold mb-2">Siparişiniz Alındı</h2>
                 <p className="text-muted-foreground mb-6">Fatura kopyası <span className="font-medium text-foreground">{billing.email}</span> adresine gönderilecektir.</p>
-                <dl className="text-sm text-left max-w-sm mx-auto space-y-2 mb-8">
+                <dl className="text-sm text-left max-w-sm mx-auto space-y-2 mb-8 break-words">
                   <div className="flex justify-between"><dt className="text-muted-foreground">Sipariş No</dt><dd className="font-mono font-medium">{order.orderNo}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted-foreground">Fatura No</dt><dd className="font-mono font-medium">{order.invoiceNo}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted-foreground">Plan</dt><dd className="font-medium">{plan.name} ({cycle === "annual" ? "Yıllık" : "Aylık"})</dd></div>
@@ -304,7 +319,7 @@ export default function PlanCheckout() {
                 <p className="text-xs text-muted-foreground mb-6 flex items-center justify-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-primary" /> Bu bir demo ödeme altyapısıdır; gerçek tahsilat yapılmaz.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center [&>button]:w-full sm:[&>button]:w-auto">
                   {me?.restaurantId ? (
                     <Button onClick={() => navigate("/restoran/dashboard")}>Panele Git</Button>
                   ) : (
@@ -316,40 +331,62 @@ export default function PlanCheckout() {
             )}
           </div>
 
-          {/* Sağ: sipariş özeti (sepet) */}
-          <aside className="lg:col-span-2" aria-label="Sipariş özeti">
-            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm sticky top-24">
-              <h2 className="text-lg font-bold mb-4">Sipariş Özeti</h2>
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <div>
-                  <p className="font-semibold">{plan.name} Planı</p>
-                  <p className="text-sm text-muted-foreground">{cycle === "annual" ? "Yıllık faturalandırma" : "Aylık faturalandırma"}</p>
+          {/* Sağ: sipariş özeti (mobilde üstte, açılır) */}
+          <aside className="lg:col-span-2 order-1 lg:order-2 min-w-0" aria-label="Sipariş özeti">
+            <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-sm lg:sticky lg:top-28">
+              <button
+                type="button"
+                className="lg:hidden w-full flex items-center justify-between gap-3 text-left"
+                aria-expanded={summaryOpen}
+                aria-controls="order-summary-body"
+                onClick={() => setSummaryOpen((o) => !o)}
+              >
+                <span className="min-w-0">
+                  <span className="block font-bold">Sipariş Özeti</span>
+                  <span className="block text-xs text-muted-foreground truncate">{plan.name} · {cycle === "annual" ? "Yıllık" : "Aylık"}</span>
+                </span>
+                <span className="flex items-center gap-2 shrink-0">
+                  <span className="font-bold text-primary">₺{fmt(totals.total)}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${summaryOpen ? "rotate-180" : ""}`} />
+                </span>
+              </button>
+              <h2 className="hidden lg:block text-lg font-bold mb-4">Sipariş Özeti</h2>
+              <div id="order-summary-body" className={`${summaryOpen ? "block mt-4" : "hidden"} lg:block`}>
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div>
+                    <p className="font-semibold">{plan.name} Planı</p>
+                    <p className="text-sm text-muted-foreground">{cycle === "annual" ? "Yıllık faturalandırma" : "Aylık faturalandırma"}</p>
+                  </div>
+                  {step === 1 ? (
+                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1 shrink-0">
+                      <Plus className="w-3 h-3" /><Minus className="w-3 h-3" /> 1 adet
+                    </span>
+                  ) : (
+                    <button type="button" className="text-xs text-primary hover:underline shrink-0" onClick={() => setStep(1)}>Düzenle</button>
+                  )}
                 </div>
-                {step === 1 ? (
-                  <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                    <Plus className="w-3 h-3" /><Minus className="w-3 h-3" /> 1 adet
-                  </span>
-                ) : (
-                  <button type="button" className="text-xs text-primary hover:underline" onClick={() => setStep(1)}>Düzenle</button>
+                <dl className="text-sm space-y-2 border-t border-border pt-4">
+                  <div className="flex justify-between"><dt className="text-muted-foreground">Ara Toplam</dt><dd>₺{fmt(totals.periodAmount)}</dd></div>
+                  {cycle === "annual" && (
+                    <div className="flex justify-between text-green-600"><dt>Yıllık indirim (%20)</dt><dd>−₺{fmt(Math.round(plan.monthlyPrice! * 12 * 0.2))}</dd></div>
+                  )}
+                  <div className="flex justify-between"><dt className="text-muted-foreground">KDV (%20)</dt><dd>₺{fmt(totals.vat)}</dd></div>
+                  <div className="flex justify-between border-t border-border pt-3 text-base font-bold"><dt>Toplam</dt><dd>₺{fmt(totals.total)}</dd></div>
+                </dl>
+                {step < 4 && (
+                  <button type="button" className="mt-4 text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1" onClick={() => setStep(1)}>
+                    <Trash2 className="w-3 h-3" /> Sepeti boşalt
+                  </button>
                 )}
               </div>
-              <dl className="text-sm space-y-2 border-t border-border pt-4">
-                <div className="flex justify-between"><dt className="text-muted-foreground">Ara Toplam</dt><dd>₺{fmt(totals.periodAmount)}</dd></div>
-                {cycle === "annual" && (
-                  <div className="flex justify-between text-green-600"><dt>Yıllık indirim (%20)</dt><dd>−₺{fmt(Math.round(plan.monthlyPrice! * 12 * 0.2))}</dd></div>
-                )}
-                <div className="flex justify-between"><dt className="text-muted-foreground">KDV (%20)</dt><dd>₺{fmt(totals.vat)}</dd></div>
-                <div className="flex justify-between border-t border-border pt-3 text-base font-bold"><dt>Toplam</dt><dd>₺{fmt(totals.total)}</dd></div>
-              </dl>
-              {step < 4 && (
-                <button type="button" className="mt-4 text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1" onClick={() => setStep(1)}>
-                  <Trash2 className="w-3 h-3" /> Sepeti boşalt
-                </button>
-              )}
+              <p className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-primary shrink-0" /> Güvenli ödeme · 256-bit SSL şifreleme
+              </p>
             </div>
           </aside>
         </div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }

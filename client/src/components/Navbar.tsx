@@ -165,7 +165,7 @@ export function Navbar() {
             </Link>
 
             {/* Desktop Nav - Centered */}
-            <div className="hidden lg:flex items-center justify-center flex-1 px-1 min-w-0">
+            <div className="hidden 2xl:flex items-center justify-center flex-1 px-1 min-w-0">
               <div className="flex items-center">
                 <DropdownNavItem title={t("nav.businessTypes")}>
                   <ul className="grid w-[600px] grid-cols-2 gap-3 p-4">
@@ -228,7 +228,7 @@ export function Navbar() {
             </div>
 
             {/* Buttons - Right Aligned */}
-            <div className="hidden lg:flex items-center gap-0.5 shrink-0">
+            <div className="hidden 2xl:flex items-center gap-0.5 shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Dil seç">
@@ -258,7 +258,7 @@ export function Navbar() {
             </div>
 
             {/* Mobile Toggle */}
-            <div className="lg:hidden ml-auto flex items-center gap-1">
+            <div className="2xl:hidden ml-auto flex items-center gap-1">
               <ThemeToggle className="h-9 w-9" />
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
